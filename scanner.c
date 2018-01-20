@@ -1,6 +1,6 @@
-#include "scanner.h"
 #include <stdio.h>
 #include <string.h>
+#include "scanner.h"
 
 FILE *inp;
 Token token;

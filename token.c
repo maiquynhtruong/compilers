@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "token.h"
@@ -11,8 +12,8 @@ Keyword keywords[MAX_KEYWORD];
 
 void insert_keyword(char *keyword, TokenType type) {
     static int count;
-    keywords[0].keyword = keyword;
-    keywords[count].type = &type;
+    strcpy(keywords[0].keyword, keyword);
+    keywords[count].type = type;
 }
 
 void insert_all_keywords() {
@@ -21,6 +22,6 @@ void insert_all_keywords() {
 
 int main(int argc, char *argv[]) {
     insert_all_keywords();
-    printf("%s%s\n", keywords[0].keyword, keywords[0].type);
+    printf("%s%d\n", keywords[0].keyword, keywords[0].type);
 
 }
