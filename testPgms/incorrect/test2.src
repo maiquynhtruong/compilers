@@ -1,0 +1,8 @@
+program test_program is
+    string s;
+    int b[3];
+begin
+    s := "a%s";
+    b := 1 + + 1 1 1;
+    b := 2;
+end program.

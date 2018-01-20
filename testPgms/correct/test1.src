@@ -1,0 +1,29 @@
+/* ok so it's also time to test
+	/* nested comments; can you do it??
+	*/*/
+
+PROGRAM grant IS
+	global integer JAKE;
+	global integer ryan[3];
+	global integer zach;
+
+	procedure if_proc()
+		integer declaration;
+		begin
+			if(true) then jake := jake + 1;
+			else zach := zach + RYAN[2];
+		end if;
+	end procedure;
+
+	procedure for_proc()
+                integer i;
+		begin
+			for(i := 0; i < zach)
+				ryan := zach + i;
+			end for;
+		end procedure;
+
+	begin
+		if_proc();
+		for_proc();
+end program.
