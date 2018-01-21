@@ -42,16 +42,17 @@ void insert_all_keywords() {
     insert_keyword("while", K_WHILE);
 }
 
-int check_reserved_word(char *str) {
+TokenType check_reserved_word(char *str) {
     int i, n = sizeof(keywords)/sizeof(keywords[0]);
     for (i = 0; i < n; i++) {
         if (strcmp(keywords[i].keyword, str)) 
-            return 1;
+            return keywords[i].type;
     }
-    return 0;
+    return T_IDENTIFIER;
 }
-
+/*
 int main(int argc, char *argv[]) {
     insert_all_keywords();
     printf("%s%d\n", keywords[0].keyword, keywords[0].type);
 }
+*/

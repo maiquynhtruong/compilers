@@ -1,6 +1,6 @@
-DEPS=token.h
-OBJ=scanner.o
+DEPS=token.h token.h
+OBJ=scanner.o token.o
 %.o: %.c $(DEPS)
     gcc -c -o $@
-scanner: $(OBJ)
+compiler: $(OBJ)
     gcc -o $@ $^ 

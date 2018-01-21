@@ -3,8 +3,8 @@
 #define MAX_KEYWORD 30
 // enum type: https://www.geeksforgeeks.org/enumeration-enum-c/
 typedef enum {
-T_IDENTIFIER,
-    T_END_OF_FILE, T_ASSIGNMENT, T_RELATION, T_NUMBER, 
+    T_IDENTIFIER,
+    T_END_OF_FILE, T_ASSIGNMENT, T_RELATION, T_NUMBER, T_ARITHOP,
     T_UNKNOWN, T_ERROR, 
     T_COLON,
 
@@ -29,3 +29,4 @@ typedef struct {
     } val;
 } Token;
 
+TokenType check_reserved_word(char *string);
