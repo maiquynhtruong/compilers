@@ -1,15 +1,18 @@
-#include "scanner.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
+#include "scanner.h"
 
 FILE *inp;
 Token token;
 int main(int argc, char *argv[]) {
-    if (argc < 2) 
+    if (argc < 2) {
         printf("Error! No input file...");
-    else 
+        exit(1);
+    } else {
         init_scanner(argv[1]); 
+    }
     while (next_token(&token) != T_END_OF_FILE)
         print_token(&token); // process each token
     return 0;
@@ -29,9 +32,8 @@ TokenType next_token(Token *token) {
             } else if (nextChar == '*') {
                 skip_star_comment();
             } else {
-                token->type = T_ARITHOP;
                 ungetc(nextChar, inp);
-                return token->type;
+                return token->type = T_ARITHOP;
             }
         // If the current character is any letter in the alphabet
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': 
@@ -72,21 +74,16 @@ TokenType next_token(Token *token) {
             //}
             ungetc(ch, inp);
             return token->type;
-        // single quote characters
-        case '\'':
-            token->type = T_SINGLE_QUOTE;
+        case '\'':// single quote characters
             token->val.charVal = ch;
             getc(inp); // if correct, only one character inside a pair of single quotes
-            return token->type; 
-        // double quote strings
-        case '"':
-            token->type = T_DOUBLE_QUOTE;
+            return token->type = T_SINGLE_QUOTE; 
+        case '"': // double quote strings
             for (i = 1; (ch = getc(inp)) != '"'; i++) // read anything until a double quote
                 token->val.stringVal[i] = ch;
             token->val.stringVal[i] = '\0';
-            return token->type;
-        // check if this is assignment token
-        case ':':
+            return token->type = T_DOUBLE_QUOTE;
+        case ':': // check if this is assignment token
             nextChar = getc(inp);
             if (nextChar == '=') 
                 token->type = T_ASSIGNMENT;
@@ -94,34 +91,29 @@ TokenType next_token(Token *token) {
                 token->type = T_COLON; // some random colon?
             return token->type;
         case ';': // for end of statement
-            token->type = T_SEMI_COLON; // separate cases for colon, comma and semi colon to not 
-                                        // mix up with single quote characters
-            return token->type;
+            // separate cases for colon, comma and semi colon to not mix up with single quote characters
+            return token->type = T_SEMI_COLON;;
         case ',': // for separating argument list
-            token->type = T_COMMA;
-            return token->type;
-        // Arithmetic operations. Division has been handled by the comment case
-        case '+': case '-': case '*': 
-            token->type = T_ARITHOP;
-            return token->type;
-        // Relations 
-        case '<': case '>': case '=': case '!':
+            return token->type = T_COMMA;
+        case '+': case '-': case '*': // Arithmetic operations. Division has been handled by the comment case
+            return token->type = T_ARITHOP;
+        case '<': case '>': case '=': case '!':// Relations 
             nextChar = getc(inp);
             if (nextChar == '=') 
-                ; // just read in the relation and probably do nothing
+                ; // just read in the relation and probably do nothing, yet
             else 
                 ungetc(nextChar, inp);
-            token->type = T_RELATION;
-            return token->type;
+            return token->type = T_RELATION;
         case '(':
-            token->type = T_LPAREN;
-            return token->type;
+            return token->type = T_LPAREN;
         case ')':
-            token->type = T_RPAREN;
-            return token->type;
+            return token->type = T_RPAREN;
+        case '[':
+            return token->type = T_LBRACKET;
+        case ']':
+            return token->type = T_RBRACKET;
         case EOF: case '.':
-            token->type = T_END_OF_FILE;
-            return token->type;
+            return token->type = T_END_OF_FILE;
         default: // anything else is not recognized
             token->val.intVal = ch;
             token->type = T_UNKNOWN;
