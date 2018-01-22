@@ -10,11 +10,12 @@ typedef struct {
 } Keyword;
 
 Keyword keywords[MAX_KEYWORD];
+int count = 0;
 
 void insert_keyword(char *keyword, TokenType type) {
-    static int count;
-    strcpy(keywords[0].keyword, keyword);
+    strcpy(keywords[count].keyword, keyword);
     keywords[count].type = type;
+    count++;
 }
 
 void insert_all_keywords() {
@@ -24,7 +25,7 @@ void insert_all_keywords() {
     insert_keyword("in", K_IN);
     insert_keyword("out", K_OUT);
     insert_keyword("inout", K_INOUT);
-    insert_keyword("int", K_INT);
+    insert_keyword("integer", K_INT);
     insert_keyword("float", K_FLOAT);
     insert_keyword("bool", K_BOOL);
     insert_keyword("char", K_CHAR);
@@ -38,21 +39,19 @@ void insert_all_keywords() {
     insert_keyword("then", K_THEN);
     insert_keyword("true", K_TRUE);
     insert_keyword("false", K_FALSE);
-    insert_keyword("for", K_FOR);
     insert_keyword("while", K_WHILE);
+    insert_keyword("for", K_FOR);
 }
 
 TokenType check_reserved_word(char *str) {
-    int i, n = sizeof(keywords)/sizeof(keywords[0]);
-    for (i = 0; i < n; i++) {
-        if (strcmp(keywords[i].keyword, str)) 
+    int i;
+//    printf("str: %s\n", str);
+    for (i = 0; i < count; i++) {
+        if (strcmp(keywords[i].keyword, str) == 0) {
+//            printf("keyword: %s\n", keywords[i].keyword);
             return keywords[i].type;
+        }
     }
+//    printf("ident: %s\n", str);
     return T_IDENTIFIER;
 }
-/*
-int main(int argc, char *argv[]) {
-    insert_all_keywords();
-    printf("%s%d\n", keywords[0].keyword, keywords[0].type);
-}
-*/
