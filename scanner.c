@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "scanner.h"
-
+#include "error.h"
 FILE *inp;
 Token token;
 int main(int argc, char *argv[]) {
@@ -13,8 +13,10 @@ int main(int argc, char *argv[]) {
     } else {
         init_scanner(argv[1]); 
     }
-    while (next_token(&token) != T_END_OF_FILE)
+    while (next_token(&token) != T_END_OF_FILE) {
         print_token(&token); // process each token
+//        reset_token(&token);
+    }
     return 0;
 }
 
@@ -30,7 +32,7 @@ TokenType next_token(Token *token) {
                 while ((ch = getc(inp)) != '\n')
                     ; // skip over one line comment
             } else if (nextChar == '*') {
-                skip_star_comment();
+/*******LOOK******/                skip_star_comment();
             } else {
                 ungetc(nextChar, inp);
                 return token->type = T_ARITHOP;
@@ -45,8 +47,6 @@ TokenType next_token(Token *token) {
         case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': 
         case 'y': case 'z': 
             token->val.stringVal[0] = ch;
-            //printf("str in scanner.c: %s\n", token->val.stringVal);
-            // digit or a letter
             for (i = 1; isalnum(ch = getc(inp)) || ch == '_'; i++) {
                 token->val.stringVal[i] = ch;
             }
@@ -54,35 +54,36 @@ TokenType next_token(Token *token) {
             token->val.stringVal[i] = '\0';
             token->type = check_reserved_word(token->val.stringVal);
             return token->type;
-        // Read number
         case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '9':
-            token->type = T_NUMBER;
             token->val.intVal = ch - '0';
             while (isdigit(ch = getc(inp)) || ch == '.') {
                 if (ch == '.') {
-                    token->val.floatVal = token->val.intVal * 1.0;
-                    break;
-                } else {
-                    token->val.intVal = token->val.intVal*10 + ch - '0';
-                }
+                    token->val.floatVal = 1.0 * token->val.intVal;
+                    break; // go to the loop that reads the decimal part
+                } 
+                token->val.intVal = token->val.intVal*10 + ch - '0';
             }
-            // reading floating number
-            //if (ch == '.') {
-            //    while (isdigit(ch = getc(inp))) {
-            //        token->val.floatVal = token->val.floatVal*10 + (ch - '0')
-            //    }
-            //}
+            if (ch == '.') {
+                int exponent = 1;
+                while (isdigit(ch = getc(inp))) {
+                    exponent = exponent*10;
+                    token->val.floatVal = token->val.floatVal * 10 + ch - '0';
+                }
+                token->val.floatVal = token->val.floatVal / exponent; 
+                ungetc(ch, inp);
+                return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
+            }
             ungetc(ch, inp);
-            return token->type;
+            return token->type = T_NUMBER_INT;
         case '\'':// single quote characters
             token->val.charVal = ch;
-            getc(inp); // if correct, only one character inside a pair of single quotes
-            return token->type = T_SINGLE_QUOTE; 
+            getc(inp); // if correct program, only one character inside a pair of single quotes
+            return token->type = T_CHAR;
         case '"': // double quote strings
-            for (i = 1; (ch = getc(inp)) != '"'; i++) // read anything until a double quote
+            for (i = 0; (ch = getc(inp)) != '"'; i++) // read anything until a double quote
                 token->val.stringVal[i] = ch;
             token->val.stringVal[i] = '\0';
-            return token->type = T_DOUBLE_QUOTE;
+            return token->type = T_STRING; 
         case ':': // check if this is assignment token
             nextChar = getc(inp);
             if (nextChar == '=') 
@@ -115,9 +116,9 @@ TokenType next_token(Token *token) {
         case EOF: case '.':
             return token->type = T_END_OF_FILE;
         default: // anything else is not recognized
-            token->val.intVal = ch;
-            token->type = T_UNKNOWN;
-            return token->type;
+            token->val.charVal = ch;
+            throw_error(E_INVALID_CHAR);
+            return token->type = T_UNKNOWN;
     }
 }
 
@@ -132,6 +133,14 @@ void skip_star_comment() {
 
 }
 
+void reset_token(Token *token) {
+    token->type = T_UNKNOWN;
+    token->val.intVal = 0;
+    token->val.floatVal = 0.0;
+    token->val.boolVal = false;
+    token->val.charVal = 0;
+}
+
 void print_token(Token *token) {
 //    printf("token type: %d\n", token->type);
     switch(token->type) {
@@ -141,16 +150,18 @@ void print_token(Token *token) {
             printf("T_ASSIGNMENT\n"); break;
         case T_RELATION:
             printf("T_RELATION\n"); break;
-        case T_NUMBER:
-            printf("T_NUMBER\n"); break;
+        case T_NUMBER_FLOAT:
+            printf("T_NUMBER_FLOAT, %f\n", token->val.floatVal); break;
+        case T_NUMBER_INT:
+            printf("T_NUMBER_INT, %d\n", token->val.intVal); break;
         case T_ARITHOP:
             printf("T_ARITHOP\n"); break;
         case T_CHAR:
-            printf("T_CHAR\n"); break;
+            printf("T_CHAR, '%c'\n", token->val.charVal); break;
         case T_STRING:
-            printf("T_STRING\n"); break;
+            printf("T_STRING, \"%s\"\n", token->val.stringVal); break;
         case T_IDENTIFIER:
-            printf("T_IDENTIFIER\n"); break;
+            printf("T_IDENTIFIER, %s\n", token->val.stringVal); break;
         case T_AND:
             printf("T_AND\n"); break;
         case T_OR:

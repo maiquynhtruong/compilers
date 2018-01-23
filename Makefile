@@ -13,5 +13,8 @@ scanner.o: scanner.h scanner.c
 token.o: token.h token.c
 
 error.o: error.h error.c
+
+.PHONY: clean
+
 clean:
 	rm -f *.o *.gch *~
