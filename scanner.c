@@ -32,7 +32,7 @@ TokenType next_token(Token *token) {
                 while ((ch = getc(inp)) != '\n')
                     ; // skip over one line comment
             } else if (nextChar == '*') {
-/*******LOOK******/                skip_star_comment();
+        /*******LOOK******/                skip_star_comment();
             } else {
                 ungetc(nextChar, inp);
                 return token->type = T_ARITHOP;

@@ -1,18 +1,19 @@
-DEPS=scanner.h token.h error.h
-OBJ=scanner.o token.o error.o
-CFLAGS= -Wall
+CFLAGS= -c -Wall
 CC=gcc
 LIBS=-lm
-all: scanner
 
-scanner: scanner.o token.o error.o
-	${CC} ${CFLAGS} -o scanner scanner.o token.o error.o
+all: compiler
 
-scanner.o: scanner.h scanner.c
+compiler: scanner.o token.o error.o parser.o
+	${CC} ${CFLAGS} scanner.o token.o error.o parser.o
+
+scanner.o: scanner.c
 
 token.o: token.h token.c
 
 error.o: error.h error.c
+
+parser.o: parser.h parser.c
 
 .PHONY: clean
 

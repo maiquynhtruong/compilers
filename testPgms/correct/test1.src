@@ -21,9 +21,9 @@ PROGRAM grant IS
 			for(i := 0; i < zach)
 				ryan := zach + i;
 			end for;
-		end procedure;
+		end procedure; 
 
-	begin
+	begin // where does it "begin" belong to??
 		if_proc();
 		for_proc();
-end program.
+end program. // does this "end program" for "PROGRAM grant IS" or for "begin"
