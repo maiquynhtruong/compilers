@@ -50,12 +50,18 @@ void parse_program() {
 }
 
 void parse_proc_declaration() {
+    // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
     match_token(T_LPAREN);
     parse_params();
     match_token(T_RPAREN);
-    parse_statement();
+
+    // procedure body
+    parse_var_declarations();
+    // parse_proc_declarations();
+    match_token(K_BEGIN);
+    parse_statements(); 
     match_token(K_END);
     match_token(K_PROCEDURE);
 }
@@ -87,9 +93,12 @@ void parse_var_declarations() {
 }
 
 void parse_statements() {
-    if (look_ahead->type == K_PROCEDURE) {
-        parse_procedure_call();
-
+    switch (look_ahead->type) {
+        case K_PROCEDURE: parse_procedure_call(); break;
+        case K_IF: parse_if(); break;
+        case K_FOR: parse_loop(); break;
+        case K_RETURN: parse_return(); break;
+        default: parse_assignment(); break;
     }
 }
 void parse_assignment() {
@@ -97,22 +106,17 @@ void parse_assignment() {
     match_token(T_ASSIGNMENT);
     parse_expression();
     match_token(T_SEMI_COLON);
-
-}
-
-void parse_procedure_call() {
-  
 }
 
 void parse_param() {
     parse_var_declaration();
     switch (look_ahead->type) {
         case K_IN:
-            match_token(K_IN);
+            match_token(K_IN); break;
         case K_OUT:
-            match_token(K_OUT);
+            match_token(K_OUT); break;
         case K_INOUT:
-            match_token(K_INOUT);
+            match_token(K_INOUT); break;
         default:
             printf("Syntax error\n"); break;
     }
@@ -130,7 +134,8 @@ void parse_if() {
     parse_expression();
     match_token(T_RPAREN);
     match_token(K_THEN);
-    parse_statement();
+    parse_statements();
+    parse_end_if();
 }
 // a separate end if because after else can come another if, so 
 // we may have to call parse if recursively
@@ -150,25 +155,20 @@ void parse_end_if() {
     }
 }
 
-void parse_for() {
+void parse_loop() {
     match_token(K_FOR);
     match_token(T_LPAREN);
-    match_token(T_IDENTIFIER);
-    match_token(T_COLON);
+    parse_assignment();
+    parse_expression
     match_token(T_RPAREN);
-    parse_statement();
+    parse_statements();
     match_token(K_END);
     match_token(K_FOR);
 }
 
-
-
-void parse_procedure_statement() {
-    match_token(K_BEGIN);
-    parse_statement();
-    match_token(K_END);
+void parse_return() {
+    match_token(K_RETURN);
 }
-
 void parse_type() {
     switch(look_ahead->type) {
         case K_INT:
@@ -184,4 +184,15 @@ void parse_type() {
         default:
             printf("Syntax error!\n"); break;
     }
+}
+
+void parse_procedure_call() {
+    match_token(T_IDENTIFIER);
+    match_token(T_LPAREN);
+    parse_arguments();
+    match_token(T_RPAREN);
+}
+
+void parse_expression() {
+    
 }
