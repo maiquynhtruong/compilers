@@ -35,6 +35,7 @@ typedef enum {
     K_FLOAT, 
     K_BOOL, 
     K_CHAR,
+    K_STRING,
     K_PROCEDURE, 
     K_RETURN, 
     K_NOT, 

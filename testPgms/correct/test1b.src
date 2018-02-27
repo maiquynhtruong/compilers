@@ -7,9 +7,6 @@ PROGRAM grant IS
 	global integer JAKE;
 	global integer ryan[3];
 	global integer zach;
-        string "mai";
-        float f = 1.11;
-        integer ii = 123;
 	procedure if_proc()
 		integer declaration;
 		begin
