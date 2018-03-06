@@ -4,21 +4,10 @@
 #include <stdlib.h>
 #include "scanner.h"
 #include "error.h"
-FILE *inp;
+
 Token token;
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Error! No input file...");
-        exit(1);
-    } else {
-        init_scanner(argv[1]); 
-    }
-    while (next_token(&token) != T_END_OF_FILE) {
-        print_token(&token); // process each token
-//        reset_token(&token);
-    }
-    return 0;
-}
+FILE *inp;
+// to run, copy the code from main.c
 
 TokenType next_token(Token *token) {
     int ch, nextChar, i;
@@ -171,8 +160,14 @@ void print_token(Token *token) {
             printf("T_NUMBER_FLOAT, %f\n", token->val.floatVal); break;
         case T_NUMBER_INT:
             printf("T_NUMBER_INT, %d\n", token->val.intVal); break;
-        case T_ARITHOP:
-            printf("T_ARITHOP\n"); break;
+        case T_PLUS:
+            printf("T_PLUS\n"); break;
+        case T_MULTIPLY:
+            print_token("T_MULTIPLY\n"); break;
+        case T_DIVIDE:
+            print_token("T_DIVIDE\n"); break;
+        case T_MINUS:
+            printf("T_MINUS\n"); break;
         case T_CHAR:
             printf("T_CHAR, '%c'\n", token->val.charVal); break;
         case T_STRING:
@@ -201,6 +196,18 @@ void print_token(Token *token) {
             printf("T_LBRACKET\n"); break;
         case T_RBRACKET:
             printf("T_RBRACKET\n"); break;
+        case T_EQ:
+            printf("T_EQ\n"); break;
+        case T_NEQ:
+            printf("T_NEQ\n"); break;
+        case T_LT:
+            printf("T_LT\n");
+        case T_LTEQ:
+            printf("T_LTEQ\n"); break;
+        case T_GT:
+            printf("T_GT\n"); break;
+        case T_GTEQ:
+            printf("T_GTEQ\n"); break;
         case K_PROGRAM:
             printf("K_PROGRAM\n"); break;
         case K_IS:
