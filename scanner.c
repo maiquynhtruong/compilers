@@ -35,7 +35,7 @@ TokenType next_token(Token *token) {
         /*******LOOK******/                skip_star_comment();
             } else {
                 ungetc(nextChar, inp);
-                return token->type = T_ARITHOP;
+                return token->type = T_DIVIDE;
             }
         // If the current character is any letter in the alphabet
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': 
@@ -96,8 +96,12 @@ TokenType next_token(Token *token) {
             return token->type = T_SEMI_COLON;;
         case ',': // for separating argument list
             return token->type = T_COMMA;
-        case '+': case '-': case '*': // Arithmetic operations. Division has been handled by the comment case
-            return token->type = T_ARITHOP;
+        case '+': 
+            return token->type = T_PLUS;
+        case '-': 
+            return token->type = T_MINUS;
+        case '*': 
+            return token->type = T_MINUS;
         case '<': 
             nextChar = getc(inp);
             if (nextChar == '=') return token->type = T_LTEQ; 

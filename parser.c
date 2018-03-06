@@ -194,42 +194,118 @@ void parse_procedure_call() {
 }
 
 void parse_expression() {
-    parse_expression();
+    if (look_ahead->type == K_NOT) {
+        match_token(K_NOT);
+    } 
+    parse_arith_op();
+    parse_expression_arith_op();
+}
+
+void parse_expression_arith_op() {
+    switch(look_ahead->type) {
+        case T_AND:
+            match_token(T_AND);
+            parse_arith_op();
+            parse_expression_arith_op();
+            break;
+        case T_OR:
+            match_token(T_OR);
+            parse_arith_op();
+            parse_expression_arith_op();
+            break;
+        // default:
+    }
 }
 
 void parse_arith_op() {
-
+    parse_relation();
+    parse_arith_op_relation();
+}
+    
+void parse_arith_op_relation() {
+    switch(look_ahead->type) {
+        case T_PLUS:
+            match_token(T_PLUS);
+            parse_relation();
+            parse_arith_op_relation(); // recurse
+            break;
+        case T_MINUS:
+            match_token(T_MINUS);
+            parse_relation();
+            parse_arith_op_relation();
+            break;
+        default:
+            // throws error
+            break;
+    }
 }
 
 void parse_relation() {
+    parse_term();
+    parse_relation_term();
+}
+void parse_relation_term() {
     switch(look_ahead->type) {
         case T_LT:
             match_token(T_LT);
+            parse_term();
+            parse_relation_term();
+            break;
         case T_GTEQ:
             match_token(T_GTEQ);
+            break;
         case T_LTEQ:
             match_token(T_LTEQ);
+            break;
         case T_GT:
             match_token(T_GT);
+            break;
         case T_EQ:
             match_token(T_EQ);
+            break;
         case T_NEQ:
             match_token(T_NEQ);
+            break;
     }
 }
 
 void parse_term() {
     parse_factor();
-    switch(look_ahead->type) {
-        case '*':
-        case '/':
-    }
-    
+    parse_term_factor();
 }
 
+void parse_term_factor() {
+    switch(look_ahead->type) {
+        case '*':
+            match_token(T_MULTIPLY);
+            parse_factor();
+            parse_term_factor(); // recurse
+            break;
+        case '/':
+            match_token(T_DIVIDE);
+            parse_factor();
+            parse_term_factor();
+            break;
+    }
+}
 void parse_factor() {
     switch (look_ahead->type) {
+        case T_STRING:
+            match_token(T_STRING);
+        case T_CHAR:
+            match_token(T_CHAR);
+        case T_LPAREN: // ( <expression> )
+            match_token(T_LPAREN);
+            parse_expression();
+            match_token(T_RPAREN);
+        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
+            match_token(T_IDENTIFIER);
+            match_token(T_LBRACKET);  // does it mean it has to be here?
+            parse_expression();
+            match_token(T_RBRACKET);
         case KW_TRUE:
+            match_token(KW_TRUE);
         case KW_FALSE:
+            match_token(KW_FALSE);
     }
 }
