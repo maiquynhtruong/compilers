@@ -44,9 +44,13 @@ void parse_program() {
     match_token(K_IS);
 
     // program body
-    parse_declarations();
+    if (look_ahead->type != K_BEGIN) {
+        parse_declarations();    
+    }
     match_token(K_BEGIN);
-    parse_statements();
+    if (look_ahead->type != K_END) {
+        parse_statements();
+    }
     match_token(K_END);
     match_token(K_PROGRAM);
 }
@@ -84,9 +88,13 @@ void parse_proc_declaration() {
     match_token(T_RPAREN);
 
     // procedure body
-    parse_declarations();
+    if (look_ahead->type != K_BEGIN) {
+        parse_declarations();    
+    }
     match_token(K_BEGIN);
-    parse_statements(); 
+    if (look_ahead->type != K_END) {
+        parse_statements();
+    }
     match_token(K_END);
     match_token(K_PROCEDURE);
 }
@@ -189,24 +197,13 @@ void parse_if() {
     match_token(T_RPAREN);
     match_token(K_THEN);
     parse_statements();
-    parse_end_if();
-}
-// a separate end if because after else can come another if, so 
-// we may have to call parse if recursively
-void parse_end_if() {
-    if (look_ahead->type == K_END) { // end if
-        next_token();
-        match_token(K_IF);
-    } else if (look_ahead->type == K_ELSE) {
-        next_token();
-        if (look_ahead->type == K_IF) {
-            parse_if(); // another if            
-        } else {
-            parse_statement();
-        }
-    } else { // nothing matches, throw error
-        printf("Syntax error!\n");
+    if (look_ahead->type == K_ELSE) {
+        match_token(K_ELSE);
+        parse_statements();
     }
+    match_token(K_END);
+    match_token(K_IF);
+
 }
 
 void parse_loop() {
@@ -215,7 +212,9 @@ void parse_loop() {
     parse_assignment();
     parse_expression();
     match_token(T_RPAREN);
-    parse_statements();
+    if (look_ahead->type != K_END) {
+        parse_statements();
+    }
     match_token(K_END);
     match_token(K_FOR);
 }
@@ -362,9 +361,11 @@ void parse_factor() {
             match_token(T_MINUS);
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
-            match_token(T_LBRACKET);  // does it mean it has to be here?
-            parse_expression();
-            match_token(T_RBRACKET);
+            if (look_ahead->token == T_LBRACKET) {
+                match_token(T_LBRACKET); 
+                parse_expression();
+                match_token(T_RBRACKET);    
+            }
             break;
         case T_NUMBER_INT: 
             match_token(T_NUMBER_INT); break;
