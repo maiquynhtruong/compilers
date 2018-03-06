@@ -29,11 +29,11 @@ typedef enum {
     T_LBRACKET, 
     T_RBRACKET,
     T_EQ,
-    T_NEQ,
-    T_LT,
-    T_LTEQ,
-    T_GT,
-    T_GTEQ,
+    T_NEQ, // not equal
+    T_LT, // less than
+    T_LTEQ, // less than or equal
+    T_GT, // greater than
+    T_GTEQ, // greater than or equal
     K_PROGRAM, 
     K_IS,
     K_GLOBAL, 
