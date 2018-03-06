@@ -159,7 +159,7 @@ void parse_loop() {
     match_token(K_FOR);
     match_token(T_LPAREN);
     parse_assignment();
-    parse_expression
+    parse_expression();
     match_token(T_RPAREN);
     parse_statements();
     match_token(K_END);
@@ -194,5 +194,42 @@ void parse_procedure_call() {
 }
 
 void parse_expression() {
+    parse_expression();
+}
+
+void parse_arith_op() {
+
+}
+
+void parse_relation() {
+    switch(look_ahead->type) {
+        case T_LT:
+            match_token(T_LT);
+        case T_GTEQ:
+            match_token(T_GTEQ);
+        case T_LTEQ:
+            match_token(T_LTEQ);
+        case T_GT:
+            match_token(T_GT);
+        case T_EQ:
+            match_token(T_EQ);
+        case T_NEQ:
+            match_token(T_NEQ);
+    }
+}
+
+void parse_term() {
+    parse_factor();
+    switch(look_ahead->type) {
+        case '*':
+        case '/':
+    }
     
+}
+
+void parse_factor() {
+    switch (look_ahead->type) {
+        case KW_TRUE:
+        case KW_FALSE:
+    }
 }

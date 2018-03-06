@@ -98,13 +98,26 @@ TokenType next_token(Token *token) {
             return token->type = T_COMMA;
         case '+': case '-': case '*': // Arithmetic operations. Division has been handled by the comment case
             return token->type = T_ARITHOP;
-        case '<': case '>': case '=': case '!':// Relations 
+        case '<': 
             nextChar = getc(inp);
-            if (nextChar == '=') 
-                ; // just read in the relation and probably do nothing, yet
-            else 
+            if (nextChar == '=') return token->type = T_LTEQ; 
+            else {
                 ungetc(nextChar, inp);
-            return token->type = T_RELATION;
+                return token->type = T_LT;
+            }
+        case '>': 
+            nextChar = getc(inp);
+            if (nextChar == '=') return token->type = T_GTEQ;
+            else {
+                ungetc(nextChar, inp);
+                return token->type = T_GT;
+            }
+        case '=': 
+            nextChar = getc(inp);
+            if (nextChar == '=') return token->type = T_EQ; else ungetc(nextChar, inp);
+        case '!':
+            nextChar = getc(inp);
+            if (nextChar == '=') return token->type = T_NEQ; else ungetc(nextChar, inp);
         case '(':
             return token->type = T_LPAREN;
         case ')':

@@ -1,5 +1,8 @@
 #include "token.h"
 void match_token(TokenType type);
+void start_parsing();
+void parse_program();
+void parse_proc_declaration();
 void parse_identifier();
 void parse_statement();
 void parse_if();
