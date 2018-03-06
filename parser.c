@@ -27,16 +27,22 @@ void match_token(TokenType type) {
         Token *temp = current_token;
         current_token = look_ahead;
         next_token(look_ahead);
+
+        free(temp);
     }
 }
 
-void start_parsing() {
+// holy entry point of entire program
+void start_parsing(char *filename) {
     current_token = NULL;
     next_token(look_ahead);
 
     parse_program();
 
+    free(current_token);
+    free(look_ahead);
 }
+
 void parse_program() {
     // program header
     match_token(K_PROGRAM);
@@ -56,6 +62,7 @@ void parse_program() {
 }
 
 void parse_declarations() {
+    TokenType type = look_ahead->type;
     while (type == K_PROCEDURE || type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
         parse_declaration();
         match_token(T_SEMI_COLON);
@@ -141,7 +148,7 @@ void parse_type_mark() {
 
 void parse_statements() {
     TokenType type = look_ahead->type;
-    while (type == K_PROCEDURE || type == K_IF || type == K_FOR || type == K_RETURN) {
+    while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF || type == K_FOR || type == K_RETURN) {
         parse_statement();
         match_token(T_SEMI_COLON);    
     }
@@ -153,7 +160,8 @@ void parse_statement() {
         case K_IF: parse_if(); break;
         case K_FOR: parse_loop(); break;
         case K_RETURN: parse_return(); break;
-        default: parse_assignment(); break;
+        case T_IDENTIFIER: parse_assignment(); break;
+        default: break;
     }
 }
 
@@ -210,6 +218,7 @@ void parse_loop() {
     match_token(K_FOR);
     match_token(T_LPAREN);
     parse_assignment();
+    match_token(T_SEMI_COLON);
     parse_expression();
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
@@ -271,7 +280,7 @@ void parse_expression_arith_op() {
             parse_arith_op();
             parse_expression_arith_op();
             break;
-        // default:
+        // TODO: default
     }
 }
 
@@ -293,7 +302,7 @@ void parse_arith_op_relation() {
             parse_arith_op_relation();
             break;
         default:
-            // throws error
+            // TODO: throws error
             break;
     }
 }
@@ -361,7 +370,7 @@ void parse_factor() {
             match_token(T_MINUS);
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
-            if (look_ahead->token == T_LBRACKET) {
+            if (look_ahead->type == T_LBRACKET) {
                 match_token(T_LBRACKET); 
                 parse_expression();
                 match_token(T_RBRACKET);    
@@ -371,9 +380,9 @@ void parse_factor() {
             match_token(T_NUMBER_INT); break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT); break;
-        case KW_TRUE:
-            match_token(KW_TRUE); break;
-        case KW_FALSE:
-            match_token(KW_FALSE); break;
+        case K_TRUE:
+            match_token(K_TRUE); break;
+        case K_FALSE:
+            match_token(K_FALSE); break;
     }
 }
