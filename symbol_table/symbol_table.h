@@ -16,16 +16,19 @@ typedef struct struct_EntryNode {
 
 typedef struct struct_Scope {
 	EntryNode* EntryNodeList;
+	Entry* parent;
 	struct struct_Scope *outerScope;
 } Scope;
 
-typedef struct SymbolTable {
+typedef struct struct_SymbolTable {
 	Scope *currentScope;
 	Entry *program; // root is program
 	EntryNode* topScope;
-};
+} SymbolTable;
 
-void enter_scope();
+Scope *new_scope();
+
+void enter_scope(Scope *scope);
 
 void exit_scope();
 
