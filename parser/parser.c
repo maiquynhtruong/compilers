@@ -2,8 +2,6 @@
 https://ryanflannery.net/teaching/common/recursive-descent-parsing/
 http://www.craftinginterpreters.com/parsing-expressions.html
 https://news.ycombinator.com/item?id=13914218
-https://www.reddit.com/r/learnprogramming/comments/14aa4h/writing_a_parser_in_c/
-https://github.com/herophuong/kpl-compiler/blob/master/parser/parser.c
 */
 #include <stdlib.h>
 #include <stdio.h>
