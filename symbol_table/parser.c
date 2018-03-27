@@ -49,7 +49,8 @@ void parse_program() {
     match_token(T_IDENTIFIER);
     match_token(K_IS);
 
-    entry = createProgramEntry()
+    entry = createProgramEntry();
+    enter_scope(entry->programAttr->scope);
 
     // program body
     if (look_ahead->type != K_BEGIN) {
@@ -59,6 +60,9 @@ void parse_program() {
     if (look_ahead->type != K_END) {
         parse_statements();
     }
+
+    exit_scope();
+
     match_token(K_END);
     match_token(K_PROGRAM);
 }
