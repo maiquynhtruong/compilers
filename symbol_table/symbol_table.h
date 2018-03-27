@@ -18,13 +18,41 @@ enum EntryType {
 	ET_PROGRAM
 };
 
-typedef struct struct_Type {
+struct Type;
+struct Entry;
+struct EntryNode;
+struct Scope;
+
+typedef struct VariableAttributes {
+	struct Type *type;
+	struct Scope *scope;
+} VariableAttributes;
+
+typedef struct TypeAttributes {
+	struct Type *type;
+} TypeAttributes;
+
+typedef struct ProcedureAttributes {
+	struct EntryNode* paramList;
+	struct Scope *scope;
+} ProcedureAttributes;
+
+typedef struct ProgramAttributes {
+	struct Scope *scope;
+} ProgramAttributes;
+
+typedef struct ParameterAttributes {
+	struct Type *type;
+	struct Entry *procedure;
+} ParameterAttributes;
+
+struct Type {
 	enum TypeClass typeClass;
 	int arraySize;
-	struct struct_Type *elementType;
+	struct Type *elementType;
 } Type;
 
-typedef struct struct_Entry {
+struct Entry {
 	char name[MAX_STRING_LENGTH];
 	enum EntryType entryType;
 	union {
@@ -36,44 +64,26 @@ typedef struct struct_Entry {
 	};
 } Entry;
 
-typedef struct struct_EntryNode {
+struct EntryNode {
 	Entry *entry;
-	struct struct_EntryNode *next;
+	struct EntryNode *next;
 } EntryNode;
 
-typedef struct struct_Scope {
-	EntryNode* EntryNodeList;
+struct Scope {
+	struct EntryNode* EntryNodeList;
 	Entry* parent;
-	struct struct_Scope *outerScope;
-} Scope;
+	struct Scope *outerScope;
+};
 
-typedef struct struct_VariableAttributes {
-	Type *type;
-	struct Scope *scope;
-} VariableAttributes;
-
-typedef struct struct_TypeAttributes {
-	Type *type;
-} TypeAttributes;
-
-typedef struct struct_ProcedureAttributes {
-	EntryNode* paramList;
-	Scope *scope;
-} ProcedureAttributes;
-
-typedef struct struct_ProgramAttributes {
-	Scope *scope;
-} ProgramAttributes;
-
-typedef struct struct_ParameterAttributes {
-	Type *type;
-	Entry *procedure;
-} ParameterAttributes;
+typedef struct Type Type;
+typedef struct Entry Entry;
+typedef struct EntryNode EntryNode;
+typedef struct Scope Scope;
 
 // instead of one global symbol table and one scope symbol table
 // we have one global scope and a list of scopes
 // https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
-typedef struct struct_SymbolTable {
+typedef struct SymbolTable {
 	Scope *currentScope;
 	Entry *program; // root is program
 	EntryNode* globalScope;
