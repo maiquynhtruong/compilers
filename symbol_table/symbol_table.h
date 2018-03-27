@@ -52,6 +52,7 @@ struct Type {
 	struct Type *elementType;
 } Type;
 
+// an entry: <name, type, attribute>
 struct Entry {
 	char name[MAX_STRING_LENGTH];
 	enum EntryType entryType;
@@ -64,14 +65,17 @@ struct Entry {
 	};
 } Entry;
 
+// to make life easier when defining a chain of nodes
 struct EntryNode {
 	Entry *entry;
 	struct EntryNode *next;
 } EntryNode;
 
+// each scope is a list of entries
+// a scope also keeps a pointer to its parent scope so
+// a variable can be search upward
 struct Scope {
-	struct EntryNode* EntryNodeList;
-	Entry* parent;
+	struct EntryNode* EntryList;
 	struct Scope *outerScope;
 };
 
@@ -89,12 +93,17 @@ typedef struct SymbolTable {
 	EntryNode* globalScope;
 } SymbolTable;
 
-Scope *new_scope();
+Entry *createProgramEntry(char *name);
+Entry *createTypeEntry(char *name);
+Entry *createVariableEntry(char *name);
+Entry *createProcedureEntry(char *name);
+Entry *createParameterEntry(char *name);
 
+Scope *new_scope(Scope *outerScope);
+
+void init_symbol_table();
+void clear_symbol_table();
 void enter_scope(Scope *scope);
-
 void exit_scope();
-
-Entry* lookup(EntryNodeList* list, char *name);
-
+Entry* lookup(char *name);
 void dump(SymbolTable *symbolTable);
