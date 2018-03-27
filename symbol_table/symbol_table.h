@@ -1,4 +1,3 @@
-// 
 #include "token.h"
 
 enum TypeClass {
@@ -75,7 +74,7 @@ struct EntryNode {
 // a scope also keeps a pointer to its parent scope so
 // a variable can be search upward
 struct Scope {
-	struct EntryNode* EntryList;
+	struct EntryNode* entryList;
 	struct Scope *outerScope;
 };
 
