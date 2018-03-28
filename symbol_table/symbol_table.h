@@ -92,17 +92,29 @@ typedef struct SymbolTable {
 	EntryNode* globalScope;
 } SymbolTable;
 
+Type *makeIntType();
+Type *makeCharType();
+Type *makeFloatType();
+Type *makeStringType();
+Type *makeBoolType();
+Type *makeArrayType();
+int compareType(Type *type1, Type *type2);
+void freeType(Type *type);
+
 Entry *createProgramEntry(char *name);
 Entry *createTypeEntry(char *name);
 Entry *createVariableEntry(char *name);
 Entry *createProcedureEntry(char *name);
-Entry *createParameterEntry(char *name);
-
-Scope *new_scope(Scope *outerScope);
+Entry *createParameterEntry(char *name, Entry* procedure);
+void freeEntry(Entry *entry);
+void freeEntryList(EntryNode *node);
 
 void init_symbol_table();
 void clear_symbol_table();
+Scope *new_scope(Scope *outerScope);
 void enter_scope(Scope *scope);
 void exit_scope();
 Entry* lookup(char *name);
-void dump(SymbolTable *symbolTable);
+void dump();
+void freeScope(Scope *scope);
+
