@@ -42,6 +42,9 @@ void parse_program() {
     match_token(T_IDENTIFIER);
     match_token(K_IS);
 
+    entry = createProgramEntry(current_token->stringVal);
+    enter_scope(entry->programAttr->scope);
+
     // program body
     if (look_ahead->type != K_BEGIN) {
         parse_declarations();    
@@ -50,6 +53,8 @@ void parse_program() {
     if (look_ahead->type != K_END) {
         parse_statements();
     }
+
+    exit_scope();
 
     match_token(K_END);
     match_token(K_PROGRAM);
@@ -82,6 +87,8 @@ void parse_proc_declaration() {
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
+    entry = createProcedureEntry(current_token->stringVal);
+    enter_scope(entry->procAttrs->scope);
     match_token(T_LPAREN);
     if (look_ahead->type != T_RPAREN) {
         parse_param_list();    
@@ -103,7 +110,7 @@ void parse_proc_declaration() {
 void parse_var_declaration() {
     parse_type_mark();
     match_token(T_IDENTIFIER);
-
+    entry = crateVariableEntry(current_token->stringVal);
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
         if (look_ahead->type == T_MINUS) {
@@ -121,6 +128,7 @@ void parse_var_declaration() {
         else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
         match_token(T_RBRACKET);
     }
+    declareEntry(entry);
 }
 
 void parse_type_mark() {
