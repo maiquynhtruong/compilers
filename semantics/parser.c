@@ -41,7 +41,7 @@ void parse_program() {
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
     match_token(K_IS);
-
+parse
     entry = createProgramEntry(current_token->stringVal);
     enter_scope(entry->programAttr->scope);
 
@@ -105,6 +105,8 @@ void parse_proc_declaration() {
     }
     match_token(K_END);
     match_token(K_PROCEDURE);
+    exit_scope();
+    declareEntry(entry);
 }
 
 void parse_var_declaration() {
@@ -133,7 +135,7 @@ void parse_var_declaration() {
 
 void parse_type_mark() {
     switch(look_ahead->type) {
-        case K_INT:
+        case K_INT:parse
             match_token(K_INT); break;
         case K_FLOAT:
             match_token(K_FLOAT); break;

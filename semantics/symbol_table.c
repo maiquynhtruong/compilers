@@ -104,11 +104,52 @@ Entry *createParameterEntry(char *name, Entry *procedure) {
 }
 
 void freeEntry(Entry *entry) {
-
+	if (entry != NULL) {
+		switch(entry->entryType) {
+			case ET_VARIABLE:
+				if (entry->varAttrs->type != NULL) {
+					free(entry->varAttrs->type);
+					entry->varAttrs->type = NULL;
+				}
+				break;
+			case ET_TYPE_MARK:
+				if (entry->typeAttrs->type != NULL) {
+					free(entry->typeAttrs->type);
+					entry->typeAttrs->type = NULL;
+				}
+				break;
+			case ET_PROCEDURE:
+				if (entry->procAttrs->scope != NULL) {
+					freeScope(entry->procAttrs->scope);
+					entry->procAttrs->scope = NULL;
+				}
+				break;
+			case ET_PARAMTER:
+				if (entry->paramAttrs->type != NULL) {
+					free(entry->paramAttrs->type);
+					entry->paramAttrs->type = NULL;
+				}
+				break;
+			case ET_PROGRAM:
+				if (entry->progAttrs->scope != NULL) {
+					freeScope(entry->progAttrs->scope);
+					entry->progAttrs->scope = NULL;
+				}
+				break;
+			default:
+				break;
+		}
+		free(entry);
+		entry = NULL;
+	}
 }
 
 void freeEntryList(EntryNode *node) {
-
+	if (node != NULL) {
+		freeEntry(node->entry);
+		freeEntryList(node->next);
+		node = NULL;
+	}
 }
 
 void addEntry(EntryNode **list, Entry *entry) {
@@ -145,35 +186,62 @@ void init_symbol_table() {
 	Entry* param;
 
 	// built-in functions
+	// e.g. getInteger(integer val out)
 	entry = createProcedureEntry("getBool");
-	addEntry(symbolTable->globalEntryList, entry);
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeBoolType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
-	entry = createProcedureEntry("getInteger");	
-	addEntry(symbolTable->globalEntryList, entry);
+	entry = createProcedureEntry("getInteger");
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeIntType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("getFloat");
-	addEntry(symbolTable->globalEntryList, entry);
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeFloatType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("getString");
-	addEntry(symbolTable->globalEntryList, entry);
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeStringType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("getChar");
-	addEntry(symbolTable->globalEntryList, entry);
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeCharType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("putBool");
-	addEntry(symbolTable->globalEntryList, entry);
+	param = createParameterEntry("val");
+	param->paramAttrs->type = makeBoolType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("putInteger");
-	addEntry(symbolTable->globalEntryList, entry);
+	param->paramAttrs->type = makeIntType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("putFloat");
-	addEntry(symbolTable->globalEntryList, entry);
+	param->paramAttrs->type = makeFloatType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("putString");
-	addEntry(symbolTable->globalEntryList, entry);
+	param->paramAttrs->type = makeStringType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	entry = createProcedureEntry("putChar");
-	addEntry(symbolTable->globalEntryList, entry);
+	param->paramAttrs->type = makeCharType();
+	addEntry(&(entry->procAttrs->paramList), param);
+	addEntry(&(symbolTable->globalEntryList), entry);
 
 	symbolTable->globalEntryList
 }
@@ -219,8 +287,18 @@ void exit_scope() {
 	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }
 
-void dump()
+void dump() {
+
+}
 
 void freeScope(Scope *scope) {
-
+	if (scope != NULL) {
+		freeEntryList(scope->entryList);
+		free(scope);
+		scope = NULL;
+	}
+}
+// for declarations
+void declareEntry(Entry *entry) {
+	addEntry(&)
 }

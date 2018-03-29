@@ -118,4 +118,5 @@ void exit_scope();
 Entry* lookup(char *name);
 void dump();
 void freeScope(Scope *scope);
-
+void addEntry(EntryNode **list, Entry *entry);
+void declareEntry(Entry *entry);
