@@ -108,6 +108,7 @@ Entry *createProcedureEntry(char *name);
 Entry *createParameterEntry(char *name, Entry* procedure);
 void freeEntry(Entry *entry);
 void freeEntryList(EntryNode *node);
+void addEntry(EntryNode **list, Entry *entry);
 
 void init_symbol_table();
 void clear_symbol_table();

@@ -111,7 +111,30 @@ void freeEntryList(EntryNode *node) {
 
 }
 
+void addEntry(EntryNode **list, Entry *entry) {
+	EntryNode *node = (EntryNode *) malloc(sizeof(EntryNode));
+	node->entry = entry;
+	node->next = NULL;
+	if ((*list) == NULL) list = node;
+	else {
+		EntryNode *curNode = *list;
+		while (curNode->next != NULL) curNode = curNode->next;
+		curNode->next = node;
+	}
+}
+
+// find entry by name
+Entry *findEntry(EntryNode *list, char *name) {
+	while (list != NULL) {
+		if (strcmp(list->entry->name, name) == 0) 
+			return list->entry;
+		else list = list->next;
+	}
+	return NULL;
+}
+
 /* Symbol table functions */
+
 void init_symbol_table() {
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
 	symbolTable->currentScope = new_scope(NULL); // shoudl first layer scope point to global scope?
@@ -120,7 +143,15 @@ void init_symbol_table() {
 }
 
 void clear_symbol_table() {
-
+	freeEntry(symbolTable->program);
+	freeEntryList(symbolTable->globalScope);
+	freeScope(currentScope);
+	free(symbolTable);
+	freeType(intType);
+	freeType(charType);
+	freeType(floatType);
+	freeType(stringType);
+	freeType(boolType);
 }
 
 Scope *new_scope(Scope *outerScope) {
@@ -136,22 +167,24 @@ void enter_scope(Scope *scope) {
 
 Entry* lookup(char *name) {
 	// look up through the parent nodes
-	EntryNode *currentNode = symbolTable->currentScope->entryList;
-	while (currentNode != NULL) {
-		if (strcmp(currentNode->entry->name, name) == 0) return currentNode->entry;
-		currentNode = currentNode->next;
+	Scope *curScope = symbolTable->currentScope;
+	Entry *entry = NULL;
+	while (curScope != NULL) {
+		entry = findEntry(curScope->entryList, name);
+		if (entry != NULL) return entry;
+		else curScope = curScope->outerScope;
 	}
 	// if still couldn't find, search in global scope
-
-	// unable to find, return nothing
+	entry = findEntry(symbolTable->globalScope->entryList, name);
+	return entry;
 }
 
 void exit_scope() {
-
+	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }
 
 void dump()
 
 void freeScope(Scope *scope) {
-	
+
 }

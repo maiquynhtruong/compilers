@@ -1,8 +1,3 @@
-/* Some references: 
-https://ryanflannery.net/teaching/common/recursive-descent-parsing/
-http://www.craftinginterpreters.com/parsing-expressions.html
-https://news.ycombinator.com/item?id=13914218
-*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "parser.h"
@@ -10,8 +5,6 @@ https://news.ycombinator.com/item?id=13914218
 // recursive descent parser
 Token* look_ahead;
 Token* current_token;
-
-// a table to keep track of variable names
 
 void match_token(TokenType type) {
     // call print_token with token of this type
