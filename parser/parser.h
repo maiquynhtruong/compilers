@@ -2,6 +2,7 @@
 void match_token(TokenType type);
 void start_parsing();
 void parse_program();
+void parse_program_body();
 void parse_declarations();
 void parse_declaration();
 void parse_proc_declaration();

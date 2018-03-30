@@ -47,6 +47,10 @@ void parse_program() {
     match_token(T_IDENTIFIER);
     match_token(K_IS);
 
+    parse_program_body();
+}
+
+void parse_program_body() {
     // program body
     if (look_ahead->type != K_BEGIN) {
         parse_declarations();    
