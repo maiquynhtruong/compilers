@@ -41,10 +41,14 @@ void parse_program() {
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
     match_token(K_IS);
-parse
+
     entry = createProgramEntry(current_token->stringVal);
     enter_scope(entry->programAttr->scope);
+    parse_program_body();
+    exit_scope();
+}
 
+void parse_program_body() {
     // program body
     if (look_ahead->type != K_BEGIN) {
         parse_declarations();    
@@ -53,42 +57,50 @@ parse
     if (look_ahead->type != K_END) {
         parse_statements();
     }
-
-    exit_scope();
-
     match_token(K_END);
     match_token(K_PROGRAM);
 }
 
 void parse_declarations() {
     TokenType type = look_ahead->type;
-    while (type == K_PROCEDURE || type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
-        parse_declaration();
-        match_token(T_SEMI_COLON);
-    }
-}
+    Entry *entry = NULL;
 
-void parse_declaration() {
-    if (look_ahead->type == K_GLOBAL) {
-        match_token(K_GLOBAL);
-        // put this in a global symbol table
-    }
-    if (look_ahead->type == K_PROCEDURE) {
-        parse_proc_declaration();
-    } else {
-        TokenType type = look_ahead->type;
-        if (type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
-            parse_var_declaration();    
+    do {    
+        bool globalEntry = false;
+
+        if (look_ahead->type == K_GLOBAL) {
+            match_token(K_GLOBAL);
+            globalEntry = true;
         }
-    }
+
+        if (look_ahead->type == K_PROCEDURE) {
+            parse_proc_declaration(entry);
+        } else {
+            TokenType type = look_ahead->type;
+            if (type == K_INT || type == K_FLOAT || type == K_STRING ||
+                    type == K_BOOL || type == K_CHAR) {
+                parse_var_declaration(entry);    
+            }
+        }
+
+        match_token(T_SEMI_COLON);
+
+        if (globalEntry) declareGlobalEntry(entry);
+        else declareEntry(entry);
+
+    } while (type == K_PROCEDURE || type == K_INT || type == K_FLOAT || 
+        type == K_STRING || type == K_BOOL || type == K_CHAR);
 }
 
-void parse_proc_declaration() {
+void parse_proc_declaration(Entry *entry) {
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
+
     entry = createProcedureEntry(current_token->stringVal);
+
     enter_scope(entry->procAttrs->scope);
+    
     match_token(T_LPAREN);
     if (look_ahead->type != T_RPAREN) {
         parse_param_list();    
@@ -100,19 +112,23 @@ void parse_proc_declaration() {
         parse_declarations();    
     }
     match_token(K_BEGIN);
+
     if (look_ahead->type != K_END) {
         parse_statements();
     }
     match_token(K_END);
     match_token(K_PROCEDURE);
+
     exit_scope();
-    declareEntry(entry);
 }
 
-void parse_var_declaration() {
-    parse_type_mark();
+void parse_var_declaration(Entry *entry) {
+    Type *cur_type = parse_type_mark();
     match_token(T_IDENTIFIER);
+
     entry = crateVariableEntry(current_token->stringVal);
+    entry->varAttrs->type = cur_type;
+    
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
         if (look_ahead->type == T_MINUS) {
@@ -130,21 +146,25 @@ void parse_var_declaration() {
         else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
         match_token(T_RBRACKET);
     }
-    declareEntry(entry);
 }
 
-void parse_type_mark() {
+Type *parse_type_mark() {
     switch(look_ahead->type) {
         case K_INT:parse
-            match_token(K_INT); break;
+            match_token(K_INT);
+            return makeIntType();
         case K_FLOAT:
-            match_token(K_FLOAT); break;
+            match_token(K_FLOAT);
+            return makeFloatType();
         case K_BOOL:
-            match_token(K_BOOL); break;
+            match_token(K_BOOL);
+            return makeBoolType();
         case K_CHAR:
-            match_token(K_CHAR); break;
+            match_token(K_CHAR);
+            return makeCharType();
         case K_STRING:
-            match_token(K_STRING); break;
+            match_token(K_STRING);
+            return makeStringType();
         default:
             printf("Syntax error!\n"); break;
     }
@@ -152,21 +172,18 @@ void parse_type_mark() {
 
 void parse_statements() {
     TokenType type = look_ahead->type;
-    while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF || type == K_FOR || type == K_RETURN) {
-        parse_statement();
-        match_token(T_SEMI_COLON);    
-    }
-}
-
-void parse_statement() {
-    switch (look_ahead->type) {
-        case K_PROCEDURE: parse_procedure_call(); break;
-        case K_IF: parse_if(); break;
-        case K_FOR: parse_loop(); break;
-        case K_RETURN: parse_return(); break;
-        case T_IDENTIFIER: parse_assignment(); break;
-        default: break;
-    }
+    do {
+        switch (look_ahead->type) {
+            case K_PROCEDURE: parse_procedure_call(); break;
+            case K_IF: parse_if(); break;
+            case K_FOR: parse_loop(); break;
+            case K_RETURN: parse_return(); break;
+            case T_IDENTIFIER: parse_assignment(); break;
+            default: break;
+        }
+        match_token(T_SEMI_COLON);
+    } while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF ||
+            type == K_FOR || type == K_RETURN);
 }
 
 void parse_param() {
@@ -389,4 +406,8 @@ void parse_factor() {
         case K_FALSE:
             match_token(K_FALSE); break;
     }
+}
+
+Type *compileType() {
+
 }

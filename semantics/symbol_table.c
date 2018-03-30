@@ -80,7 +80,6 @@ Entry *createVariableEntry(char *name) {
 	Entry *variableEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(variableEntry->name, name);
 	variableEntry->varAttrs = (VariableAttributes *) malloc(sizeof(VariableAttributes));
-	// varEntry->varAttrs->type = ;
 	variableEntry->varAttrs->scope = symbolTable->currentScope;
 	return variableEntry;
 }
@@ -300,5 +299,9 @@ void freeScope(Scope *scope) {
 }
 // for declarations
 void declareEntry(Entry *entry) {
-	addEntry(&)
+	addEntry(&(symbolTable->currentScope->entryList), entry);
+}
+
+void declareGlobalEntry(Entry *entry) {
+	addEntry(&(symbolTable->globalEntryList), entry);
 }

@@ -9,6 +9,14 @@ enum TypeClass {
 	TC_ARRAY
 };
 
+//TODO create enum ParamType
+/*
+enum ParamType {
+	PT_IN,
+	PT_OUT
+}
+*/
+
 enum EntryType {
 	ET_VARIABLE,
 	ET_TYPE_MARK,
@@ -27,6 +35,7 @@ typedef struct VariableAttributes {
 	struct Scope *scope;
 } VariableAttributes;
 
+//TODO: Remove this...
 typedef struct TypeAttributes {
 	struct Type *type;
 } TypeAttributes;
@@ -120,3 +129,4 @@ void dump();
 void freeScope(Scope *scope);
 void addEntry(EntryNode **list, Entry *entry);
 void declareEntry(Entry *entry);
+void declareGlobalEntry(Entry *entry);
