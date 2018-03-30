@@ -28,8 +28,12 @@ void start_parsing(char *filename) {
     current_token = NULL;
     next_token(look_ahead);
 
+    init_symbol_table();
+
     parse_program();
 
+    clear_symbol_table();
+    
     free(current_token);
     free(look_ahead);
 }
@@ -171,23 +175,40 @@ Type *parse_type_mark() {
 }
 
 void parse_statements() {
-    TokenType type = look_ahead->type;
     do {
         switch (look_ahead->type) {
-            case K_PROCEDURE: parse_procedure_call(); break;
-            case K_IF: parse_if(); break;
-            case K_FOR: parse_loop(); break;
-            case K_RETURN: parse_return(); break;
-            case T_IDENTIFIER: parse_assignment(); break;
-            default: break;
+            case K_PROCEDURE: 
+                parse_procedure_call(); 
+                break;
+            case K_IF: 
+                parse_if(); 
+                break;
+            case K_FOR: 
+                parse_loop(); 
+                break;
+            case K_RETURN: 
+                parse_return(); 
+                break;
+            case T_IDENTIFIER: 
+                parse_assignment(); 
+                break;
+            default: 
+                break;
         }
         match_token(T_SEMI_COLON);
     } while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF ||
             type == K_FOR || type == K_RETURN);
 }
 
+void parse_param_list() {
+    parse_param();
+    parse_param_list_param();
+}
+
 void parse_param() {
-    parse_var_declaration();
+    Entry *entry = NULL;
+    parse_var_declaration(entry);
+
     switch (look_ahead->type) {
         case K_IN:
             match_token(K_IN); break;
@@ -198,11 +219,8 @@ void parse_param() {
         default:
             printf("Syntax error\n"); break;
     }
-}
 
-void parse_param_list() {
-    parse_param();
-    parse_param_list_param();
+    declareEntry(entry);
 }
 
 void parse_param_list_param() {
@@ -408,6 +426,3 @@ void parse_factor() {
     }
 }
 
-Type *compileType() {
-
-}
