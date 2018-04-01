@@ -41,7 +41,9 @@ Type *makeBoolType() {
 }
 
 Type *makeArrayType() {
-
+	Type *type = (Type *) malloc(sizeof(Type));
+	type->typeClass = TC_ARRAY;
+	return type;
 }
 
 int compareType(Type *type1, Type *type2) {

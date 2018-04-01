@@ -33,7 +33,7 @@ void start_parsing(char *filename) {
     parse_program();
 
     clear_symbol_table();
-    
+
     free(current_token);
     free(look_ahead);
 }
@@ -132,24 +132,35 @@ void parse_var_declaration(Entry *entry) {
 
     entry = crateVariableEntry(current_token->stringVal);
     entry->varAttrs->type = cur_type;
-    
-    if (look_ahead->type == T_LBRACKET) { // an array
+
+    // this variable is an array
+    if (look_ahead->type == T_LBRACKET) { 
         match_token(T_LBRACKET);
+
+        int lower_bound = 0, upper_bound = 0;
+
         if (look_ahead->type == T_MINUS) {
             match_token(T_MINUS);
-        }
+        }   
         if (look_ahead->type == T_NUMBER_INT) match_token(T_NUMBER_INT); // lower bound
-        else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
-        
+        lower_bound = current_token->val.intVal;
         match_token(T_COLON);
         
         if (look_ahead->type == T_MINUS) {
             match_token(T_MINUS);
         }
-        if (look_ahead->type == T_NUMBER_INT) match_token(T_NUMBER_INT); // uppper bound
-        else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
+        if (look_ahead->type == T_NUMBER_INT) match_token(T_NUMBER_INT); // upper bound
+        upper_bound = current_token->val.intVal;
         match_token(T_RBRACKET);
+
+        // change the type to array type
+        Type *new_type = makeArrayType();
+        new_type->arraySize = upper_bound - lower_bound;
+        new_type->elementType = cur_type;
+
+        entry->varAttrs->type = new_type;
     }
+    
 }
 
 Type *parse_type_mark() {

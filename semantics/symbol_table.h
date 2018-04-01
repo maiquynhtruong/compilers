@@ -6,7 +6,7 @@ enum TypeClass {
 	TC_STRING,
 	TC_BOOL,
 	TC_CHAR,
-	TC_ARRAY
+	TC_ARRAY // a compound type
 };
 
 //TODO create enum ParamType
