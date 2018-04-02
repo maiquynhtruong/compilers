@@ -274,13 +274,16 @@ Entry* lookup(char *name) {
 	// look up through the parent nodes
 	Scope *curScope = symbolTable->currentScope;
 	Entry *entry = NULL;
+
 	while (curScope != NULL) {
 		entry = findEntry(curScope->entryList, name);
 		if (entry != NULL) return entry;
 		else curScope = curScope->outerScope;
 	}
+
 	// if still couldn't find, search in global scope
 	entry = findEntry(symbolTable->globalEntryList, name);
+	
 	return entry;
 }
 
