@@ -1,5 +1,6 @@
 #include "symbol_table.h"
 
+Entry *lookup(char *name);
 void checkNewIdentifier(char *name);
 Entry *checkDeclaredIdentifier(char *name);
 Entry *checkDeclaredVariable(char *name);
