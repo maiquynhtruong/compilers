@@ -5,3 +5,5 @@
 - Implement enum ParamType for in and out
 - How to declare and keep track of an array (hint: something to do with compileType() in parser)?
 - Add spaces to make code easy to read
+- Change struct token to include line number and column number
+- look at llvm documentation
