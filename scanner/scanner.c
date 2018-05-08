@@ -2,11 +2,17 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include "scanner.h"
+
 #include "error.h"
+#include "token.h"
+#include "reader.h"
 
 Token token;
 FILE *inp;
+
+extern int lineNo;
+extern int columnNo;
+extern int cur_char;
 // to run, copy the code from main.c
 
 TokenType next_token(Token *token) {
@@ -27,14 +33,14 @@ TokenType next_token(Token *token) {
                 return token->type = T_DIVIDE;
             }
         // If the current character is any letter in the alphabet
-        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': 
-        case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': 
-        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': 
-        case 'Y': case 'Z': 
-        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': 
-        case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': 
-        case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': 
-        case 'y': case 'z': 
+        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H':
+        case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
+        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
+        case 'Y': case 'Z':
+        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h':
+        case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p':
+        case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x':
+        case 'y': case 'z':
             token->val.stringVal[0] = ch;
             for (i = 1; isalnum(ch = getc(inp)) || ch == '_'; i++) {
                 token->val.stringVal[i] = ch;
@@ -49,7 +55,7 @@ TokenType next_token(Token *token) {
                 if (ch == '.') {
                     token->val.floatVal = 1.0 * token->val.intVal;
                     break; // go to the loop that reads the decimal part
-                } 
+                }
                 token->val.intVal = token->val.intVal*10 + ch - '0';
             }
             if (ch == '.') {
@@ -58,7 +64,7 @@ TokenType next_token(Token *token) {
                     exponent = exponent*10;
                     token->val.floatVal = token->val.floatVal * 10 + ch - '0';
                 }
-                token->val.floatVal = token->val.floatVal / exponent; 
+                token->val.floatVal = token->val.floatVal / exponent;
                 ungetc(ch, inp);
                 return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
             }
@@ -72,10 +78,10 @@ TokenType next_token(Token *token) {
             for (i = 0; (ch = getc(inp)) != '"'; i++) // read anything until a double quote
                 token->val.stringVal[i] = ch;
             token->val.stringVal[i] = '\0';
-            return token->type = T_STRING; 
+            return token->type = T_STRING;
         case ':': // check if this is assignment token
             nextChar = getc(inp);
-            if (nextChar == '=') 
+            if (nextChar == '=')
                 token->type = T_ASSIGNMENT;
             else
                 token->type = T_COLON; // some random colon?
@@ -85,27 +91,27 @@ TokenType next_token(Token *token) {
             return token->type = T_SEMI_COLON;;
         case ',': // for separating argument list
             return token->type = T_COMMA;
-        case '+': 
+        case '+':
             return token->type = T_PLUS;
-        case '-': 
+        case '-':
             return token->type = T_MINUS;
-        case '*': 
+        case '*':
             return token->type = T_MINUS;
-        case '<': 
+        case '<':
             nextChar = getc(inp);
-            if (nextChar == '=') return token->type = T_LTEQ; 
+            if (nextChar == '=') return token->type = T_LTEQ;
             else {
                 ungetc(nextChar, inp);
                 return token->type = T_LT;
             }
-        case '>': 
+        case '>':
             nextChar = getc(inp);
             if (nextChar == '=') return token->type = T_GTEQ;
             else {
                 ungetc(nextChar, inp);
                 return token->type = T_GT;
             }
-        case '=': 
+        case '=':
             nextChar = getc(inp);
             if (nextChar == '=') return token->type = T_EQ; else ungetc(nextChar, inp);
         case '!':
@@ -128,14 +134,12 @@ TokenType next_token(Token *token) {
     }
 }
 
-void init_scanner(char *file_name) {
-    inp = fopen(file_name, "r");
-    printf("Reading from file %s\n", file_name);
-    insert_all_keywords();
-}
-
 // skips comments in /*...*/ blocks
 void skip_star_comment() {
+
+}
+
+void skip_blank() {
 
 }
 
@@ -256,4 +260,3 @@ void print_token(Token *token) {
             printf("T_UNKNOWN\n"); break;
     }
 }
-
