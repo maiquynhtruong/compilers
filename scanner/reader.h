@@ -1,6 +1,6 @@
 #define IO_ERROR 0
 #define IO_SUCCESS 1
 
-int readChar(void);
-int openInputStream(char *file_name);
-void closeInputStream();
+int read_char(void);
+int open_input_stream(char *file_name);
+void close_input_stream();

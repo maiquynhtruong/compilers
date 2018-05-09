@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "reader.h"
 
-FILE *input_stream;
+FILE *input;
 int lineNo, columnNo;
 int cur_char;
 
 int read_char() {
-    cur_char = getc(input_stream);
+    cur_char = getc(input);
     columnNo++;
     if (cur_char == '\n') {
       lineNo++;
@@ -15,9 +15,9 @@ int read_char() {
     return cur_char;
 }
 
-int openInputStream(char *file_name) {
-    input_stream = fopen(file_name, "r");
-    if (input_stream == NULL)
+int open_input_stream(char *file_name) {
+    input = fopen(file_name, "r");
+    if (input == NULL)
         return IO_ERROR;
 
     lineNo = 1;
@@ -26,6 +26,6 @@ int openInputStream(char *file_name) {
 
     return IO_SUCCESS;
 }
-void closeInputStream() {
-    fclose(input_stream);
+void close_input_stream() {
+    fclose(input);
 }
