@@ -15,6 +15,17 @@ extern int columnNo;
 extern int cur_char;
 // to run, copy the code from main.c
 
+
+// skips comments in /*...*/ blocks
+void skip_star_comment() {
+
+}
+
+void skip_blank() {
+    while (isspace(cur_char) && cur_char != -1) cur_char = read_char();
+}
+
+
 TokenType next_token(Token *token) {
     int ch, nextChar, i;
     ch = getc(inp);
@@ -134,15 +145,6 @@ TokenType next_token(Token *token) {
     }
 }
 
-// skips comments in /*...*/ blocks
-void skip_star_comment() {
-
-}
-
-void skip_blank() {
-
-}
-
 void reset_token(Token *token) {
     token->type = T_UNKNOWN;
     token->val.intVal = 0;
@@ -259,4 +261,34 @@ void print_token(Token *token) {
         default:
             printf("T_UNKNOWN\n"); break;
     }
+}
+
+int scan(char *file_name) {
+  Token *token;
+
+  if (open_input_stream(file_name) == IO_ERROR) return IO_ERROR;
+
+  token = next_token();
+  while (token->type != T_END_OF_FILE) {
+      print_token(token);
+      token = next_token();
+      free(token);
+  }
+
+  free(token);
+  close_input_stream();
+  return IO_SUCCESS;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("%s\n", "Error! No input file...");
+        exit(-1);
+    }
+
+    if (scan(file_name) == IO_ERROR) {
+        printf("%s\n", "Can't read input file");
+        exit(-1);
+    }
+    return 0;
 }
