@@ -31,8 +31,7 @@ struct {
 };
 
 TokenType check_reserved_word(char *str) {
-    int i;
-    int count = sizeof(keywords)/sizeof(keywords[0]);
+    int i, count = sizeof(keywords)/sizeof(keywords[0]);
 //    printf("str: %s\n", str);
     for (i = 0; i < count; i++) {
         if (strcmp(keywords[i].keyword, str) == 0) {
