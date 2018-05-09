@@ -1,18 +1,17 @@
 #include "error.h"
+#include <stdio.h>
 #include <stdlib.h>
-typedef struct {
-    ErrorCode error_code;
-    char *error_mesg;
-} Error; 
 
-Error errors[ERROR_COUNT] = {
-    {E_INVALID_CHAR, "Invalid character!"}
-};
-
-void throw_error(ErrorCode code) {
+void throw_error(ErrorCode code, int lineNo, int columnNo) {
     switch(code) {
+        case E_END_OF_COMMENT:
+            printf("%d:%d: %s\n", lineNo, columnNo, E_MES_ENDOFCOMMENT); break;
+        case E_IDENT_TOO_LONG:
+            printf("%d:%d: %s\n", lineNo, columnNo, E_MES_IDENTTOOLONG); break;
         case E_INVALID_CHAR:
-            printf("%s\n", "Illegal character!"); break;
+            printf("%d:%d: %s\n", lineNo, columnNo, E_MES_INVALIDCHAR); break;
+        case E_INVALID_SYMBOL:
+            printf("%d:%d: %s\n", lineNo, columnNo, E_MES_INVALIDSYMBOL); break;
     }
-    exit(1);
+    exit(-1);
 }
