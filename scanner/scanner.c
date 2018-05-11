@@ -1,11 +1,10 @@
-#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "error.h"
-#include "token.h"
 #include "reader.h"
+#include "scanner.h"
 
 extern int lineNo;
 extern int columnNo;
@@ -26,7 +25,7 @@ Token *read_ident() {
   int i = 0;
   Token *token = make_token(T_IDENTIFIER, lineNo, columnNo);
   token->val.stringVal[0] = cur_char;
-  for (i = 1; isalnum(cur_char) || cur_char == '_'; i++) {
+  for (i = 0; isalnum(cur_char) || cur_char == '_'; i++) {
       token->val.stringVal[i] = cur_char;
       read_char();
   }
@@ -64,7 +63,6 @@ Token *read_number() {
 }
 Token* next_token() {
     Token *token;
-    int next_char;
 
     skip_blank();
 
@@ -287,15 +285,15 @@ int scan(char *file_name) {
   return IO_SUCCESS;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("%s\n", "Error! No input file...");
-        exit(-1);
-    }
-
-    if (scan(argv[1]) == IO_ERROR) {
-        printf("%s\n", "Can't read input file");
-        exit(-1);
-    }
-    return 0;
-}
+// int main(int argc, char *argv[]) {
+//     if (argc < 2) {
+//         printf("%s\n", "Error! No input file...");
+//         exit(-1);
+//     }
+//
+//     if (scan(argv[1]) == IO_ERROR) {
+//         printf("%s\n", "Can't read input file");
+//         exit(-1);
+//     }
+//     return 0;
+// }

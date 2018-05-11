@@ -2,18 +2,25 @@ CFLAGS= -c -Wall
 CC=gcc
 LIBS=-lm
 
-all: compiler
+all: scanner
 
-compiler: scanner.o token.o error.o parser.o
-	${CC} ${CFLAGS} scanner.o token.o error.o parser.o
+scanner: main.o token.o error.o reader.o
+				${CC} main.o token.o error.o reader.o -o scanner
+
+main.o: main.c
+				${CC} ${CFLAGS} main.c
 
 scanner.o: scanner.c
+					${CC} ${CFLAGS} scanner.c
 
-token.o: token.h token.c
+token.o: token.c
+				${CC} ${CFLAGS} token.c
 
-error.o: error.h error.c
+error.o: error.c
+				${CC} ${CFLAGS} error.c
 
-parser.o: parser.h parser.c
+reader.o: reader.c
+					${CC} ${CFLAGS} reader.c
 
 .PHONY: clean
 

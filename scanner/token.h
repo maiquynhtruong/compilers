@@ -1,3 +1,6 @@
+#ifndef TOKEN_H
+#define TOKEN_H
+
 #include <stdbool.h>
 #define MAX_STRING_LENGTH 50
 #define MAX_KEYWORD_LENGTH 30
@@ -73,3 +76,5 @@ typedef struct {
 
 TokenType check_reserved_word(char *string);
 Token *make_token(TokenType type, int lineNo, int columnNo);
+
+#endf
