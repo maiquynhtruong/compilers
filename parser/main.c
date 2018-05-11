@@ -1,14 +1,16 @@
+#include <stdio.h>
+#include "reader.h"
+#include "parser.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        printf("Error! No input file...");
-        exit(1);
-    } else {
-        init_scanner(argv[1]); 
+        printf("%s\n", "Error! No input file...");
+        exit(-1);
     }
-    while (next_token(&token) != T_END_OF_FILE) {
-        print_token(&token); // process each token
-//        reset_token(&token);
+
+    if (parse(argv[1]) == IO_ERROR) {
+        printf("%s\n", "Can't read input file");
+        exit(-1);
     }
     return 0;
 }

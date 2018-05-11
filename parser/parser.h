@@ -1,6 +1,11 @@
-#include "scanner.h"
+#ifndef PARSER_H
+#define PARSER_H
+
+#include "token.h"
+
 void match_token(TokenType type);
-void start_parsing();
+int parse(char *file_name);
+
 void parse_program();
 void parse_program_body();
 void parse_declarations();
@@ -30,3 +35,5 @@ void parse_relation_term();
 void parse_term();
 void parse_term_factor();
 void parse_factor();
+
+#endif
