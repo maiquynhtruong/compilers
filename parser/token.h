@@ -66,7 +66,7 @@ typedef struct {
     TokenType type;
     int lineNo, columnNo;
     union {
-        char stringVal[MAX_STRING_LENGTH];
+        char stringVal[MAX_STRING_LENGTH+1];
         int intVal;
         float floatVal;
         bool boolVal;

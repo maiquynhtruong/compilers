@@ -25,15 +25,21 @@ void skip_blank() {
 Token *read_ident() {
   int i = 0;
   Token *token = make_token(T_IDENTIFIER, lineNo, columnNo);
-  token->val.stringVal[0] = cur_char;
+  // token->val.stringVal[0] = cur_char;
   for (i = 0; isalnum(cur_char) || cur_char == '_'; i++) {
+
+      if (i == MAX_STRING_LENGTH) {
+        throw_error(E_IDENT_TOO_LONG, lineNo, columnNo);
+        return token;
+      }
+
       token->val.stringVal[i] = cur_char;
       read_char();
   }
   token->val.stringVal[i] = '\0';
 
   token->type = check_reserved_word(token->val.stringVal);
-
+  printf("in read_ident: stringVal = %s\n", token->val.stringVal);
   return token;
 }
 
@@ -110,9 +116,10 @@ Token* next_token() {
         //     else
         //         token->type = T_COLON; // some random colon?
         //     return token->type;
-        // case ';': // for end of statement
-        //     // separate cases for colon, comma and semi colon to not mix up with single quote characters
-        //     return token->type = T_SEMI_COLON;;
+        case ';': // for end of statement
+            // separate cases for colon, comma and semi colon to not mix up with single quote characters
+            printf("A semi colon\n");
+            return make_token(T_SEMI_COLON, lineNo, columnNo);
         // case ',': // for separating argument list
         //     return token->type = T_COMMA;
         // case '+':
@@ -271,6 +278,7 @@ void print_token(Token *token) {
 
 // filter out the bad tokens
 Token *next_valid_token() {
+  printf("In next_valid_token\n");
     Token *token = next_token();
     while (token->type == T_UNKNOWN) {
         free(token);

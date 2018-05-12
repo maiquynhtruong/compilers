@@ -4,7 +4,7 @@ http://www.craftinginterpreters.com/parsing-expressions.html
 https://news.ycombinator.com/item?id=13914218
 */
 #include <stdlib.h>
-
+#include <stdio.h>
 #include "error.h"
 #include "reader.h"
 #include "parser.h"
@@ -15,12 +15,14 @@ Token* look_ahead;
 Token* current_token;
 
 void match_token(TokenType type) {
-    print_token(look_ahead);
 
     if (look_ahead->type != type) {
+        print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
-        print_token(current_token);
+        printf("Matched!\n");
+        print_token(look_ahead);
+        printf("%s\n", print_token_type(type));
 
         Token *temp = current_token;
         current_token = look_ahead;
@@ -77,22 +79,23 @@ void parse_declarations() {
 }
 
 void parse_declaration() {
-    assert("Parser a declaration");
-//     if (look_ahead->type == K_GLOBAL) {
-//         match_token(K_GLOBAL);
-//         // put this in a global symbol table
-//     }
-//     if (look_ahead->type == K_PROCEDURE) {
-//         parse_proc_declaration();
-//     } else {
-//         TokenType type = look_ahead->type;
-//         if (type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
-//             parse_var_declaration();
-//         }
-//     }
+    assert("Parsing a declaration");
+    if (look_ahead->type == K_GLOBAL) {
+        match_token(K_GLOBAL);
+    }
+    if (look_ahead->type == K_PROCEDURE) {
+        parse_proc_declaration();
+    } else {
+        TokenType type = look_ahead->type;
+        if (type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
+            parse_var_declaration();
+        }
+    }
+    assert("Done parsing a declaration");
 }
 //
-// void parse_proc_declaration() {
+void parse_proc_declaration() {
+    assert("Parsing a procedure declaration");
 //     // procedure header
 //     match_token(K_PROCEDURE);
 //     match_token(T_IDENTIFIER);
@@ -112,10 +115,11 @@ void parse_declaration() {
 //     }
 //     match_token(K_END);
 //     match_token(K_PROCEDURE);
-// }
-//
-// void parse_var_declaration() {
-//     parse_type_mark();
+}
+
+void parse_var_declaration() {
+    assert("Parsing a variable declaration");
+    parse_type_mark();
 //     match_token(T_IDENTIFIER);
 //
 //     if (look_ahead->type == T_LBRACKET) { // an array
@@ -135,25 +139,26 @@ void parse_declaration() {
 //         else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
 //         match_token(T_RBRACKET);
 //     }
-// }
+}
 //
-// void parse_type_mark() {
-//     switch(look_ahead->type) {
-//         case K_INT:
-//             match_token(K_INT); break;
-//         case K_FLOAT:
-//             match_token(K_FLOAT); break;
-//         case K_BOOL:
-//             match_token(K_BOOL); break;
-//         case K_CHAR:
-//             match_token(K_CHAR); break;
-//         case K_STRING:
-//             match_token(K_STRING); break;
-//         default:
-//             printf("Syntax error!\n"); break;
-//     }
-// }
-//
+void parse_type_mark() {
+  assert("Parsing a type mark");
+    switch(look_ahead->type) {
+        case K_INT:
+            match_token(K_INT); break;
+        case K_FLOAT:
+            match_token(K_FLOAT); break;
+        case K_BOOL:
+            match_token(K_BOOL); break;
+        case K_CHAR:
+            match_token(K_CHAR); break;
+        case K_STRING:
+            match_token(K_STRING); break;
+        default:
+            throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+}
+
 void parse_statements() {
     TokenType type = look_ahead->type;
     while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF || type == K_FOR || type == K_RETURN) {
