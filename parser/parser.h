@@ -14,6 +14,7 @@ void parse_proc_declaration();
 void parse_var_declaration();
 void parse_type_mark();
 void parse_statements();
+void parse_statement_chain();
 void parse_statement();
 void parse_param();
 void parse_param_list();

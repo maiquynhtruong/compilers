@@ -14,7 +14,8 @@ typedef enum {
     E_INVALID_PARAM_TYPE,
     E_INVALID_STATEMENT,
     E_INVALID_ARGUMENT,
-    E_INVALID_OPERATOR,
+    E_INVALID_ARITH_OPERATOR, // like + and -
+    E_INVALID_RELATION, // like <, > and ==
     E_INVALID_EXPRESSION,
     E_INVALID_TERM,
     E_INVALID_FACTOR
@@ -28,7 +29,8 @@ typedef enum {
 #define E_MES_INVALIDPARAMTYPE "Invalid Parameter Type"
 #define E_MES_INVALIDSTATEMENT "Invalid Statement"
 #define E_MES_INVALIDARGUMENT "Invalid Argument"
-#define E_MES_INVALIDOPERATOR "Invalid Operator"
+#define E_MES_INVALIDARITHOPERATOR "Invalid Arithmetic Operator."
+#define E_MES_INVALIDRELATION "Invalid Relation."
 #define E_MES_INVALIDEXPRESSION "Invalid Expression"
 #define E_MES_INVALIDTERM "Invalid Term"
 #define E_MES_INVALIDFACTOR "Invalid Factor"

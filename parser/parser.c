@@ -74,6 +74,7 @@ void parse_program_body() {
     }
     match_token(K_END);
     match_token(K_PROGRAM);
+    if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
 }
 
 void parse_declarations() {
@@ -170,21 +171,39 @@ void parse_type_mark() {
 }
 
 void parse_statements() {
-    while (look_ahead->type == T_IDENTIFIER || look_ahead->type == K_PROCEDURE || look_ahead->type == K_IF || look_ahead->type == K_FOR || look_ahead->type == K_RETURN) {
-        parse_statement();
-        match_token(T_SEMI_COLON);
+    parse_statement();
+    parse_statement_chain();
+}
+
+void parse_statement_chain() {
+    switch (look_ahead->type) {
+        case T_SEMI_COLON:
+            match_token(T_SEMI_COLON);
+            parse_statement();
+            parse_statement_chain();
+            break;
+        case K_END: case K_ELSE: break;
+        default:
+            throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
 }
 
 void parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
+<<<<<<< HEAD
+=======
+//         case : parse_procedure_call(); break;
+>>>>>>> d5a43940b71f575c6f6fd642cd72ea3ad174ea9f
         case K_IF: parse_if(); break;
 //         case K_FOR: parse_loop(); break;
         case K_RETURN: parse_return(); break;
-        case T_IDENTIFIER: parse_assignment(); break;
-        //TODO: This case can either be an assignment or a function call
-        default: break;
+        case T_IDENTIFIER:
+            match_token(T_IDENTIFIER);
+            if (look_ahead->type == T_LPAREN) parse_procedure_call();
+            else parse_assignment(); break;
+        case K_END: case K_ELSE: case T_SEMI_COLON: break;
+        default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a statement");
 }
@@ -265,18 +284,18 @@ void parse_return() {
 //
 void parse_procedure_call() {
     assert("Parsing a procedure call");
-//     match_token(T_IDENTIFIER);
-//     match_token(T_LPAREN);
-//     if (look_ahead->type != T_RPAREN) {
-//         parse_argument_list();
-//     }
-//     match_token(T_RPAREN);
+//     match_token(T_IDENTIFIER); // parsed in parse_statement()
+    match_token(T_LPAREN);
+    if (look_ahead->type != T_RPAREN) {
+        parse_argument_list();
+    }
+    match_token(T_RPAREN);
     assert("Done parsing a procedure call");
 }
 
 void parse_destination() {
     assert("Parsing a destination");
-    match_token(T_IDENTIFIER);
+    // match_token(T_IDENTIFIER); // parsed in parse_statement()
 //     if (look_ahead->type == T_LBRACKET) {
 //         match_token(T_LBRACKET);
 //         parse_expression();
@@ -285,15 +304,26 @@ void parse_destination() {
     assert("Done parsing an destination");
 }
 
-// void parse_argument_list() {
-//     parse_expression();
-//     parse_argument_list_expression();
-// }
+void parse_argument_list() {
+    assert("Parsing an argument list");
+    parse_expression();
+    parse_argument_list_expression();
+    assert("Done parsing an argument list");
+}
 //
-// void parse_argument_list_expression() {
-//     if (look_ahead->type == T_COMMA)
-//         parse_argument_list();
-// }
+void parse_argument_list_expression() {
+    switch (look_ahead->type) {
+        case T_COMMA:
+            match_token(T_COMMA);
+            parse_expression();
+            parse_argument_list_expression();
+            break;
+        // FOLLOW set
+        case T_RPAREN:
+            break;
+        default: throw_error(E_INVALID_ARGUMENT, look_ahead->lineNo, look_ahead->columnNo);
+    }
+}
 
 void parse_expression() {
     assert("Parsing an expression");
@@ -324,27 +354,31 @@ void parse_expression_arith_op() {
 void parse_arith_op() {
     assert("Parsing an arithmetic operation");
     parse_relation();
-//     parse_arith_op_relation();
+    parse_arith_op_relation();
     assert("Done parsing an arithmetic operation");
 }
-//
-// void parse_arith_op_relation() {
-//     switch(look_ahead->type) {
-//         case T_PLUS:
-//             match_token(T_PLUS);
-//             parse_relation();
-//             parse_arith_op_relation(); // recurse
-//             break;
-//         case T_MINUS:
-//             match_token(T_MINUS);
-//             parse_relation();
-//             parse_arith_op_relation();
-//             break;
-//         default:
-//             // TODO: throws error
-//             break;
-//     }
-// }
+
+void parse_arith_op_relation() {
+    switch(look_ahead->type) {
+        case T_PLUS:
+            match_token(T_PLUS);
+            parse_relation();
+            parse_arith_op_relation();
+            break;
+        case T_MINUS:
+            match_token(T_MINUS);
+            parse_relation();
+            parse_arith_op_relation();
+            break;
+        // FOLLOW set
+        case T_AND: case T_OR: case T_COMMA: // expression
+        case T_RPAREN: // for loop
+        case T_RBRACKET: // assignment statement
+        case T_SEMI_COLON: // statements
+            break;
+        default: throw_error(E_INVALID_ARITH_OPERATOR, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+}
 
 void parse_relation() {
     assert("Parsing a relation");
@@ -360,39 +394,52 @@ void parse_relation_term() {
             parse_term();
             parse_relation_term();
             break;
-//         case T_GTEQ:
-//             match_token(T_GTEQ);
-//             break;
-//         case T_LTEQ:
-//             match_token(T_LTEQ);
-//             break;
-//         case T_GT:
-//             match_token(T_GT);
-//             break;
+        case T_GTEQ:
+            match_token(T_GTEQ);
+            parse_term();
+            parse_relation_term();
+            break;
+        case T_LTEQ:
+            match_token(T_LTEQ);
+            parse_term();
+            parse_relation_term();
+            break;
+        case T_GT:
+            match_token(T_GT);
+            parse_term();
+            parse_relation_term();
+            break;
         case T_EQ:
             match_token(T_EQ);
             parse_term();
             parse_relation_term();
             break;
-//         case T_NEQ:
-//             match_token(T_NEQ);
-//             break;
-
-//TODO: Follow through from above
-//TODO: default case should throw_error
-        default: break;
+        case T_NEQ:
+            match_token(T_NEQ);
+            parse_term();
+            parse_relation_term();
+            break;
+        // FOLLOW set
+        case T_PLUS: case T_MINUS: // arith op
+        case T_AND: case T_OR: case T_COMMA: // expression
+        case T_RPAREN: // for loop
+        case T_RBRACKET: // assignment statement
+        case T_SEMI_COLON: // statements
+            break;
+        default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
+        // default: break;
     }
 }
 
 void parse_term() {
     assert("Parsing a term");
     parse_factor();
-    // parse_term_factor();
+    parse_term_factor();
     assert("Done parsing a term");
 }
-//
-// void parse_term_factor() {
-    // switch(look_ahead->type) {
+
+void parse_term_factor() {
+    switch(look_ahead->type) {
 //         case '*':
 //             match_token(T_MULTIPLY);
 //             parse_factor();
@@ -403,8 +450,9 @@ void parse_term() {
 //             parse_factor();
 //             parse_term_factor();
 //             break;
-//     }
-// }
+    }
+}
+
 void parse_factor() {
     assert("Parsing a factor");
     switch (look_ahead->type) {
@@ -419,6 +467,7 @@ void parse_factor() {
 //             break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
+            assert("A negative number of a negative name");
             parse_factor();
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
@@ -438,5 +487,5 @@ void parse_factor() {
 //         case K_FALSE:
 //             match_token(K_FALSE); break;
     }
-      assert("Done parsing a factor");
+    assert("Done parsing a factor");
 }
