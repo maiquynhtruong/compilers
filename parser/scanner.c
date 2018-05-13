@@ -14,15 +14,30 @@ extern int cur_char;
 
 // skips comments in /*...*/ blocks
 void skip_block_comment() {
-
+    int state = 0;
+    while (cur_char != EOF && state < 2) {
+        switch (cur_char) {
+            case '*':
+                state = 1;
+                break;
+            case '/':
+                if (state == 1) state = 2;
+                else state = 0;
+                break;
+            default: state = 0;
+        }
+        read_char();
+    }
+    if (state != 2) throw_error(E_END_OF_COMMENT, lineNo, columnNo);
 }
 
 void skip_line_comment() {
-    while ((cur_char = read_char()) != '\n'); // skip over one line comment
+    while (cur_char != '\n' && cur_char != EOF)
+        read_char(); // skip over one line comment
 }
 
 void skip_blank() {
-    while (isspace(cur_char) && cur_char != -1) cur_char = read_char();
+    while (isspace(cur_char) && cur_char != -1) read_char();
 }
 
 Token *read_ident() {
@@ -85,11 +100,20 @@ Token* next_token() {
 
     switch(cur_char) {
         case '/':
+            cur_line = lineNo; cur_col = columnNo;
             read_char();
-            if (cur_char == '/') skip_line_comment();
-            else if (cur_char == '*') skip_block_comment();
-            else return make_token(T_DIVIDE, lineNo, columnNo);
 
+            switch (cur_char) {
+              case '/':
+                  read_char();
+                  skip_line_comment();
+                  return next_token();
+              case '*':
+                  read_char();
+                  skip_block_comment();
+                  return next_token();
+              default: return make_token(T_DIVIDE, cur_line, cur_col);
+            }
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H':
         case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
         case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
@@ -112,6 +136,7 @@ Token* next_token() {
         //         token->val.stringVal[i] = cur_char;
         //     token->val.stringVal[i] = '\0';
         //     return token->type = T_STRING;
+
         case ':': // check if this is assignment token
             cur_line = lineNo; cur_col = columnNo;
             read_char();
@@ -158,14 +183,22 @@ Token* next_token() {
             if (cur_char != EOF && cur_char == '=') {
                 token = make_token(T_EQ, cur_line, cur_col);
                 read_char(); return token;
-            } else throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+            } else {
+                token = make_token(T_UNKNOWN, cur_line, cur_col);
+                throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+                return token;
+            }
         case '!':
             cur_line = lineNo; cur_col = columnNo;
             read_char();
             if (cur_char != EOF && cur_char == '=') {
                 token = make_token(T_NEQ, cur_line, cur_col);
                 read_char(); return token;
-            } else throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+            } else {
+                token = make_token(T_UNKNOWN, cur_line, cur_col);
+                throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+                return token;
+            }
         case '(':
             token = make_token(T_LPAREN, lineNo, columnNo);
             read_char(); return token;
@@ -176,7 +209,7 @@ Token* next_token() {
             token = make_token(T_LBRACKET, lineNo, columnNo);
             read_char(); return token;
         case ']':
-            token = make_token(T_RPAREN, lineNo, columnNo);
+            token = make_token(T_RBRACKET, lineNo, columnNo);
             read_char(); return token;
         case EOF: case '.':
             return make_token(T_END_OF_FILE, lineNo, columnNo);

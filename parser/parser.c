@@ -61,6 +61,8 @@ void parse_program() {
     match_token(K_IS);
 
     parse_program_body();
+
+    if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
 }
 
 void parse_program_body() {
@@ -69,37 +71,32 @@ void parse_program_body() {
         parse_declarations();
     }
     match_token(K_BEGIN);
+
     if (look_ahead->type != K_END) {
         parse_statements();
     }
     match_token(K_END);
     match_token(K_PROGRAM);
-    if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
 }
 
 void parse_declarations() {
-    while (look_ahead->type == K_PROCEDURE || look_ahead->type == K_INT ||
-      look_ahead->type == K_FLOAT || look_ahead->type == K_STRING ||
-      look_ahead->type == K_BOOL || look_ahead->type == K_CHAR) {
-        parse_declaration();
-        match_token(T_SEMI_COLON);
-    }
-}
-
-void parse_declaration() {
-    assert("Parsing a declaration");
+    assert("Parsing declarations");
     if (look_ahead->type == K_GLOBAL) {
         match_token(K_GLOBAL);
     }
     if (look_ahead->type == K_PROCEDURE) {
         parse_proc_declaration();
-    } else {
-        TokenType type = look_ahead->type;
-        if (type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
-            parse_var_declaration();
-        }
+        match_token(T_SEMI_COLON);
+        parse_declarations();
+    // } else if (look_ahead->type == K_INT || look_ahead->type == K_FLOAT ||
+        // look_ahead->type == K_STRING || look_ahead->type == K_BOOL ||
+        // look_ahead->type == K_CHAR){
+    } else if (look_ahead->type != K_BEGIN) {
+        parse_var_declaration();
+        match_token(T_SEMI_COLON);
+        parse_declarations();
     }
-    assert("Done parsing a declaration");
+    assert("Done parsing declarations");
 }
 //
 void parse_proc_declaration() {
@@ -132,23 +129,18 @@ void parse_var_declaration() {
     parse_type_mark();
     match_token(T_IDENTIFIER);
 
-//     if (look_ahead->type == T_LBRACKET) { // an array
-//         match_token(T_LBRACKET);
-//         if (look_ahead->type == T_MINUS) {
-//             match_token(T_MINUS);
-//         }
-//         if (look_ahead->type == T_NUMBER_INT) match_token(T_NUMBER_INT); // lower bound
-//         else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
-//
-//         match_token(T_COLON);
-//
-//         if (look_ahead->type == T_MINUS) {
-//             match_token(T_MINUS);
-//         }
-//         if (look_ahead->type == T_NUMBER_INT) match_token(T_NUMBER_INT); // uppper bound
-//         else if (look_ahead->type == T_NUMBER_FLOAT) match_token(T_NUMBER_FLOAT);
-//         match_token(T_RBRACKET);
-//     }
+    if (look_ahead->type == T_LBRACKET) { // an array
+        match_token(T_LBRACKET);
+        //TODO: Is there upper and lower bound or just a number for array size?
+        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
+        match_token(T_NUMBER_INT); // lower bound
+
+        // match_token(T_COLON);
+
+        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
+        // match_token(T_NUMBER_INT); // uppper bound
+        match_token(T_RBRACKET);
+    }
 }
 
 void parse_type_mark() {
@@ -191,10 +183,6 @@ void parse_statement_chain() {
 void parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
-<<<<<<< HEAD
-=======
-//         case : parse_procedure_call(); break;
->>>>>>> d5a43940b71f575c6f6fd642cd72ea3ad174ea9f
         case K_IF: parse_if(); break;
 //         case K_FOR: parse_loop(); break;
         case K_RETURN: parse_return(); break;
@@ -440,16 +428,16 @@ void parse_term() {
 
 void parse_term_factor() {
     switch(look_ahead->type) {
-//         case '*':
-//             match_token(T_MULTIPLY);
+        case '*':
+            match_token(T_MULTIPLY);
 //             parse_factor();
 //             parse_term_factor(); // recurse
-//             break;
-//         case '/':
-//             match_token(T_DIVIDE);
+            break;
+        case '/':
+            match_token(T_DIVIDE);
 //             parse_factor();
 //             parse_term_factor();
-//             break;
+            break;
     }
 }
 
@@ -472,20 +460,20 @@ void parse_factor() {
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
-//             if (look_ahead->type == T_LBRACKET) { // array
-//                 match_token(T_LBRACKET);
-//                 parse_expression();
-//                 match_token(T_RBRACKET);
-//             }
+            if (look_ahead->type == T_LBRACKET) { // array
+                match_token(T_LBRACKET);
+                parse_expression();
+                match_token(T_RBRACKET);
+            }
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT); break;
 //         case T_NUMBER_FLOAT:
 //             match_token(T_NUMBER_FLOAT); break;
-//         case K_TRUE:
-//             match_token(K_TRUE); break;
-//         case K_FALSE:
-//             match_token(K_FALSE); break;
+        case K_TRUE:
+            match_token(K_TRUE); break;
+        case K_FALSE:
+            match_token(K_FALSE); break;
     }
     assert("Done parsing a factor");
 }
