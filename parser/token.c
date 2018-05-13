@@ -48,11 +48,10 @@ TokenType check_reserved_word(char *str) {
 
     for (i = 0; i < count; i++) {
         if (strcicmp(keywords[i].keyword, str) == 0) {
-            printf("A keyword: %s\n", keywords[i].keyword);
+            // printf("A keyword: %s\n", keywords[i].keyword);
             return keywords[i].type;
         }
     }
-//    printf("ident: %s\n", str);
     return T_IDENTIFIER;
 }
 
@@ -68,11 +67,11 @@ char *print_token_type(TokenType type) {
     switch (type) {
         case T_UNKNOWN: return "";
         case T_ERROR: return "";
-        case T_END_OF_FILE: return "";
+        case T_END_OF_FILE: return "end of file";
         case T_ASSIGNMENT: return ":=";
         case T_RELATION: return "";
-        case T_NUMBER_INT: return "";
-        case T_NUMBER_FLOAT: return "";
+        case T_NUMBER_INT: return "an integer";
+        case T_NUMBER_FLOAT: return "a float";
         case T_PLUS: return "+";
         case T_MINUS: return "-";
         case T_MULTIPLY: return "*";

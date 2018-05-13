@@ -114,13 +114,14 @@ Token* next_token() {
         //         token->val.stringVal[i] = cur_char;
         //     token->val.stringVal[i] = '\0';
         //     return token->type = T_STRING;
-        // case ':': // check if this is assignment token
-        //     next_char = getc(inp);
-        //     if (next_char == '=')
-        //         token->type = T_ASSIGNMENT;
-        //     else
-        //         token->type = T_COLON; // some random colon?
-        //     return token->type;
+        case ':': // check if this is assignment token
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_ASSIGNMENT, cur_line, cur_col);
+                read_char();
+            } else token = make_token(T_COLON, cur_line, cur_col);
+            return token;
         case ';': // for end of statement
             // separate cases for colon, comma and semi colon to not mix up with single quote characters
             token = make_token(T_SEMI_COLON, lineNo, columnNo);
@@ -151,7 +152,12 @@ Token* next_token() {
         //         ungetc(next_char, inp);
         //         return token->type = T_GT;
         //     }
-        // case '=':
+        case '=':
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_EQ, lineNo, columnNo);
+                read_char(); return token;
+            } else throw_error(E_INVALID_SYMBOL, lineNo, columnNo);
         //     next_char = getc(inp);
         //     if (next_char == '=') return token->type = T_EQ; else ungetc(next_char, inp);
         // case '!':

@@ -15,9 +15,9 @@ Token* look_ahead;
 Token* current_token;
 
 void match_token(TokenType type) {
-    printf("In match_token: ");
-    printf("Passed type: ");
+    printf("In match_token. Expected type: ");
     printf("%s\n", print_token_type(type));
+
     if (look_ahead->type != type) {
         printf("Not Matched. look_ahead is: ");
         print_token(look_ahead);
@@ -32,7 +32,7 @@ void match_token(TokenType type) {
 
         free(temp);
 
-        printf("Next token expected : ");
+        printf("Next parsed token : ");
         print_token(look_ahead);
         printf("\n");
     }
@@ -181,8 +181,8 @@ void parse_statement() {
 //         case K_PROCEDURE: parse_procedure_call(); break;
         case K_IF: parse_if(); break;
 //         case K_FOR: parse_loop(); break;
-//         case K_RETURN: parse_return(); break;
-//         case T_IDENTIFIER: parse_assignment(); break;
+        case K_RETURN: parse_return(); break;
+        case T_IDENTIFIER: parse_assignment(); break;
         default: break;
     }
 }
@@ -215,29 +215,32 @@ void parse_param_list_param() {
     }
 }
 //
-// void parse_assignment() {
-//     parse_destination();
-//     match_token(T_ASSIGNMENT);
-//     parse_expression();
-// }
-//
+void parse_assignment() {
+    assert("Parsing an assignment");
+    parse_destination();
+    match_token(T_ASSIGNMENT);
+    parse_expression();
+    assert("Done parsing an assignment");
+}
+
 void parse_if() {
     match_token(K_IF);
     match_token(T_LPAREN);
     parse_expression();
     match_token(T_RPAREN);
-//     match_token(K_THEN);
-//     parse_statements();
-//     if (look_ahead->type == K_ELSE) {
-//         match_token(K_ELSE);
-//         parse_statements();
-//     }
-//     match_token(K_END);
-//     match_token(K_IF);
+    match_token(K_THEN);
+    parse_statements();
+    if (look_ahead->type == K_ELSE) {
+        match_token(K_ELSE);
+        parse_statements();
+    }
+    match_token(K_END);
+    match_token(K_IF);
 //
 }
 //
 // void parse_loop() {
+    // assert("Parsing a loop");
 //     match_token(K_FOR);
 //     match_token(T_LPAREN);
 //     parse_assignment();
@@ -249,11 +252,12 @@ void parse_if() {
 //     }
 //     match_token(K_END);
 //     match_token(K_FOR);
+    // assert("Done parsing a loop");
 // }
 //
-// void parse_return() {
-//     match_token(K_RETURN);
-// }
+void parse_return() {
+    match_token(K_RETURN);
+}
 //
 // void parse_procedure_call() {
 //     match_token(T_IDENTIFIER);
@@ -263,16 +267,18 @@ void parse_if() {
 //     }
 //     match_token(T_RPAREN);
 // }
-//
-// void parse_destination() {
-//     match_token(T_IDENTIFIER);
+
+void parse_destination() {
+    assert("Parsing a destination");
+    match_token(T_IDENTIFIER);
 //     if (look_ahead->type == T_LBRACKET) {
 //         match_token(T_LBRACKET);
 //         parse_expression();
 //         match_token(T_RBRACKET);
 //     }
-// }
-//
+    assert("Done parsing an destination");
+}
+
 // void parse_argument_list() {
 //     parse_expression();
 //     parse_argument_list_expression();
@@ -284,13 +290,15 @@ void parse_if() {
 // }
 
 void parse_expression() {
+    assert("Parsing an expression");
     if (look_ahead->type == K_NOT) {
         match_token(K_NOT);
     }
     parse_arith_op();
 //     parse_expression_arith_op();
+    assert("Done parsing an expression");
 }
-//
+
 // void parse_expression_arith_op() {
 //     switch(look_ahead->type) {
 //         case T_AND:
@@ -308,8 +316,10 @@ void parse_expression() {
 // }
 
 void parse_arith_op() {
+    assert("Parsing an arithmetic operation");
     parse_relation();
 //     parse_arith_op_relation();
+    assert("Done parsing an arithmetic operation");
 }
 //
 // void parse_arith_op_relation() {
@@ -329,11 +339,14 @@ void parse_arith_op() {
 //             break;
 //     }
 // }
-//
+
 void parse_relation() {
+    assert("Parsing a relation");
     parse_term();
     parse_relation_term();
+    assert("Done parsing a relation");
 }
+
 void parse_relation_term() {
     switch(look_ahead->type) {
         case T_LT:
@@ -350,18 +363,21 @@ void parse_relation_term() {
 //         case T_GT:
 //             match_token(T_GT);
 //             break;
-//         case T_EQ:
-//             match_token(T_EQ);
-//             break;
+        case T_EQ:
+            match_token(T_EQ);
+            break;
 //         case T_NEQ:
 //             match_token(T_NEQ);
 //             break;
     }
+
 }
 
 void parse_term() {
+    assert("Parsing a term");
     parse_factor();
     // parse_term_factor();
+    assert("Done parsing a term");
 }
 //
 // void parse_term_factor() {
@@ -379,6 +395,7 @@ void parse_term() {
 //     }
 // }
 void parse_factor() {
+    assert("Parsing a factor");
     switch (look_ahead->type) {
 //         case T_STRING:
 //             match_token(T_STRING); break;
@@ -389,8 +406,10 @@ void parse_factor() {
 //             parse_expression();
 //             match_token(T_RPAREN);
 //             break;
-//         case T_MINUS:
-//             match_token(T_MINUS);
+        case T_MINUS: // [-] <name> | [-] <number>
+            match_token(T_MINUS);
+            parse_factor();
+            break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
 //             if (look_ahead->type == T_LBRACKET) { // array
@@ -408,4 +427,5 @@ void parse_factor() {
 //         case K_FALSE:
 //             match_token(K_FALSE); break;
     }
+      assert("Done parsing a factor");
 }
