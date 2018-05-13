@@ -16,15 +16,15 @@ Token* current_token;
 
 void match_token(TokenType type) {
     printf("In match_token: ");
+    printf("Passed type: ");
+    printf("%s\n", print_token_type(type));
     if (look_ahead->type != type) {
-        printf("Not Matched. Token: ");
+        printf("Not Matched. look_ahead is: ");
         print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
         printf("Matched. look_ahead is: ");
         print_token(look_ahead);
-        printf("Passed type: ");
-        printf("%s\n", print_token_type(type));
 
         Token *temp = current_token;
         current_token = look_ahead;
@@ -83,7 +83,6 @@ void parse_declarations() {
         parse_declaration();
         match_token(T_SEMI_COLON);
     }
-    printf("Done parsing all declarations\n");
 }
 
 void parse_declaration() {
@@ -119,9 +118,10 @@ void parse_proc_declaration() {
     }
     match_token(K_BEGIN);
 
-    // if (look_ahead->type != K_END) {
-    //     parse_statements();
-    // }
+    if (look_ahead->type != K_END) {
+        parse_statements();
+    }
+
     match_token(K_END);
     match_token(K_PROCEDURE);
 }
@@ -176,15 +176,15 @@ void parse_statements() {
 }
 
 void parse_statement() {
-    assert("Parsing statement");
-//     switch (look_ahead->type) {
+    assert("Parsing a statement");
+    switch (look_ahead->type) {
 //         case K_PROCEDURE: parse_procedure_call(); break;
-//         case K_IF: parse_if(); break;
+        case K_IF: parse_if(); break;
 //         case K_FOR: parse_loop(); break;
 //         case K_RETURN: parse_return(); break;
 //         case T_IDENTIFIER: parse_assignment(); break;
-//         default: break;
-//     }
+        default: break;
+    }
 }
 //
 void parse_param() {
@@ -221,11 +221,11 @@ void parse_param_list_param() {
 //     parse_expression();
 // }
 //
-// void parse_if() {
-//     match_token(K_IF);
-//     match_token(T_LPAREN);
-//     parse_expression();
-//     match_token(T_RPAREN);
+void parse_if() {
+    match_token(K_IF);
+    match_token(T_LPAREN);
+    parse_expression();
+    match_token(T_RPAREN);
 //     match_token(K_THEN);
 //     parse_statements();
 //     if (look_ahead->type == K_ELSE) {
@@ -235,7 +235,7 @@ void parse_param_list_param() {
 //     match_token(K_END);
 //     match_token(K_IF);
 //
-// }
+}
 //
 // void parse_loop() {
 //     match_token(K_FOR);
@@ -282,14 +282,14 @@ void parse_param_list_param() {
 //     if (look_ahead->type == T_COMMA)
 //         parse_argument_list();
 // }
-//
-// void parse_expression() {
-//     if (look_ahead->type == K_NOT) {
-//         match_token(K_NOT);
-//     }
-//     parse_arith_op();
+
+void parse_expression() {
+    if (look_ahead->type == K_NOT) {
+        match_token(K_NOT);
+    }
+    parse_arith_op();
 //     parse_expression_arith_op();
-// }
+}
 //
 // void parse_expression_arith_op() {
 //     switch(look_ahead->type) {
@@ -306,11 +306,11 @@ void parse_param_list_param() {
 //         // TODO: default
 //     }
 // }
-//
-// void parse_arith_op() {
-//     parse_relation();
+
+void parse_arith_op() {
+    parse_relation();
 //     parse_arith_op_relation();
-// }
+}
 //
 // void parse_arith_op_relation() {
 //     switch(look_ahead->type) {
@@ -330,17 +330,17 @@ void parse_param_list_param() {
 //     }
 // }
 //
-// void parse_relation() {
-//     parse_term();
-//     parse_relation_term();
-// }
-// void parse_relation_term() {
-//     switch(look_ahead->type) {
-//         case T_LT:
-//             match_token(T_LT);
-//             parse_term();
+void parse_relation() {
+    parse_term();
+    parse_relation_term();
+}
+void parse_relation_term() {
+    switch(look_ahead->type) {
+        case T_LT:
+            match_token(T_LT);
+            parse_term();
 //             parse_relation_term();
-//             break;
+            break;
 //         case T_GTEQ:
 //             match_token(T_GTEQ);
 //             break;
@@ -356,16 +356,16 @@ void parse_param_list_param() {
 //         case T_NEQ:
 //             match_token(T_NEQ);
 //             break;
-//     }
-// }
-//
-// void parse_term() {
-//     parse_factor();
-//     parse_term_factor();
-// }
+    }
+}
+
+void parse_term() {
+    parse_factor();
+    // parse_term_factor();
+}
 //
 // void parse_term_factor() {
-//     switch(look_ahead->type) {
+    // switch(look_ahead->type) {
 //         case '*':
 //             match_token(T_MULTIPLY);
 //             parse_factor();
@@ -378,8 +378,8 @@ void parse_param_list_param() {
 //             break;
 //     }
 // }
-// void parse_factor() {
-//     switch (look_ahead->type) {
+void parse_factor() {
+    switch (look_ahead->type) {
 //         case T_STRING:
 //             match_token(T_STRING); break;
 //         case T_CHAR:
@@ -391,21 +391,21 @@ void parse_param_list_param() {
 //             break;
 //         case T_MINUS:
 //             match_token(T_MINUS);
-//         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
-//             match_token(T_IDENTIFIER);
-//             if (look_ahead->type == T_LBRACKET) {
+        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
+            match_token(T_IDENTIFIER);
+//             if (look_ahead->type == T_LBRACKET) { // array
 //                 match_token(T_LBRACKET);
 //                 parse_expression();
 //                 match_token(T_RBRACKET);
 //             }
-//             break;
-//         case T_NUMBER_INT:
-//             match_token(T_NUMBER_INT); break;
+            break;
+        case T_NUMBER_INT:
+            match_token(T_NUMBER_INT); break;
 //         case T_NUMBER_FLOAT:
 //             match_token(T_NUMBER_FLOAT); break;
 //         case K_TRUE:
 //             match_token(K_TRUE); break;
 //         case K_FALSE:
 //             match_token(K_FALSE); break;
-//     }
-// }
+    }
+}
