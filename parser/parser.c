@@ -179,7 +179,6 @@ void parse_statements() {
 void parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
-//         case K_PROCEDURE: parse_procedure_call(); break;
         case K_IF: parse_if(); break;
 //         case K_FOR: parse_loop(); break;
         case K_RETURN: parse_return(); break;

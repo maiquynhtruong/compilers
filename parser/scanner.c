@@ -13,8 +13,12 @@ extern int columnNo;
 extern int cur_char;
 
 // skips comments in /*...*/ blocks
-void skip_star_comment() {
+void skip_block_comment() {
 
+}
+
+void skip_line_comment() {
+    while ((cur_char = read_char()) != '\n'); // skip over one line comment
 }
 
 void skip_blank() {
@@ -80,17 +84,11 @@ Token* next_token() {
     skip_blank();
 
     switch(cur_char) {
-        // case '/':
-        //     next_char = read_char();
-        //     if (next_char == '/') {
-        //         while ((cur_char = read_char()) != '\n')
-        //             ; // skip over one line comment
-        //     } else if (next_char == '*') {
-        //         skip_star_comment();
-        //     } else {
-        //         ungetc(next_char, inp);
-        //         return token->type = T_DIVIDE;
-        //     }
+        case '/':
+            read_char();
+            if (cur_char == '/') skip_line_comment();
+            else if (cur_char == '*') skip_block_comment();
+            else return make_token(T_DIVIDE, lineNo, columnNo);
 
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H':
         case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
@@ -135,8 +133,9 @@ Token* next_token() {
         case '-':
             token = make_token(T_MINUS, lineNo, columnNo);
             read_char(); return token;
-        // case '*':
-        //     return token->type = T_MINUS;
+        case '*':
+            token = make_token(T_MULTIPLY, lineNo, columnNo);
+            read_char(); return token;
         case '<':
             cur_line = lineNo; cur_col = columnNo;
             read_char();
@@ -145,24 +144,28 @@ Token* next_token() {
                 read_char();
             } else token = make_token(T_LT, cur_line, cur_col);
             return token;
-        // case '>':
-        //     next_char = getc(inp);
-        //     if (next_char == '=') return token->type = T_GTEQ;
-        //     else {
-        //         ungetc(next_char, inp);
-        //         return token->type = T_GT;
-        //     }
+        case '>':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_col != EOF && cur_char == '=') {
+                token = make_token(T_GTEQ, cur_line, cur_col);
+                read_char();
+            } else token = make_token(T_GT, cur_line, cur_col);
+            return token;
         case '=':
+            cur_line = lineNo; cur_col = columnNo;
             read_char();
             if (cur_char != EOF && cur_char == '=') {
-                token = make_token(T_EQ, lineNo, columnNo);
+                token = make_token(T_EQ, cur_line, cur_col);
                 read_char(); return token;
-            } else throw_error(E_INVALID_SYMBOL, lineNo, columnNo);
-        //     next_char = getc(inp);
-        //     if (next_char == '=') return token->type = T_EQ; else ungetc(next_char, inp);
-        // case '!':
-        //     next_char = getc(inp);
-        //     if (next_char == '=') return token->type = T_NEQ; else ungetc(next_char, inp);
+            } else throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+        case '!':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_NEQ, cur_line, cur_col);
+                read_char(); return token;
+            } else throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
         case '(':
             token = make_token(T_LPAREN, lineNo, columnNo);
             read_char(); return token;
