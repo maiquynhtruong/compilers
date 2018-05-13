@@ -20,8 +20,10 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSTATEMENT); break;
         case E_INVALID_ARGUMENT:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDARGUMENT); break;
-        case E_INVALID_OPERATOR:
-            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDOPERATOR); break;
+        case E_INVALID_ARITH_OPERATOR:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDARITHOPERATOR); break;
+        case E_INVALID_RELATION:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDRELATION); break;
         case E_INVALID_EXPRESSION:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDEXPRESSION); break;
         case E_INVALID_TERM:

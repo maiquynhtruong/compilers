@@ -175,8 +175,8 @@ Token* next_token() {
         case ']':
             token = make_token(T_RPAREN, lineNo, columnNo);
             read_char(); return token;
-        // case EOF: case '.':
-            // return make_token(T_END_OF_FILE, lineNo, columnNo);
+        case EOF: case '.':
+            return make_token(T_END_OF_FILE, lineNo, columnNo);
         default: // anything else is not recognized
             token = make_token(T_UNKNOWN, lineNo, columnNo);
             throw_error(E_INVALID_CHAR, lineNo, columnNo);
