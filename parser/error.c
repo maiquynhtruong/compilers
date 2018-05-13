@@ -14,8 +14,8 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSYMBOL); break;
         case E_INVALID_TYPE:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDTYPE); break;
-        case E_INVALID_PARAM:
-            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDPARAM); break;
+        case E_INVALID_PARAM_TYPE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDPARAMTYPE); break;
         case E_INVALID_STATEMENT:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSTATEMENT); break;
         case E_INVALID_ARGUMENT:

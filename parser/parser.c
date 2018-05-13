@@ -15,13 +15,15 @@ Token* look_ahead;
 Token* current_token;
 
 void match_token(TokenType type) {
-
+    printf("In match_token: ");
     if (look_ahead->type != type) {
+        printf("Not Matched. Token: ");
         print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
-        printf("Matched!\n");
+        printf("Matched. look_ahead is: ");
         print_token(look_ahead);
+        printf("Passed type: ");
         printf("%s\n", print_token_type(type));
 
         Token *temp = current_token;
@@ -29,10 +31,14 @@ void match_token(TokenType type) {
         look_ahead = next_valid_token();
 
         free(temp);
+
+        printf("Next token expected : ");
+        print_token(look_ahead);
+        printf("\n");
     }
 }
 
-// holy entry point of entire program
+// holy entry point
 int parse(char *file_name) {
     if (open_input_stream(file_name) == IO_ERROR)
         return IO_ERROR;
@@ -71,11 +77,13 @@ void parse_program_body() {
 }
 
 void parse_declarations() {
-    TokenType type = look_ahead->type;
-    while (type == K_PROCEDURE || type == K_INT || type == K_FLOAT || type == K_STRING || type == K_BOOL || type == K_CHAR) {
+    while (look_ahead->type == K_PROCEDURE || look_ahead->type == K_INT ||
+      look_ahead->type == K_FLOAT || look_ahead->type == K_STRING ||
+      look_ahead->type == K_BOOL || look_ahead->type == K_CHAR) {
         parse_declaration();
         match_token(T_SEMI_COLON);
     }
+    printf("Done parsing all declarations\n");
 }
 
 void parse_declaration() {
@@ -96,32 +104,33 @@ void parse_declaration() {
 //
 void parse_proc_declaration() {
     assert("Parsing a procedure declaration");
-//     // procedure header
-//     match_token(K_PROCEDURE);
-//     match_token(T_IDENTIFIER);
-//     match_token(T_LPAREN);
-//     if (look_ahead->type != T_RPAREN) {
-//         parse_param_list();
-//     }
-//     match_token(T_RPAREN);
-//
-//     // procedure body
-//     if (look_ahead->type != K_BEGIN) {
-//         parse_declarations();
-//     }
-//     match_token(K_BEGIN);
-//     if (look_ahead->type != K_END) {
-//         parse_statements();
-//     }
-//     match_token(K_END);
-//     match_token(K_PROCEDURE);
+    // procedure header
+    match_token(K_PROCEDURE);
+    match_token(T_IDENTIFIER);
+    match_token(T_LPAREN);
+    if (look_ahead->type != T_RPAREN) {
+        parse_param_list();
+    }
+    match_token(T_RPAREN);
+
+    // procedure body
+    if (look_ahead->type != K_BEGIN) {
+        parse_declarations();
+    }
+    match_token(K_BEGIN);
+
+    // if (look_ahead->type != K_END) {
+    //     parse_statements();
+    // }
+    match_token(K_END);
+    match_token(K_PROCEDURE);
 }
 
 void parse_var_declaration() {
     assert("Parsing a variable declaration");
     parse_type_mark();
-//     match_token(T_IDENTIFIER);
-//
+    match_token(T_IDENTIFIER);
+
 //     if (look_ahead->type == T_LBRACKET) { // an array
 //         match_token(T_LBRACKET);
 //         if (look_ahead->type == T_MINUS) {
@@ -140,7 +149,7 @@ void parse_var_declaration() {
 //         match_token(T_RBRACKET);
 //     }
 }
-//
+
 void parse_type_mark() {
   assert("Parsing a type mark");
     switch(look_ahead->type) {
@@ -160,8 +169,7 @@ void parse_type_mark() {
 }
 
 void parse_statements() {
-    TokenType type = look_ahead->type;
-    while (type == T_IDENTIFIER || type == K_PROCEDURE || type == K_IF || type == K_FOR || type == K_RETURN) {
+    while (look_ahead->type == T_IDENTIFIER || look_ahead->type == K_PROCEDURE || look_ahead->type == K_IF || look_ahead->type == K_FOR || look_ahead->type == K_RETURN) {
         parse_statement();
         match_token(T_SEMI_COLON);
     }
@@ -179,32 +187,33 @@ void parse_statement() {
 //     }
 }
 //
-// void parse_param() {
-//     parse_var_declaration();
-//     switch (look_ahead->type) {
-//         case K_IN:
-//             match_token(K_IN); break;
-//         case K_OUT:
-//             match_token(K_OUT); break;
-//         case K_INOUT:
-//             match_token(K_INOUT); break;
-//         default:
-//             printf("Syntax error\n"); break;
-//     }
-// }
-//
-// void parse_param_list() {
-//     parse_param();
-//     parse_param_list_param();
-// }
-//
-// void parse_param_list_param() {
-//     if (look_ahead->type == T_COMMA) {
-//         match_token(T_COMMA);
-//         parse_param();
-//         parse_param_list_param();
-//     }
-// }
+void parse_param() {
+    parse_var_declaration();
+    printf("Done parsing identifier, now parsing param return type. Current look_ahead: %s\n", print_token_type(look_ahead->type));
+    switch (look_ahead->type) {
+        case K_IN:
+            match_token(K_IN); break;
+        case K_OUT:
+            match_token(K_OUT); break;
+        case K_INOUT:
+            match_token(K_INOUT); break;
+        default:
+            throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+}
+
+void parse_param_list() {
+    parse_param();
+    parse_param_list_param();
+}
+
+void parse_param_list_param() {
+    if (look_ahead->type == T_COMMA) {
+        match_token(T_COMMA);
+        parse_param();
+        parse_param_list_param();
+    }
+}
 //
 // void parse_assignment() {
 //     parse_destination();

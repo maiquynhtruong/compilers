@@ -11,12 +11,15 @@ struct {
     {"PROGRAM", K_PROGRAM},
     {"IS", K_IS},
     {"global", K_GLOBAL},
-    {"inout", K_INOUT},
     {"integer", K_INT},
     {"float", K_FLOAT},
+    {"string", K_STRING},
     {"bool", K_BOOL},
     {"char", K_CHAR},
     {"procedure", K_PROCEDURE},
+    {"in", K_IN},
+    {"out", K_OUT},
+    {"inout", K_INOUT},
     {"return", K_RETURN},
     {"not", K_NOT},
     {"begin", K_BEGIN},
@@ -40,11 +43,12 @@ int strcicmp(char const *a, char const *b){
 }
 
 TokenType check_reserved_word(char *str) {
+    printf("In check_reserved_word\n");
     int i, count = sizeof(keywords)/sizeof(keywords[0]);
-//    printf("str: %s\n", str);
+
     for (i = 0; i < count; i++) {
         if (strcicmp(keywords[i].keyword, str) == 0) {
-//            printf("keyword: %s\n", keywords[i].keyword);
+            printf("A keyword: %s\n", keywords[i].keyword);
             return keywords[i].type;
         }
     }

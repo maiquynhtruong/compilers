@@ -68,6 +68,12 @@ Token *read_number() {
   token->type = T_NUMBER_INT;
   return token;
 }
+//
+// Token *read_character() {
+//     Token *token;
+//     return token;
+// }
+
 Token* next_token() {
     Token *token;
 
@@ -118,10 +124,13 @@ Token* next_token() {
         //     return token->type;
         case ';': // for end of statement
             // separate cases for colon, comma and semi colon to not mix up with single quote characters
-            printf("A semi colon\n");
-            return make_token(T_SEMI_COLON, lineNo, columnNo);
-        // case ',': // for separating argument list
-        //     return token->type = T_COMMA;
+            token = make_token(T_SEMI_COLON, lineNo, columnNo);
+            read_char();
+            return token;
+        case ',': // for separating argument list
+            token = make_token(T_COMMA, lineNo, columnNo);
+            read_char();
+            return token;
         // case '+':
         //     return token->type = T_PLUS;
         // case '-':
@@ -148,10 +157,14 @@ Token* next_token() {
         // case '!':
         //     next_char = getc(inp);
         //     if (next_char == '=') return token->type = T_NEQ; else ungetc(next_char, inp);
-        // case '(':
-        //     return token->type = T_LPAREN;
-        // case ')':
-        //     return token->type = T_RPAREN;
+        case '(':
+            token = make_token(T_LPAREN, lineNo, columnNo);
+            read_char();
+            return token;
+        case ')':
+            token = make_token(T_RPAREN, lineNo, columnNo);
+            read_char();
+            return token;
         // case '[':
         //     return token->type = T_LBRACKET;
         // case ']':
@@ -278,7 +291,7 @@ void print_token(Token *token) {
 
 // filter out the bad tokens
 Token *next_valid_token() {
-  printf("In next_valid_token\n");
+    printf("In next_valid_token\n");
     Token *token = next_token();
     while (token->type == T_UNKNOWN) {
         free(token);

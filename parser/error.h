@@ -11,7 +11,7 @@ typedef enum {
     E_INVALID_CHAR,
     E_INVALID_SYMBOL,
     E_INVALID_TYPE,
-    E_INVALID_PARAM,
+    E_INVALID_PARAM_TYPE,
     E_INVALID_STATEMENT,
     E_INVALID_ARGUMENT,
     E_INVALID_OPERATOR,
@@ -25,7 +25,7 @@ typedef enum {
 #define E_MES_INVALIDCHAR "Invalid character"
 #define E_MES_INVALIDSYMBOL "Invalid symbol"
 #define E_MES_INVALIDTYPE "Invalid Type"
-#define E_MES_INVALIDPARAM "Invalid Parameter"
+#define E_MES_INVALIDPARAMTYPE "Invalid Parameter Type"
 #define E_MES_INVALIDSTATEMENT "Invalid Statement"
 #define E_MES_INVALIDARGUMENT "Invalid Argument"
 #define E_MES_INVALIDOPERATOR "Invalid Operator"
