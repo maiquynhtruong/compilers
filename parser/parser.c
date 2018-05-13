@@ -166,6 +166,7 @@ void parse_type_mark() {
         default:
             throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    assert("Done parsing a type mark");
 }
 
 void parse_statements() {
@@ -183,13 +184,15 @@ void parse_statement() {
 //         case K_FOR: parse_loop(); break;
         case K_RETURN: parse_return(); break;
         case T_IDENTIFIER: parse_assignment(); break;
+        //TODO: This case can either be an assignment or a function call
         default: break;
     }
+    assert("Done parsing a statement");
 }
 //
 void parse_param() {
+    assert("Parsing a parameter");
     parse_var_declaration();
-    printf("Done parsing identifier, now parsing param return type. Current look_ahead: %s\n", print_token_type(look_ahead->type));
     switch (look_ahead->type) {
         case K_IN:
             match_token(K_IN); break;
@@ -200,6 +203,7 @@ void parse_param() {
         default:
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    assert("Done parsing a parameter");
 }
 
 void parse_param_list() {
@@ -216,14 +220,15 @@ void parse_param_list_param() {
 }
 //
 void parse_assignment() {
-    assert("Parsing an assignment");
+    assert("Parsing an assignment statement");
     parse_destination();
     match_token(T_ASSIGNMENT);
     parse_expression();
-    assert("Done parsing an assignment");
+    assert("Done parsing an assignment statement");
 }
 
 void parse_if() {
+    assert("Parsing an if statement");
     match_token(K_IF);
     match_token(T_LPAREN);
     parse_expression();
@@ -236,9 +241,9 @@ void parse_if() {
     }
     match_token(K_END);
     match_token(K_IF);
-//
+    assert("Done parsing an if statement");
 }
-//
+
 // void parse_loop() {
     // assert("Parsing a loop");
 //     match_token(K_FOR);
@@ -259,14 +264,16 @@ void parse_return() {
     match_token(K_RETURN);
 }
 //
-// void parse_procedure_call() {
+void parse_procedure_call() {
+    assert("Parsing a procedure call");
 //     match_token(T_IDENTIFIER);
 //     match_token(T_LPAREN);
 //     if (look_ahead->type != T_RPAREN) {
 //         parse_argument_list();
 //     }
 //     match_token(T_RPAREN);
-// }
+    assert("Done parsing a procedure call");
+}
 
 void parse_destination() {
     assert("Parsing a destination");
@@ -295,25 +302,25 @@ void parse_expression() {
         match_token(K_NOT);
     }
     parse_arith_op();
-//     parse_expression_arith_op();
+    parse_expression_arith_op();
     assert("Done parsing an expression");
 }
 
-// void parse_expression_arith_op() {
-//     switch(look_ahead->type) {
-//         case T_AND:
-//             match_token(T_AND);
-//             parse_arith_op();
-//             parse_expression_arith_op();
-//             break;
-//         case T_OR:
-//             match_token(T_OR);
-//             parse_arith_op();
-//             parse_expression_arith_op();
-//             break;
-//         // TODO: default
-//     }
-// }
+void parse_expression_arith_op() {
+    switch(look_ahead->type) {
+        case T_AND:
+            match_token(T_AND);
+            parse_arith_op();
+            parse_expression_arith_op();
+            break;
+        case T_OR:
+            match_token(T_OR);
+            parse_arith_op();
+            parse_expression_arith_op();
+            break;
+        default: break;
+    }
+}
 
 void parse_arith_op() {
     assert("Parsing an arithmetic operation");
@@ -352,7 +359,7 @@ void parse_relation_term() {
         case T_LT:
             match_token(T_LT);
             parse_term();
-//             parse_relation_term();
+            parse_relation_term();
             break;
 //         case T_GTEQ:
 //             match_token(T_GTEQ);
@@ -365,12 +372,17 @@ void parse_relation_term() {
 //             break;
         case T_EQ:
             match_token(T_EQ);
+            parse_term();
+            parse_relation_term();
             break;
 //         case T_NEQ:
 //             match_token(T_NEQ);
 //             break;
-    }
 
+//TODO: Follow through from above
+//TODO: default case should throw_error
+        default: break;
+    }
 }
 
 void parse_term() {
