@@ -10,6 +10,8 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_IDENTTOOLONG); break;
         case E_INVALID_CHAR:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDCHAR); break;
+        case E_INVALID_STRING:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSTRING); break;
         case E_INVALID_SYMBOL:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSYMBOL); break;
         case E_INVALID_TYPE:

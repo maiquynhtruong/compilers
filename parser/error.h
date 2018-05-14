@@ -9,6 +9,7 @@ typedef enum {
     E_END_OF_COMMENT,
     E_IDENT_TOO_LONG,
     E_INVALID_CHAR,
+    E_INVALID_STRING,
     E_INVALID_SYMBOL,
     E_INVALID_TYPE,
     E_INVALID_PARAM_TYPE,
@@ -24,6 +25,7 @@ typedef enum {
 #define E_MES_ENDOFCOMMENT "End of comment"
 #define E_MES_IDENTTOOLONG "Identifier too long"
 #define E_MES_INVALIDCHAR "Invalid character"
+#define E_MES_INVALIDSTRING "Invalid string"
 #define E_MES_INVALIDSYMBOL "Invalid symbol"
 #define E_MES_INVALIDTYPE "Invalid Type"
 #define E_MES_INVALIDPARAMTYPE "Invalid Parameter Type"

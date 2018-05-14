@@ -1,8 +1,3 @@
-/* Some references:
-https://ryanflannery.net/teaching/common/recursive-descent-parsing/
-http://www.craftinginterpreters.com/parsing-expressions.html
-https://news.ycombinator.com/item?id=13914218
-*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "error.h"
@@ -180,7 +175,9 @@ void parse_statement_chain() {
             parse_statement();
             parse_statement_chain();
             break;
-        case K_END: case K_ELSE: break;
+        // FOLLOW set
+        case K_END: case K_ELSE: // if statement, for loop
+            break;
         default:
             throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
@@ -197,7 +194,9 @@ void parse_statement() {
             parse_assignment_statement();
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
             break;
-        case K_END: case K_ELSE: case T_SEMI_COLON: break;
+        // FOLLOW set
+        case K_END: case K_ELSE: case T_SEMI_COLON: // if statement, for loop
+            break;
         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a statement");
@@ -255,11 +254,26 @@ void parse_procedure_call() {
     if (look_ahead->type == T_IDENTIFIER) match_token(T_IDENTIFIER);
 
     match_token(T_LPAREN);
-    if (look_ahead->type != T_RPAREN) {
-        parse_argument_list();
-    }
+    parse_argument_list();
     match_token(T_RPAREN);
     assert("Done parsing a procedure call");
+}
+
+void parse_param_list() {
+    parse_param();
+    parse_param_list_param();
+}
+
+void parse_param_list_param() {
+    switch (look_ahead->type) {
+        case T_COMMA:
+            match_token(T_COMMA);
+            parse_param();
+            parse_param_list_param();
+            break;
+        case T_RPAREN: break;
+        default: throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
 }
 
 void parse_param() {
@@ -278,23 +292,10 @@ void parse_param() {
     assert("Done parsing a parameter");
 }
 
-void parse_param_list() {
-    parse_param();
-    parse_param_list_param();
-}
-
-void parse_param_list_param() {
-    if (look_ahead->type == T_COMMA) {
-        match_token(T_COMMA);
-        parse_param();
-        parse_param_list_param();
-    }
-}
-
 void parse_destination() {
     assert("Parsing a destination");
     match_token(T_IDENTIFIER);
-    if (look_ahead == T_LPAREN) {
+    if (look_ahead->type == T_LPAREN) {
         assert("Not a destination. Backtracking to parse a procedure call");
         return; // back track to parse_statement
     }
@@ -350,7 +351,12 @@ void parse_expression_arith_op() {
             parse_arith_op();
             parse_expression_arith_op();
             break;
-        default: break;
+        // FOLLOW set
+        case T_RPAREN: // for loop, if statement
+        case T_RBRACKET: // assignment statement
+        case T_SEMI_COLON: // statements
+            break;
+        default: throw_error(E_INVALID_EXPRESSION, look_ahead->lineNo, look_ahead->columnNo);
     }
 }
 
@@ -375,7 +381,7 @@ void parse_arith_op_relation() {
             break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
-        case T_RPAREN: // for loop
+        case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
             break;
@@ -425,7 +431,7 @@ void parse_relation_term() {
         // FOLLOW set
         case T_PLUS: case T_MINUS: // arith op
         case T_AND: case T_OR: case T_COMMA: // expression
-        case T_RPAREN: // for loop
+        case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
             break;
@@ -443,31 +449,40 @@ void parse_term() {
 
 void parse_term_factor() {
     switch(look_ahead->type) {
-        case '*':
+        case T_MULTIPLY:
             match_token(T_MULTIPLY);
-//             parse_factor();
-//             parse_term_factor(); // recurse
+            parse_factor();
+            parse_term_factor();
             break;
-        case '/':
+        case T_DIVIDE:
             match_token(T_DIVIDE);
-//             parse_factor();
-//             parse_term_factor();
+            parse_factor();
+            parse_term_factor();
             break;
+        // FOLLOW set
+        case T_LT: case T_LTEQ: case T_GT: case T_GTEQ: case T_EQ: case T_NEQ: // relation
+        case T_PLUS: case T_MINUS: // arith op
+        case T_AND: case T_OR: case T_COMMA: // expression
+        case T_RPAREN: // for loop, if statement
+        case T_RBRACKET: // assignment statement
+        case T_SEMI_COLON: // statements
+            break;
+        default: throw_error(E_INVALID_TERM, look_ahead->lineNo, look_ahead->columnNo); break;
     }
 }
 
 void parse_factor() {
     assert("Parsing a factor");
     switch (look_ahead->type) {
-//         case T_STRING:
-//             match_token(T_STRING); break;
-//         case T_CHAR:
-//             match_token(T_CHAR); break;
-//         case T_LPAREN: // ( <expression> )
-//             match_token(T_LPAREN);
-//             parse_expression();
-//             match_token(T_RPAREN);
-//             break;
+        case T_STRING:
+            match_token(T_STRING); break;
+        case T_CHAR:
+            match_token(T_CHAR); break;
+        case T_LPAREN: // ( <expression> )
+            match_token(T_LPAREN);
+            parse_expression();
+            match_token(T_RPAREN);
+            break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
             assert("A negative number of a negative name");
@@ -475,11 +490,7 @@ void parse_factor() {
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
-            if (look_ahead->type == T_LBRACKET) { // array
-                match_token(T_LBRACKET);
-                parse_expression();
-                match_token(T_RBRACKET);
-            }
+            parse_indexes();
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT); break;
@@ -489,6 +500,18 @@ void parse_factor() {
             match_token(K_TRUE); break;
         case K_FALSE:
             match_token(K_FALSE); break;
+        default:
+            throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a factor");
+}
+
+// helper function to parse index of array
+void parse_indexes() {
+    if (look_ahead->type == T_LBRACKET) {
+        match_token(T_LBRACKET);
+        parse_expression();
+        match_token(T_RBRACKET);
+        parse_indexes(); // for 2D array or more
+    }
 }

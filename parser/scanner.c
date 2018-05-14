@@ -11,6 +11,7 @@
 extern int lineNo;
 extern int columnNo;
 extern int cur_char;
+int cur_line, cur_col;
 
 // skips comments in /*...*/ blocks
 void skip_block_comment() {
@@ -32,13 +33,10 @@ void skip_block_comment() {
 }
 
 void skip_line_comment() {
-    while (cur_char != '\n' && cur_char != EOF)
-        read_char(); // skip over one line comment
+    while (cur_char != '\n' && cur_char != EOF) read_char(); // skip over one line comment
 }
 
-void skip_blank() {
-    while (isspace(cur_char) && cur_char != -1) read_char();
-}
+void skip_blank() { while (isspace(cur_char) && cur_char != -1) read_char(); }
 
 Token *read_ident() {
   int i = 0;
@@ -62,39 +60,67 @@ Token *read_ident() {
 }
 
 Token *read_number() {
-  Token *token = make_token(T_NUMBER_INT, lineNo, columnNo);
-  token->val.intVal = cur_char - '0';
+    Token *token = make_token(T_NUMBER_INT, lineNo, columnNo);
+    token->val.intVal = cur_char - '0';
 
-  while (isdigit(cur_char = read_char())) { //|| cur_char == '.') {
-      if (cur_char == '.') {
-          token->val.floatVal = 1.0 * token->val.intVal;
-          break; // go to the loop that reads the decimal part
-      }
-      token->val.intVal = token->val.intVal*10 + cur_char - '0';
-  }
-  // if (cur_char == '.') {
-  //     int exponent = 1;
-  //     while (isdigit(cur_char = read_char())) {
-  //         exponent = exponent*10;
-  //         token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
-  //     }
-  //     token->val.floatVal = token->val.floatVal / exponent;
-  //     ungetc(cur_char, inp);
-  //     return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
-  // }
-  // ungetc(cur_char, inp);
-  // token->type = T_NUMBER_INT;
-  return token;
+    while (isdigit(cur_char = read_char())) { //|| cur_char == '.') {
+        if (cur_char == '.') {
+            token->val.floatVal = 1.0 * token->val.intVal;
+            break; // go to the loop that reads the decimal part
+        }
+        token->val.intVal = token->val.intVal*10 + cur_char - '0';
+    }
+    // TODO: Float number
+    // if (cur_char == '.') {
+    //     int exponent = 1;
+    //     while (isdigit(cur_char = read_char())) {
+    //         exponent = exponent*10;
+    //         token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
+    //     }
+    //     token->val.floatVal = token->val.floatVal / exponent;
+    //     ungetc(cur_char, inp);
+    //     return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
+    // }
+    // ungetc(cur_char, inp);
+    // token->type = T_NUMBER_INT;
+    return token;
 }
-//
-// Token *read_character() {
-//     Token *token;
-//     return token;
-// }
+
+Token *read_string() {
+    cur_line = lineNo; cur_col = columnNo;
+    Token *token = read_ident();
+    token->type = T_STRING;
+    token->lineNo = cur_line;
+    token->columnNo = cur_col;
+
+    read_char();
+    //TODO: check for EOF;
+    if (cur_char == '\"') {
+        read_char();
+    } else {
+        token->type = T_UNKNOWN;
+        throw_error(E_INVALID_STRING, cur_line, cur_col);
+    }
+    return token;
+}
+
+Token *read_single_char() {
+    Token *token = make_token(T_CHAR, lineNo, columnNo);
+    read_char();
+    // TODO: check for EOF
+
+    token->val.charVal = cur_char;
+    if (cur_char == '\'') {
+        read_char();
+    } else {
+        token->type = T_UNKNOWN;
+        throw_error(E_INVALID_CHAR, lineNo, columnNo);
+    }
+    return token;
+}
 
 Token* next_token() {
     Token *token;
-    int cur_line, cur_col;
 
     skip_blank();
 
@@ -127,15 +153,10 @@ Token* next_token() {
         case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '9':
             return read_number();
 
-        // case '\'':// single quote characters
-        //     token->val.charVal = cur_char;
-        //     getc(inp); // if correct program, only one character inside a pair of single quotes
-        //     return token->type = T_CHAR;
-        // case '"': // double quote strings
-        //     for (i = 0; (cur_char = getc(inp)) != '"'; i++) // read anything until a double quote
-        //         token->val.stringVal[i] = cur_char;
-        //     token->val.stringVal[i] = '\0';
-        //     return token->type = T_STRING;
+        case '\'':// single quote characters
+            return read_single_char();
+        case '"': // double quote strings
+            return read_string();
 
         case ':': // check if this is assignment token
             cur_line = lineNo; cur_col = columnNo;

@@ -36,5 +36,6 @@ void parse_relation_term();
 void parse_term();
 void parse_term_factor();
 void parse_factor();
+void parse_indexes();
 
 #endif
