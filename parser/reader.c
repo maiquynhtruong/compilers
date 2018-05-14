@@ -2,15 +2,25 @@
 #include "reader.h"
 
 FILE *input;
-int lineNo, columnNo;
+int lineNo, columnNo, prev_columnNo;
 int cur_char;
 
 int read_char() {
     cur_char = getc(input);
+    prev_columnNo = columnNo;
     columnNo++;
     if (cur_char == '\n') {
       lineNo++;
       columnNo = 0;
+    }
+    return cur_char;
+}
+
+int unread_char() {
+    ungetc(cur_char, input);
+    if (cur_char == '\n') {
+        lineNo--;
+        columnNo = prev_columnNo;
     }
     return cur_char;
 }
