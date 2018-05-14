@@ -81,24 +81,28 @@ void parse_program_body() {
 
 void parse_declarations() {
     assert("Parsing declarations");
-    if (look_ahead->type == K_GLOBAL) {
-        match_token(K_GLOBAL);
-    }
-    if (look_ahead->type == K_PROCEDURE) {
-        parse_proc_declaration();
-        match_token(T_SEMI_COLON);
-        parse_declarations();
-    // } else if (look_ahead->type == K_INT || look_ahead->type == K_FLOAT ||
-        // look_ahead->type == K_STRING || look_ahead->type == K_BOOL ||
-        // look_ahead->type == K_CHAR){
-    } else if (look_ahead->type != K_BEGIN) {
-        parse_var_declaration();
-        match_token(T_SEMI_COLON);
-        parse_declarations();
+    switch (look_ahead->type) {
+        case K_GLOBAL:
+            match_token(K_GLOBAL);
+            parse_declarations();
+            break;
+        case K_PROCEDURE:
+            parse_proc_declaration();
+            match_token(T_SEMI_COLON);
+            parse_declarations();
+            break;
+        // FOLLOW set
+        case K_BEGIN: // from program_body, procedure_body
+            break;
+        default:
+            parse_var_declaration();
+            match_token(T_SEMI_COLON);
+            parse_declarations();
+            break;
     }
     assert("Done parsing declarations");
 }
-//
+
 void parse_proc_declaration() {
     assert("Parsing a procedure declaration");
     // procedure header
@@ -122,6 +126,7 @@ void parse_proc_declaration() {
 
     match_token(K_END);
     match_token(K_PROCEDURE);
+    assert("Done parsing a procedure declaration");
 }
 
 void parse_var_declaration() {
@@ -141,6 +146,7 @@ void parse_var_declaration() {
         // match_token(T_NUMBER_INT); // uppper bound
         match_token(T_RBRACKET);
     }
+    assert("Done parsing a variable declaration");
 }
 
 void parse_type_mark() {
@@ -183,19 +189,79 @@ void parse_statement_chain() {
 void parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
-        case K_IF: parse_if(); break;
-//         case K_FOR: parse_loop(); break;
-        case K_RETURN: parse_return(); break;
+        case K_IF: parse_if_statement(); break;
+        case K_FOR: parse_loop_statement(); break;
+        case K_RETURN: parse_return_statement(); break;
         case T_IDENTIFIER:
-            match_token(T_IDENTIFIER);
+            // match_token(T_IDENTIFIER);
+            parse_assignment_statement();
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
-            else parse_assignment(); break;
+            break;
         case K_END: case K_ELSE: case T_SEMI_COLON: break;
         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a statement");
 }
-//
+
+void parse_assignment_statement() {
+    assert("Parsing an assignment statement");
+    parse_destination();
+    if (look_ahead->type == T_LPAREN) return;
+    match_token(T_ASSIGNMENT);
+    parse_expression();
+    assert("Done parsing an assignment statement");
+}
+
+void parse_if_statement() {
+    assert("Parsing an if statement");
+    match_token(K_IF);
+    match_token(T_LPAREN);
+    parse_expression();
+    match_token(T_RPAREN);
+    match_token(K_THEN);
+    parse_statements();
+    if (look_ahead->type == K_ELSE) {
+        match_token(K_ELSE);
+        parse_statements();
+    }
+    match_token(K_END);
+    match_token(K_IF);
+    assert("Done parsing an if statement");
+}
+
+void parse_loop_statement() {
+    assert("Parsing a for loop");
+    match_token(K_FOR);
+    match_token(T_LPAREN);
+    parse_assignment_statement();
+    match_token(T_SEMI_COLON);
+    parse_expression();
+    match_token(T_RPAREN);
+    if (look_ahead->type != K_END) {
+        parse_statements();
+    }
+    match_token(K_END);
+    match_token(K_FOR);
+    assert("Done parsing a for loop");
+}
+
+void parse_return_statement() {
+    match_token(K_RETURN);
+}
+
+void parse_procedure_call() {
+    assert("Parsing a procedure call");
+    // if the identifier had not be parsed by parse_assignment_statement()
+    if (look_ahead->type == T_IDENTIFIER) match_token(T_IDENTIFIER);
+
+    match_token(T_LPAREN);
+    if (look_ahead->type != T_RPAREN) {
+        parse_argument_list();
+    }
+    match_token(T_RPAREN);
+    assert("Done parsing a procedure call");
+}
+
 void parse_param() {
     assert("Parsing a parameter");
     parse_var_declaration();
@@ -224,71 +290,20 @@ void parse_param_list_param() {
         parse_param_list_param();
     }
 }
-//
-void parse_assignment() {
-    assert("Parsing an assignment statement");
-    parse_destination();
-    match_token(T_ASSIGNMENT);
-    parse_expression();
-    assert("Done parsing an assignment statement");
-}
-
-void parse_if() {
-    assert("Parsing an if statement");
-    match_token(K_IF);
-    match_token(T_LPAREN);
-    parse_expression();
-    match_token(T_RPAREN);
-    match_token(K_THEN);
-    parse_statements();
-    if (look_ahead->type == K_ELSE) {
-        match_token(K_ELSE);
-        parse_statements();
-    }
-    match_token(K_END);
-    match_token(K_IF);
-    assert("Done parsing an if statement");
-}
-
-// void parse_loop() {
-    // assert("Parsing a loop");
-//     match_token(K_FOR);
-//     match_token(T_LPAREN);
-//     parse_assignment();
-//     match_token(T_SEMI_COLON);
-//     parse_expression();
-//     match_token(T_RPAREN);
-//     if (look_ahead->type != K_END) {
-//         parse_statements();
-//     }
-//     match_token(K_END);
-//     match_token(K_FOR);
-    // assert("Done parsing a loop");
-// }
-//
-void parse_return() {
-    match_token(K_RETURN);
-}
-//
-void parse_procedure_call() {
-    assert("Parsing a procedure call");
-//     match_token(T_IDENTIFIER); // parsed in parse_statement()
-    match_token(T_LPAREN);
-    if (look_ahead->type != T_RPAREN) {
-        parse_argument_list();
-    }
-    match_token(T_RPAREN);
-    assert("Done parsing a procedure call");
-}
 
 void parse_destination() {
     assert("Parsing a destination");
-    // match_token(T_IDENTIFIER); // parsed in parse_statement()
-//     if (look_ahead->type == T_LBRACKET) {
-//         match_token(T_LBRACKET);
-//         parse_expression();
-//         match_token(T_RBRACKET);
-//     }
+    match_token(T_IDENTIFIER);
+    if (look_ahead == T_LPAREN) {
+        assert("Not a destination. Backtracking to parse a procedure call");
+        return; // back track to parse_statement
+    }
+
+    if (look_ahead->type == T_LBRACKET) {
+        match_token(T_LBRACKET);
+        parse_expression();
+        match_token(T_RBRACKET);
+    }
     assert("Done parsing an destination");
 }
 
