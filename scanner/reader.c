@@ -2,7 +2,7 @@
 #include "reader.h"
 
 FILE *input;
-int lineNo, columnNo;
+int lineNo, columnNo; // static variables
 int cur_char;
 
 int read_char() {
@@ -15,6 +15,7 @@ int read_char() {
     return cur_char;
 }
 
+// initialization
 int open_input_stream(char *file_name) {
     input = fopen(file_name, "r");
     if (input == NULL)
@@ -26,6 +27,7 @@ int open_input_stream(char *file_name) {
 
     return IO_SUCCESS;
 }
+
 void close_input_stream() {
     fclose(input);
 }

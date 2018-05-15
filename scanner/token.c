@@ -40,6 +40,8 @@ TokenType check_reserved_word(char *str) {
         }
     }
 //    printf("ident: %s\n", str);
+    // build the symbol table so that new entries are created with the token type
+    // field initialized to IDENTIFIER
     return T_IDENTIFIER;
 }
 
