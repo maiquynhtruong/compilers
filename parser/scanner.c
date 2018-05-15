@@ -122,11 +122,16 @@ Token *read_single_char() {
     read_char();
     // TODO: check for EOF
 
-    //
-    token->val.charVal = cur_char;
-    if (cur_char == '\'') {
+    // <char> ::= '[a-zA-Z0-9 _;:.”]'
+    if (cur_char != EOF && (isalnum(cur_char)
+    || isspace(cur_char) || cur_char == '_' || cur_char == ';'
+    || cur_char == ':' || cur_char == '.' || cur_char == '\"')) {
+        token->val.charVal = cur_char;
         read_char();
-    } else {
+    }
+
+    if (cur_char == '\'') read_char();
+    else {
         token->type = T_UNKNOWN;
         throw_error(E_INVALID_CHAR, lineNo, columnNo);
     }
