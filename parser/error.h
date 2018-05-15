@@ -8,6 +8,7 @@
 typedef enum {
     E_END_OF_COMMENT,
     E_IDENT_TOO_LONG,
+    E_STRING_TOO_LONG,
     E_INVALID_CHAR,
     E_INVALID_STRING,
     E_INVALID_SYMBOL,
@@ -23,6 +24,7 @@ typedef enum {
 } ErrorCode;
 
 #define E_MES_ENDOFCOMMENT "End of comment"
+#define E_MES_STRINGTOOLONG "String too long"
 #define E_MES_IDENTTOOLONG "Identifier too long"
 #define E_MES_INVALIDCHAR "Invalid character"
 #define E_MES_INVALIDSTRING "Invalid string"

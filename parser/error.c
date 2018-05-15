@@ -8,6 +8,8 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_ENDOFCOMMENT); break;
         case E_IDENT_TOO_LONG:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_IDENTTOOLONG); break;
+        case E_STRING_TOO_LONG:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_STRINGTOOLONG); break;
         case E_INVALID_CHAR:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDCHAR); break;
         case E_INVALID_STRING:

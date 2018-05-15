@@ -352,6 +352,7 @@ void parse_expression_arith_op() {
             parse_expression_arith_op();
             break;
         // FOLLOW set
+        case T_COMMA: // argument list
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
@@ -500,8 +501,13 @@ void parse_factor() {
             match_token(K_TRUE); break;
         case K_FALSE:
             match_token(K_FALSE); break;
-        default:
-            throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
+        // FOLLOW set
+        case T_AND: case T_OR: case T_COMMA: // expression
+        case T_RPAREN: // for loop, if statement
+        case T_RBRACKET: // assignment statement
+        case T_SEMI_COLON: // statements
+            break;
+        default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a factor");
 }

@@ -41,12 +41,12 @@ void skip_blank() { while (isspace(cur_char) && cur_char != -1) read_char(); }
 Token *read_ident() {
   int i = 0;
   Token *token = make_token(T_IDENTIFIER, lineNo, columnNo);
-  // token->val.stringVal[0] = cur_char;
+
   for (i = 0; isalnum(cur_char) || cur_char == '_'; i++) {
 
       if (i == MAX_STRING_LENGTH) {
-        throw_error(E_IDENT_TOO_LONG, lineNo, columnNo);
-        return token;
+          throw_error(E_IDENT_TOO_LONG, lineNo, columnNo);
+          return token;
       }
 
       token->val.stringVal[i] = cur_char;
@@ -55,7 +55,7 @@ Token *read_ident() {
   token->val.stringVal[i] = '\0';
 
   token->type = check_reserved_word(token->val.stringVal);
-  // printf("in read_ident: stringVal = %s\n", token->val.stringVal);
+  printf("in read_ident: stringVal = %s\n", token->val.stringVal);
   return token;
 }
 
@@ -87,17 +87,28 @@ Token *read_number() {
 }
 
 Token *read_string() {
+    read_char(); // eat the double quote
     cur_line = lineNo; cur_col = columnNo;
-    Token *token = read_ident();
-    token->type = T_STRING;
-    token->lineNo = cur_line;
-    token->columnNo = cur_col;
+    Token *token = make_token(T_STRING, lineNo, columnNo);
+    int cnt = 0;
 
-    read_char();
-    //TODO: check for EOF;
-    if (cur_char == '\"') {
+    // <string> :: = “[a-zA-Z0-9 _,;:.']*”
+    while (cur_char != EOF && (isalnum(cur_char)
+    || isspace(cur_char) || cur_char == '_' || cur_char == ';'
+    || cur_char == ':' || cur_char == '.' || cur_char == '\'')) {
+        if (cnt <= MAX_STRING_LENGTH) token->val.stringVal[cnt++] = (char) cur_char;
         read_char();
-    } else {
+    }
+
+    if (cnt > MAX_STRING_LENGTH) {
+        throw_error(E_IDENT_TOO_LONG, cur_line, cur_col);
+        return token;
+    }
+
+    token->val.stringVal[cnt] = '\0';
+
+    if (cur_char == '\"') read_char();
+    else {
         token->type = T_UNKNOWN;
         throw_error(E_INVALID_STRING, cur_line, cur_col);
     }
@@ -105,10 +116,13 @@ Token *read_string() {
 }
 
 Token *read_single_char() {
+    read_char(); // read the single quote
+
     Token *token = make_token(T_CHAR, lineNo, columnNo);
     read_char();
     // TODO: check for EOF
 
+    //
     token->val.charVal = cur_char;
     if (cur_char == '\'') {
         read_char();
