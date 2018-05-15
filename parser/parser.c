@@ -50,6 +50,8 @@ int parse(char *file_name) {
 }
 
 void parse_program() {
+    assert("Parsing the program");
+
     // program header
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
@@ -58,6 +60,8 @@ void parse_program() {
     parse_program_body();
 
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
+
+    assert("Done parsing the program");
 }
 
 void parse_program_body() {
