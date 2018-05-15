@@ -2,19 +2,19 @@ CFLAGS= -c -Wall
 CC=gcc
 LIBS=-lm
 
-all: compiler
+all: semantics
 
-compiler: scanner.o token.o error.o parser.o
-	${CC} ${CFLAGS} scanner.o token.o error.o parser.o
+scanner: debug.o main.o semantics.o
+				${CC} debug.o debug.o semantics.o -o semantics
 
-scanner.o: scanner.c
+main.o: main.c
+				${CC} ${CFLAGS} main.c
 
-token.o: token.h token.c
+debug.o: debug.c
+					${CC} ${CFLAGS} debug.c
 
-error.o: error.h error.c
-
-parser.o: parser.h parser.c
-
+semantics.o: semantics.c
+						${CC} ${CFLAGS} semantics.c
 .PHONY: clean
 
 clean:
