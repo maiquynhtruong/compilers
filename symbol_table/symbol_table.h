@@ -117,23 +117,23 @@ typedef struct SymbolTable {
 	EntryNode* globalEntryList;
 } SymbolTable;
 
-Type *makeIntType();
-Type *makeCharType();
-Type *makeFloatType();
-Type *makeStringType();
-Type *makeBoolType();
-Type *makeArrayType();
-int compareType(Type *type1, Type *type2);
-void freeType(Type *type);
+Type *make_int_type();
+Type *make_char_type();
+Type *make_float_type();
+Type *make_string_type();
+Type *make_bool_type();
+Type *make_array_type();
+int compare_type(Type *type1, Type *type2);
+void free_type(Type *type);
 
-Entry *createProgramEntry(char *name);
-Entry *createTypeEntry(char *name);
-Entry *createVariableEntry(char *name);
-Entry *createProcedureEntry(char *name);
-Entry *createParameterEntry(char *name, Entry* procedure);
-void freeEntry(Entry *entry);
-void freeEntryList(EntryNode *node);
-void addEntry(EntryNode **list, Entry *entry);
+Entry *create_program_entry(char *name);
+Entry *create_type_entry(char *name);
+Entry *create_variable_entry(char *name);
+Entry *create_procedure_entry(char *name);
+Entry *create_parameter_entry(char *name, Entry* procedure);
+void free_entry(Entry *entry);
+void free_entry_list(EntryNode *node);
+void add_entry(EntryNode **list, Entry *entry);
 
 void init_symbol_table();
 void clear_symbol_table();
@@ -142,8 +142,8 @@ void enter_scope(Scope *scope);
 void exit_scope();
 Entry* lookup(char *name);
 void dump();
-void freeScope(Scope *scope);
-void addEntry(EntryNode **list, Entry *entry);
-void declareEntry(Entry *entry);
+void free_scope(Scope *scope);
+void add_entry(EntryNode **list, Entry *entry);
+void declare_entry(Entry *entry);
 
 #endif
