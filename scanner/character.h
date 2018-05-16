@@ -16,6 +16,9 @@ typedef enum {
     C_MINUS,
     C_LESS_THAN,
     C_EQUAL,
+    C_AND
+    C_OR,
+    C_UNDERLINE,
     C_GREATER_THAN,
     C_EXCLAIMATION,
     C_LEFT_PAREN,
