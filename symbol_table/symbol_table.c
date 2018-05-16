@@ -10,56 +10,56 @@ Type *stringType;
 Type *boolType;
 
 /* Type functions */
-Type *makeIntType() {
+Type *make_int_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_INT;
 	return type;
 }
 
-Type *makeCharType() {
+Type *make_char_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_CHAR;
 	return type;
 }
 
-Type *makeFloatType() {
+Type *make_float_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_FLOAT;
 	return type;
 }
 
-Type *makeStringType() {
+Type *make_string_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_STRING;
 	return type;
 }
 
-Type *makeBoolType() {
+Type *make_bool_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_BOOL;
 	return type;
 }
 
-Type *makeArrayType() {
+Type *make_array_type() {
 
 }
 
-int compareType(Type *type1, Type *type2) {
+int compare_type(Type *type1, Type *type2) {
 	if (type1->typeClass == type2->typeClass) {
 		if (type1->typeClass == TC_ARRAY) {
 			if (type1->arraySize == type2->arraySize) {
-				return compareType(type1->elementType, type2->elementType);
+				return compare_type(type1->elementType, type2->elementType);
 			} else return -1;
 		} else return 1;
 	} else return -1;
 }
 
-void freeType(Type *type) {
-
+void free_type(Type *type) {
+	free(type);
 }
 /* Entry functions */
 
-Entry *createProgramEntry(char *name) {
+Entry *create_program_entry(char *name) {
 	Entry *programEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(programEntry->name, name);
 	programEntry->entryType = ET_PROGRAM;
@@ -68,7 +68,7 @@ Entry *createProgramEntry(char *name) {
 	return programEntry;
 }
 
-Entry *createTypeEntry(char *name) {
+Entry *create_type_entry(char *name) {
 	Entry *typeEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(typeEntry->name, name);
 	typeEntry->typeAttrs = (TypeAttributes *) malloc(sizeof(TypeAttributes));
@@ -76,7 +76,7 @@ Entry *createTypeEntry(char *name) {
 	return typeEntry;
 }
 
-Entry *createVariableEntry(char *name) {
+Entry *create_variable_entry(char *name) {
 	Entry *variableEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(variableEntry->name, name);
 	variableEntry->varAttrs = (VariableAttributes *) malloc(sizeof(VariableAttributes));
@@ -85,7 +85,7 @@ Entry *createVariableEntry(char *name) {
 	return variableEntry;
 }
 
-Entry *createProcedureEntry(char *name) {
+Entry *create_procedure_entry(char *name) {
 	Entry *procedureEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(procedureEntry->name, name);
 	procedureEntry->procAttrs = (ProcedureAttributes *) malloc(sizeof(ProcedureAttributes));
@@ -94,16 +94,16 @@ Entry *createProcedureEntry(char *name) {
 	return procedureEntry;
 }
 
-Entry *createParameterEntry(char *name, Entry *procedure) {
+Entry *create_parameter_entry(char *name, Entry *procedure) {
 	Entry *parameterEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(parameterEntry->name, name);
-	parameterEntry->paramAttrs = (ParameterAttributes *) malloc(sizeof(ParameterAttributes));	
+	parameterEntry->paramAttrs = (ParameterAttributes *) malloc(sizeof(ParameterAttributes));
 	// parameterEntry->paramAttrs->type = ;
-	parameterEntry->paramAttrs->procedure = procedure; 
+	parameterEntry->paramAttrs->procedure = procedure;
 	return parameterEntry;
 }
 
-void freeEntry(Entry *entry) {
+void free_entry(Entry *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
 			case ET_VARIABLE:
@@ -120,7 +120,7 @@ void freeEntry(Entry *entry) {
 				break;
 			case ET_PROCEDURE:
 				if (entry->procAttrs->scope != NULL) {
-					freeScope(entry->procAttrs->scope);
+					free_scope(entry->procAttrs->scope);
 					entry->procAttrs->scope = NULL;
 				}
 				break;
@@ -132,7 +132,7 @@ void freeEntry(Entry *entry) {
 				break;
 			case ET_PROGRAM:
 				if (entry->progAttrs->scope != NULL) {
-					freeScope(entry->progAttrs->scope);
+					free_scope(entry->progAttrs->scope);
 					entry->progAttrs->scope = NULL;
 				}
 				break;
@@ -144,15 +144,15 @@ void freeEntry(Entry *entry) {
 	}
 }
 
-void freeEntryList(EntryNode *node) {
+void free_entry_list(EntryNode *node) {
 	if (node != NULL) {
 		freeEntry(node->entry);
-		freeEntryList(node->next);
+		free_entry_list(node->next);
 		node = NULL;
 	}
 }
 
-void addEntry(EntryNode **list, Entry *entry) {
+void add_entry(EntryNode **list, Entry *entry) {
 	EntryNode *node = (EntryNode *) malloc(sizeof(EntryNode));
 	node->entry = entry;
 	node->next = NULL;
@@ -165,9 +165,9 @@ void addEntry(EntryNode **list, Entry *entry) {
 }
 
 // find entry by name
-Entry *findEntry(EntryNode *list, char *name) {
+Entry *find_entry(EntryNode *list, char *name) {
 	while (list != NULL) {
-		if (strcmp(list->entry->name, name) == 0) 
+		if (strcmp(list->entry->name, name) == 0)
 			return list->entry;
 		else list = list->next;
 	}
@@ -187,75 +187,75 @@ void init_symbol_table() {
 
 	// built-in functions
 	// e.g. getInteger(integer val out)
-	entry = createProcedureEntry("getBool");
-	param = createParameterEntry("val");
-	param->paramAttrs->type = makeBoolType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
+	entry = create_procedure_entry("getBool");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_bool_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = createProcedureEntry("getInteger");
-	param = createParameterEntry("val");
+	entry = create_procedure_entry("getInteger");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_int_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
+
+	entry = create_procedure_entry("getFloat");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_float_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
+
+	entry = create_procedure_entry("getString");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_string_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
+
+	entry = create_procedure_entry("getChar");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_char_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
+
+	entry = create_procedure_entry("putBool");
+	param = create_parameter_entry("val");
+	param->paramAttrs->type = make_bool_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
+
+	entry = create_procedure_entry("putInteger");
 	param->paramAttrs->type = makeIntType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = createProcedureEntry("getFloat");
-	param = createParameterEntry("val");
-	param->paramAttrs->type = makeFloatType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
+	entry = create_procedure_entry("putFloat");
+	param->paramAttrs->type = make_float_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = createProcedureEntry("getString");
-	param = createParameterEntry("val");
-	param->paramAttrs->type = makeStringType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
+	entry = create_procedure_entry("putString");
+	param->paramAttrs->type = make_string_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = createProcedureEntry("getChar");
-	param = createParameterEntry("val");
-	param->paramAttrs->type = makeCharType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
-
-	entry = createProcedureEntry("putBool");
-	param = createParameterEntry("val");
-	param->paramAttrs->type = makeBoolType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
-
-	entry = createProcedureEntry("putInteger");
-	param->paramAttrs->type = makeIntType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
-
-	entry = createProcedureEntry("putFloat");
-	param->paramAttrs->type = makeFloatType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
-
-	entry = createProcedureEntry("putString");
-	param->paramAttrs->type = makeStringType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
-
-	entry = createProcedureEntry("putChar");
-	param->paramAttrs->type = makeCharType();
-	addEntry(&(entry->procAttrs->paramList), param);
-	addEntry(&(symbolTable->globalEntryList), entry);
+	entry = create_procedure_entry("putChar");
+	param->paramAttrs->type = make_char_type();
+	add_entry(&(entry->procAttrs->paramList), param);
+	add_entry(&(symbolTable->globalEntryList), entry);
 
 	symbolTable->globalEntryList
 }
 
 void clear_symbol_table() {
-	freeEntry(symbolTable->program);
-	freeEntryList(symbolTable->globalEntryList);
-	freeScope(currentScope);
+	free_entry(symbolTable->program);
+	free_entry_list(symbolTable->globalEntryList);
+	free_scope(currentScope);
 	free(symbolTable);
-	freeType(intType);
-	freeType(charType);
-	freeType(floatType);
-	freeType(stringType);
-	freeType(boolType);
+	free_type(intType);
+	free_type(charType);
+	free_type(floatType);
+	free_type(stringType);
+	free_type(boolType);
 }
 
 Scope *new_scope(Scope *outerScope) {
@@ -274,12 +274,12 @@ Entry* lookup(char *name) {
 	Scope *curScope = symbolTable->currentScope;
 	Entry *entry = NULL;
 	while (curScope != NULL) {
-		entry = findEntry(curScope->entryList, name);
+		entry = find_entry(curScope->entryList, name);
 		if (entry != NULL) return entry;
 		else curScope = curScope->outerScope;
 	}
 	// if still couldn't find, search in global scope
-	entry = findEntry(symbolTable->globalEntryList, name);
+	entry = find_entry(symbolTable->globalEntryList, name);
 	return entry;
 }
 
@@ -291,14 +291,14 @@ void dump() {
 
 }
 
-void freeScope(Scope *scope) {
+void free_scope(Scope *scope) {
 	if (scope != NULL) {
-		freeEntryList(scope->entryList);
+		free_entry_list(scope->entryList);
 		free(scope);
 		scope = NULL;
 	}
 }
 // for declarations
-void declareEntry(Entry *entry) {
-	addEntry(&)
+void declare_entry(Entry *entry) {
+	add_entry(&)
 }

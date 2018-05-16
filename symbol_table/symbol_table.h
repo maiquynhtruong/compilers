@@ -131,6 +131,7 @@ Entry *create_type_entry(char *name);
 Entry *create_variable_entry(char *name);
 Entry *create_procedure_entry(char *name);
 Entry *create_parameter_entry(char *name, Entry* procedure);
+Entry *find_entry(EntryNode *list, char *name);
 void free_entry(Entry *entry);
 void free_entry_list(EntryNode *node);
 void add_entry(EntryNode **list, Entry *entry);
