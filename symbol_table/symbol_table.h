@@ -1,26 +1,38 @@
-#include "token.h"
+#ifndef SYMBOL_TABLE_H
+#define SYMBOL_TABLE_H
 
-enum TypeClass {
+#define MAX_STRING_LENGTH 50
+#define MAX_IDENT_LENGTH 15
+
+#include <stdbool.h>
+
+typedef enum {
 	TC_INT,
 	TC_FLOAT,
 	TC_STRING,
 	TC_BOOL,
 	TC_CHAR,
 	TC_ARRAY
-};
+} TypeClass;
 
-enum EntryType {
+typedef enum {
+	ET_CONSTANT,
 	ET_VARIABLE,
 	ET_TYPE_MARK,
 	ET_PROCEDURE,
 	ET_PARAMTER,
 	ET_PROGRAM
-};
+} EntryType;
 
+struct ConstantValue;
 struct Type;
 struct Entry;
 struct EntryNode;
 struct Scope;
+
+typedef struct ConstantValueAttributes {
+	struct ConstantValue *constantValue;
+} ConstantValueAttributes;
 
 typedef struct VariableAttributes {
 	struct Type *type;
@@ -45,30 +57,42 @@ typedef struct ParameterAttributes {
 	struct Entry *procedure;
 } ParameterAttributes;
 
+struct ConstantValue {
+	TypeClass typeClass;
+	union {
+		char stringVal[MAX_STRING_LENGTH+1];
+        int intVal;
+        float floatVal;
+        bool boolVal;
+        char charVal;
+	};
+};
+
 struct Type {
-	enum TypeClass typeClass;
+	TypeClass typeClass;
 	int arraySize;
 	struct Type *elementType;
-} Type;
+};
 
 // an entry: <name, type, attribute>
 struct Entry {
-	char name[MAX_STRING_LENGTH];
-	enum EntryType entryType;
+	char name[MAX_IDENT_LENGTH];
+	EntryType entryType;
 	union {
+		ConstantValueAttributes *constAttrs;
 		VariableAttributes *varAttrs;
 		TypeAttributes *typeAttrs;
 		ProcedureAttributes *procAttrs;
 		ProgramAttributes *progAttrs;
 		ParameterAttributes *paramAttrs;
 	};
-} Entry;
+};
 
 // to make life easier when defining a chain of nodes
 struct EntryNode {
-	Entry *entry;
+	struct Entry *entry;
 	struct EntryNode *next;
-} EntryNode;
+};
 
 // each scope is a list of entries
 // a scope also keeps a pointer to its parent scope so
@@ -78,6 +102,7 @@ struct Scope {
 	struct Scope *outerScope;
 };
 
+typedef struct ConstantValue ConstantValue;
 typedef struct Type Type;
 typedef struct Entry Entry;
 typedef struct EntryNode EntryNode;
@@ -120,3 +145,5 @@ void dump();
 void freeScope(Scope *scope);
 void addEntry(EntryNode **list, Entry *entry);
 void declareEntry(Entry *entry);
+
+#endif
