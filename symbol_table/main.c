@@ -1,14 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "symbol_table.h"
 #include "debug.h"
 
-extern SymbolTable *symtab;
+extern SymbolTable *symbolTable;
 
 int main() {
-    Entry *entry;
 
     init_symbol_table();
 
+    return 0;
 }

@@ -1,5 +1,8 @@
 // https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "symbol_table.h"
 
 SymbolTable *symbolTable;
@@ -41,7 +44,9 @@ Type *make_bool_type() {
 }
 
 Type *make_array_type() {
-
+	Type *type = (Type *) malloc(sizeof(Type));
+	type->typeClass = TC_ARRAY;
+	return type;
 }
 
 int compare_type(Type *type1, Type *type2) {
@@ -63,7 +68,7 @@ Entry *create_program_entry(char *name) {
 	Entry *programEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(programEntry->name, name);
 	programEntry->entryType = ET_PROGRAM;
-	programEntry->progAttrs = (progAttrs *) malloc(sizeof(ProgramAttributes));
+	programEntry->progAttrs = (ProgramAttributes *) malloc(sizeof(ProgramAttributes));
 	// program->progAttrs->scope = new_scope()
 	return programEntry;
 }
@@ -146,7 +151,7 @@ void free_entry(Entry *entry) {
 
 void free_entry_list(EntryNode *node) {
 	if (node != NULL) {
-		freeEntry(node->entry);
+		free_entry(node->entry);
 		free_entry_list(node->next);
 		node = NULL;
 	}
@@ -156,7 +161,7 @@ void add_entry(EntryNode **list, Entry *entry) {
 	EntryNode *node = (EntryNode *) malloc(sizeof(EntryNode));
 	node->entry = entry;
 	node->next = NULL;
-	if ((*list) == NULL) list = node;
+	if ((*list) == NULL) *list = node;
 	else {
 		EntryNode *curNode = *list;
 		while (curNode->next != NULL) curNode = curNode->next;
@@ -188,43 +193,43 @@ void init_symbol_table() {
 	// built-in functions
 	// e.g. getInteger(integer val out)
 	entry = create_procedure_entry("getBool");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_bool_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("getInteger");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_int_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("getFloat");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_float_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("getString");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_string_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("getChar");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_char_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("putBool");
-	param = create_parameter_entry("val");
+	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_bool_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
 	entry = create_procedure_entry("putInteger");
-	param->paramAttrs->type = makeIntType();
+	param->paramAttrs->type = make_int_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
@@ -243,13 +248,13 @@ void init_symbol_table() {
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	symbolTable->globalEntryList
+	// symbolTable->globalEntryList
 }
 
 void clear_symbol_table() {
 	free_entry(symbolTable->program);
 	free_entry_list(symbolTable->globalEntryList);
-	free_scope(currentScope);
+	free_scope(symbolTable->currentScope);
 	free(symbolTable);
 	free_type(intType);
 	free_type(charType);
@@ -300,5 +305,5 @@ void free_scope(Scope *scope) {
 }
 // for declarations
 void declare_entry(Entry *entry) {
-	add_entry(&)
+	add_entry(&(symbolTable->currentScope->entryList), entry);
 }

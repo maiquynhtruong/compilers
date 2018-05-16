@@ -2,10 +2,10 @@ CFLAGS= -c -Wall
 CC=gcc
 LIBS=-lm
 
-all: semantics
+all: symtab
 
-scanner: debug.o main.o semantics.o
-				${CC} debug.o debug.o semantics.o -o semantics
+symtab: debug.o main.o symbol_table.o
+				${CC} debug.o main.o symbol_table.o -o symtab
 
 main.o: main.c
 				${CC} ${CFLAGS} main.c
@@ -13,8 +13,8 @@ main.o: main.c
 debug.o: debug.c
 					${CC} ${CFLAGS} debug.c
 
-semantics.o: semantics.c
-						${CC} ${CFLAGS} semantics.c
+symbol_table.o: symbol_table.c
+						${CC} ${CFLAGS} symbol_table.c
 .PHONY: clean
 
 clean:
