@@ -1,9 +1,12 @@
+#ifndef SCANNER_H
+#define SCANNER_H
+
 #include "token.h"
 
-TokenType next_token(Token *token);
-void init_scanner(char *fileName);
-TokenType check_reserved_word(char *tokenStr);
+Token* next_token();
+Token* next_valid_token();
 void print_token(Token *token);
-void skip_star_comment();
-void reset_token(Token *token);
 
+int scan(char *file_name);
+
+#endif

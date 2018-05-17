@@ -37,3 +37,12 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
     }
     exit(0);
 }
+
+void missing_token(TokenType type, int lineNo, int columnNo) {
+    printf("%d:%d: Parse Erorr! Expecting %s\n", lineNo, columnNo, print_token_type(type));
+    exit(0);
+}
+
+void assert(char *mesg) {
+    printf("%s\n", mesg);
+}

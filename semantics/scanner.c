@@ -2,149 +2,262 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include "scanner.h"
+
 #include "error.h"
+#include "token.h"
+#include "reader.h"
+#include "scanner.h"
 
-Token token;
-FILE *inp;
-// to run, copy the code from main.c
-
-TokenType next_token(Token *token) {
-    int ch, nextChar, i;
-    ch = getc(inp);
-    while (isspace(ch))
-        ch = getc(inp);
-    switch(ch) {
-        case '/':
-            nextChar = getc(inp);
-            if (nextChar == '/') {
-                while ((ch = getc(inp)) != '\n')
-                    ; // skip over one line comment
-            } else if (nextChar == '*') {
-        /*******LOOK******/                skip_star_comment();
-            } else {
-                ungetc(nextChar, inp);
-                return token->type = T_DIVIDE;
-            }
-        // If the current character is any letter in the alphabet
-        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H': 
-        case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P': 
-        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X': 
-        case 'Y': case 'Z': 
-        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h': 
-        case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p': 
-        case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x': 
-        case 'y': case 'z': 
-            token->val.stringVal[0] = ch;
-            for (i = 1; isalnum(ch = getc(inp)) || ch == '_'; i++) {
-                token->val.stringVal[i] = ch;
-            }
-            ungetc(ch, inp);
-            token->val.stringVal[i] = '\0';
-            token->type = check_reserved_word(token->val.stringVal);
-            return token->type;
-        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '9':
-            token->val.intVal = ch - '0';
-            while (isdigit(ch = getc(inp)) || ch == '.') {
-                if (ch == '.') {
-                    token->val.floatVal = 1.0 * token->val.intVal;
-                    break; // go to the loop that reads the decimal part
-                } 
-                token->val.intVal = token->val.intVal*10 + ch - '0';
-            }
-            if (ch == '.') {
-                int exponent = 1;
-                while (isdigit(ch = getc(inp))) {
-                    exponent = exponent*10;
-                    token->val.floatVal = token->val.floatVal * 10 + ch - '0';
-                }
-                token->val.floatVal = token->val.floatVal / exponent; 
-                ungetc(ch, inp);
-                return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
-            }
-            ungetc(ch, inp);
-            return token->type = T_NUMBER_INT;
-        case '\'':// single quote characters
-            token->val.charVal = ch;
-            getc(inp); // if correct program, only one character inside a pair of single quotes
-            return token->type = T_CHAR;
-        case '"': // double quote strings
-            for (i = 0; (ch = getc(inp)) != '"'; i++) // read anything until a double quote
-                token->val.stringVal[i] = ch;
-            token->val.stringVal[i] = '\0';
-            return token->type = T_STRING; 
-        case ':': // check if this is assignment token
-            nextChar = getc(inp);
-            if (nextChar == '=') 
-                token->type = T_ASSIGNMENT;
-            else
-                token->type = T_COLON; // some random colon?
-            return token->type;
-        case ';': // for end of statement
-            // separate cases for colon, comma and semi colon to not mix up with single quote characters
-            return token->type = T_SEMI_COLON;;
-        case ',': // for separating argument list
-            return token->type = T_COMMA;
-        case '+': 
-            return token->type = T_PLUS;
-        case '-': 
-            return token->type = T_MINUS;
-        case '*': 
-            return token->type = T_MINUS;
-        case '<': 
-            nextChar = getc(inp);
-            if (nextChar == '=') return token->type = T_LTEQ; 
-            else {
-                ungetc(nextChar, inp);
-                return token->type = T_LT;
-            }
-        case '>': 
-            nextChar = getc(inp);
-            if (nextChar == '=') return token->type = T_GTEQ;
-            else {
-                ungetc(nextChar, inp);
-                return token->type = T_GT;
-            }
-        case '=': 
-            nextChar = getc(inp);
-            if (nextChar == '=') return token->type = T_EQ; else ungetc(nextChar, inp);
-        case '!':
-            nextChar = getc(inp);
-            if (nextChar == '=') return token->type = T_NEQ; else ungetc(nextChar, inp);
-        case '(':
-            return token->type = T_LPAREN;
-        case ')':
-            return token->type = T_RPAREN;
-        case '[':
-            return token->type = T_LBRACKET;
-        case ']':
-            return token->type = T_RBRACKET;
-        case EOF: case '.':
-            return token->type = T_END_OF_FILE;
-        default: // anything else is not recognized
-            token->val.charVal = ch;
-            throw_error(E_INVALID_CHAR);
-            return token->type = T_UNKNOWN;
-    }
-}
-
-void init_scanner(char *file_name) {
-    inp = fopen(file_name, "r");
-    printf("Reading from file %s\n", file_name);
-    insert_all_keywords();
-}
+extern int lineNo;
+extern int columnNo;
+extern int cur_char;
+int cur_line, cur_col;
 
 // skips comments in /*...*/ blocks
-void skip_star_comment() {
-
+void skip_block_comment() {
+    int state = 0;
+    while (cur_char != EOF && state < 2) {
+        switch (cur_char) {
+            case '*':
+                state = 1;
+                break;
+            case '/':
+                if (state == 1) state = 2;
+                else state = 0;
+                break;
+            default: state = 0;
+        }
+        read_char();
+    }
+    if (state != 2) throw_error(E_END_OF_COMMENT, lineNo, columnNo);
 }
 
-void reset_token(Token *token) {
-    token->type = T_UNKNOWN;
-    token->val.intVal = 0;
-    token->val.floatVal = 0.0;
-    token->val.boolVal = false;
-    token->val.charVal = 0;
+void skip_line_comment() {
+    while (cur_char != '\n' && cur_char != EOF) read_char(); // skip over one line comment
+}
+
+void skip_blank() { while (isspace(cur_char) && cur_char != -1) read_char(); }
+
+Token *read_ident() {
+  int i = 0;
+  Token *token = make_token(T_IDENTIFIER, lineNo, columnNo);
+
+  for (i = 0; isalnum(cur_char) || cur_char == '_'; i++) {
+
+      if (i == MAX_STRING_LENGTH) {
+          throw_error(E_IDENT_TOO_LONG, lineNo, columnNo);
+          return token;
+      }
+
+      token->val.stringVal[i] = cur_char;
+      read_char();
+  }
+  token->val.stringVal[i] = '\0';
+
+  token->type = check_reserved_word(token->val.stringVal);
+  printf("in read_ident: stringVal = %s\n", token->val.stringVal);
+  return token;
+}
+
+Token *read_number() {
+    Token *token = make_token(T_NUMBER_INT, lineNo, columnNo);
+    token->val.intVal = cur_char - '0';
+
+    while (isdigit(cur_char = read_char())) { //|| cur_char == '.') {
+        if (cur_char == '.') {
+            token->val.floatVal = 1.0 * token->val.intVal;
+            break; // go to the loop that reads the decimal part
+        }
+        token->val.intVal = token->val.intVal*10 + cur_char - '0';
+    }
+    // TODO: Float number
+    // if (cur_char == '.') {
+    //     int exponent = 1;
+    //     while (isdigit(cur_char = read_char())) {
+    //         exponent = exponent*10;
+    //         token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
+    //     }
+    //     token->val.floatVal = token->val.floatVal / exponent;
+    //     ungetc(cur_char, inp);
+    //     return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
+    // }
+    // ungetc(cur_char, inp);
+    // token->type = T_NUMBER_INT;
+    return token;
+}
+
+Token *read_string() {
+    read_char(); // eat the double quote
+    cur_line = lineNo; cur_col = columnNo;
+    Token *token = make_token(T_STRING, lineNo, columnNo);
+    int cnt = 0;
+
+    // <string> :: = “[a-zA-Z0-9 _,;:.']*”
+    while (cur_char != EOF && (isalnum(cur_char)
+    || isspace(cur_char) || cur_char == '_' || cur_char == ';'
+    || cur_char == ':' || cur_char == '.' || cur_char == '\'')) {
+        if (cnt <= MAX_STRING_LENGTH) token->val.stringVal[cnt++] = (char) cur_char;
+        read_char();
+    }
+
+    if (cnt > MAX_STRING_LENGTH) {
+        throw_error(E_IDENT_TOO_LONG, cur_line, cur_col);
+        return token;
+    }
+
+    token->val.stringVal[cnt] = '\0';
+
+    if (cur_char == '\"') read_char();
+    else {
+        token->type = T_UNKNOWN;
+        throw_error(E_INVALID_STRING, cur_line, cur_col);
+    }
+    return token;
+}
+
+Token *read_single_char() {
+    read_char(); // read the single quote
+
+    Token *token = make_token(T_CHAR, lineNo, columnNo);
+    read_char();
+    // TODO: check for EOF
+
+    // <char> ::= '[a-zA-Z0-9 _;:.”]'
+    if (cur_char != EOF && (isalnum(cur_char)
+    || isspace(cur_char) || cur_char == '_' || cur_char == ';'
+    || cur_char == ':' || cur_char == '.' || cur_char == '\"')) {
+        token->val.charVal = cur_char;
+        read_char();
+    }
+
+    if (cur_char == '\'') read_char();
+    else {
+        token->type = T_UNKNOWN;
+        throw_error(E_INVALID_CHAR, lineNo, columnNo);
+    }
+    return token;
+}
+
+Token* next_token() {
+    Token *token;
+
+    skip_blank();
+
+    switch(cur_char) {
+        case '/':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+
+            switch (cur_char) {
+              case '/':
+                  read_char();
+                  skip_line_comment();
+                  return next_token();
+              case '*':
+                  read_char();
+                  skip_block_comment();
+                  return next_token();
+              default: return make_token(T_DIVIDE, cur_line, cur_col);
+            }
+        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H':
+        case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': case 'O': case 'P':
+        case 'Q': case 'R': case 'S': case 'T': case 'U': case 'V': case 'W': case 'X':
+        case 'Y': case 'Z':
+        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': case 'h':
+        case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': case 'o': case 'p':
+        case 'q': case 'r': case 's': case 't': case 'u': case 'v': case 'w': case 'x':
+        case 'y': case 'z':
+            return read_ident();
+
+        case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '9':
+            return read_number();
+
+        case '\'':// single quote characters
+            return read_single_char();
+        case '"': // double quote strings
+            return read_string();
+
+        case ':': // check if this is assignment token
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_ASSIGNMENT, cur_line, cur_col);
+                read_char();
+            } else token = make_token(T_COLON, cur_line, cur_col);
+            return token;
+        case ';': // for end of statement
+            // separate cases for colon, comma and semi colon to not mix up with single quote characters
+            token = make_token(T_SEMI_COLON, lineNo, columnNo);
+            read_char(); return token;
+        case ',': // for separating argument list
+            token = make_token(T_COMMA, lineNo, columnNo);
+            read_char(); return token;
+        case '+':
+            token = make_token(T_PLUS, lineNo, columnNo);
+            read_char(); return token;
+        case '-':
+            token = make_token(T_MINUS, lineNo, columnNo);
+            read_char(); return token;
+        case '*':
+            token = make_token(T_MULTIPLY, lineNo, columnNo);
+            read_char(); return token;
+        case '<':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_LTEQ, cur_line, cur_col);
+                read_char();
+            } else token = make_token(T_LT, cur_line, cur_col);
+            return token;
+        case '>':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_col != EOF && cur_char == '=') {
+                token = make_token(T_GTEQ, cur_line, cur_col);
+                read_char();
+            } else token = make_token(T_GT, cur_line, cur_col);
+            return token;
+        case '=':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_EQ, cur_line, cur_col);
+                read_char(); return token;
+            } else {
+                token = make_token(T_UNKNOWN, cur_line, cur_col);
+                throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+                return token;
+            }
+        case '!':
+            cur_line = lineNo; cur_col = columnNo;
+            read_char();
+            if (cur_char != EOF && cur_char == '=') {
+                token = make_token(T_NEQ, cur_line, cur_col);
+                read_char(); return token;
+            } else {
+                token = make_token(T_UNKNOWN, cur_line, cur_col);
+                throw_error(E_INVALID_SYMBOL, cur_line, cur_col);
+                return token;
+            }
+        case '(':
+            token = make_token(T_LPAREN, lineNo, columnNo);
+            read_char(); return token;
+        case ')':
+            token = make_token(T_RPAREN, lineNo, columnNo);
+            read_char(); return token;
+        case '[':
+            token = make_token(T_LBRACKET, lineNo, columnNo);
+            read_char(); return token;
+        case ']':
+            token = make_token(T_RBRACKET, lineNo, columnNo);
+            read_char(); return token;
+        case EOF: case '.':
+            return make_token(T_END_OF_FILE, lineNo, columnNo);
+        default: // anything else is not recognized
+            token = make_token(T_UNKNOWN, lineNo, columnNo);
+            throw_error(E_INVALID_CHAR, lineNo, columnNo);
+            read_char(); return token;
+    }
 }
 
 void print_token(Token *token) {
@@ -163,9 +276,9 @@ void print_token(Token *token) {
         case T_PLUS:
             printf("T_PLUS\n"); break;
         case T_MULTIPLY:
-            print_token("T_MULTIPLY\n"); break;
+            printf("T_MULTIPLY\n"); break;
         case T_DIVIDE:
-            print_token("T_DIVIDE\n"); break;
+            printf("T_DIVIDE\n"); break;
         case T_MINUS:
             printf("T_MINUS\n"); break;
         case T_CHAR:
@@ -201,7 +314,7 @@ void print_token(Token *token) {
         case T_NEQ:
             printf("T_NEQ\n"); break;
         case T_LT:
-            printf("T_LT\n");
+            printf("T_LT\n"); break;
         case T_LTEQ:
             printf("T_LTEQ\n"); break;
         case T_GT:
@@ -257,3 +370,12 @@ void print_token(Token *token) {
     }
 }
 
+// filter out the bad tokens
+Token *next_valid_token() {
+    Token *token = next_token();
+    while (token->type == T_UNKNOWN) {
+        free(token);
+        token = next_token();
+    }
+    return token;
+}

@@ -40,5 +40,7 @@ typedef enum {
 #define E_MES_INVALIDFACTOR "Invalid Factor"
 
 void throw_error(ErrorCode code, int lineNo, int columnNo);
+void missing_token(TokenType type, int lineNo, int columnNo);
+void assert(char *mesg);
 
 #endif
