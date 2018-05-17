@@ -14,9 +14,11 @@ void print_type_class(Type *type) {
     	case TC_CHAR:
             printf("TypeClass: Char\n"); break;
     	case TC_ARRAY:
-            printf("TypeClass: Array\n"); break;
+            printf("TypeClass: Array. Size: %d. ", type->arraySize);
+            print_type_class(type->elementType);
+            break;
         default:
-            printf("TypeClass: Unknown\n") ;break;
+            printf("TypeClass: Unknown\n");break;
     }
 }
 
@@ -32,8 +34,6 @@ void print_constant_value(ConstantValue *value) {
             printf("%d\n", value->boolVal); break;
     	case TC_CHAR:
             printf("'%c'\n", value->charVal); break;
-    	// case TC_ARRAY:
-            // printf("\n"); break;
         default:
             printf("Unknow value\n");break;
     }
