@@ -1,5 +1,3 @@
-// https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,9 +41,11 @@ Type *make_bool_type() {
 	return type;
 }
 
-Type *make_array_type() {
+Type *make_array_type(int size, Type *type) {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_ARRAY;
+	type->arraySize = size;
+	type->elementType = type;
 	return type;
 }
 
@@ -62,8 +62,40 @@ int compare_type(Type *type1, Type *type2) {
 void free_type(Type *type) {
 	free(type);
 }
-/* Entry functions */
 
+/******************************* Create Constants ********************************/
+
+ConstantValue *make_int_constant(int i) {
+	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
+
+	return value;
+}
+
+ConstantValue *make_char_constant(char c) {
+	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
+
+	return value;
+}
+
+ConstantValue *make_float_constant(float f) {
+	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
+
+	return value;
+}
+
+ConstantValue *make_bool_contant(bool b) {
+	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
+
+	return value;
+}
+
+ConstantValue *make_string_constant(char *str) {
+	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
+
+	return value;
+}
+
+/******************************* Create Entries ********************************/
 Entry *create_program_entry(char *name) {
 	Entry *programEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(programEntry->name, name);
@@ -79,6 +111,13 @@ Entry *create_type_entry(char *name) {
 	typeEntry->typeAttrs = (TypeAttributes *) malloc(sizeof(TypeAttributes));
 	// typeEntry->typeAttrs->type = ;
 	return typeEntry;
+}
+
+Entry *create_constant_entry(char *name) {
+	Entry *constEntry = (Entry *) malloc(sizeof(Entry));
+	strcpy(constEntry->name, name);
+	constEntry->constAttrs = (ConstantValueAttributes *) malloc(sizeof(ConstantValueAttributes));
+	return constEntry;
 }
 
 Entry *create_variable_entry(char *name) {
@@ -157,6 +196,8 @@ void free_entry_list(EntryNode *node) {
 	}
 }
 
+/* list: current scope */
+// https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
 void add_entry(EntryNode **list, Entry *entry) {
 	EntryNode *node = (EntryNode *) malloc(sizeof(EntryNode));
 	node->entry = entry;
@@ -179,7 +220,7 @@ Entry *find_entry(EntryNode *list, char *name) {
 	return NULL;
 }
 
-/* Symbol table functions */
+/******************************* Symbol table functions ********************************/
 
 void init_symbol_table() {
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));

@@ -83,8 +83,8 @@ struct Entry {
 		VariableAttributes *varAttrs;
 		TypeAttributes *typeAttrs;
 		ProcedureAttributes *procAttrs;
-		ProgramAttributes *progAttrs;
 		ParameterAttributes *paramAttrs;
+		ProgramAttributes *progAttrs;
 	};
 };
 
@@ -99,7 +99,18 @@ struct EntryNode {
 // a variable can be search upward
 struct Scope {
 	struct EntryNode* entryList;
+	struct Entry *parent;
 	struct Scope *outerScope;
+};
+
+// instead of one global symbol table and one scope symbol table
+// we have one global scope and a list of scopes
+// https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
+
+struct SymbolTable {
+	struct Scope *currentScope;
+	struct Entry *program; // root is program
+	struct EntryNode* globalEntryList;
 };
 
 typedef struct ConstantValue ConstantValue;
@@ -107,24 +118,22 @@ typedef struct Type Type;
 typedef struct Entry Entry;
 typedef struct EntryNode EntryNode;
 typedef struct Scope Scope;
-
-// instead of one global symbol table and one scope symbol table
-// we have one global scope and a list of scopes
-// https://www.tutorialspoint.com/compiler_design/compiler_design_symbol_table.htm
-typedef struct SymbolTable {
-	Scope *currentScope;
-	Entry *program; // root is program
-	EntryNode* globalEntryList;
-} SymbolTable;
+typedef struct SymbolTable SymbolTable;
 
 Type *make_int_type();
 Type *make_char_type();
 Type *make_float_type();
 Type *make_string_type();
 Type *make_bool_type();
-Type *make_array_type();
+Type *make_array_type(int size, Type *type);
 int compare_type(Type *type1, Type *type2);
 void free_type(Type *type);
+
+ConstantValue *make_int_constant(int i);
+ConstantValue *make_char_constant(char c);
+ConstantValue *make_float_constant(float f)
+ConstantValue *make_bool_contant(bool b);
+ConstantValue *make_string_constant(char *str);
 
 Entry *create_program_entry(char *name);
 Entry *create_type_entry(char *name);
