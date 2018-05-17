@@ -2,19 +2,22 @@ CFLAGS= -c -Wall
 CC=gcc
 LIBS=-lm
 
-all: compiler
+all: symtab
 
-compiler: scanner.o token.o error.o parser.o
-	${CC} ${CFLAGS} scanner.o token.o error.o parser.o
+symtab: main.o parser.o scanner.o symbol_table.o
+		${CC} main.o parser.o scanner.o symbol_table.o -o symtab
+
+main.o: main.c
+		${CC} ${CFLAGS} main.c
+
+parser.o: parser.c
+			${CC} ${CFLAGS} parser.c
 
 scanner.o: scanner.c
+			${CC} ${CFLAGS} scanner.c
 
-token.o: token.h token.c
-
-error.o: error.h error.c
-
-parser.o: parser.h parser.c
-
+symbol_table.o: symbol_table.c
+				${CC} ${CFLAGS} symbol_table.c
 .PHONY: clean
 
 clean:
