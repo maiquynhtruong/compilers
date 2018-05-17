@@ -1,5 +1,5 @@
-# compiler-stuff
-Final Project for Compiler Design class in Spring 2018. The class project is to build a simple recursive decent (LL(1)) compiler by hand (not using compiler construction tools such as flex or antlr). 
+# compilers
+Final Project for Compiler Design class in Spring 2018. The class project is to build a simple recursive decent (LL(1)) compiler by hand (not using compiler construction tools such as flex or antlr). The file `projectDescription.pdf` gives more details about the project.
 
 This compiler compiles a made-up language. The file `projectLanguageDescription.pdf` in the root folder specifies the grammar and semantics of the language.
 
@@ -15,6 +15,6 @@ To run any component, type `make` and run whatever file generated, with command 
 - `scanner`: `./scanner ../testPgms/correct/test1.src`
 - `parser`: `./parser ../testPgms/correct/test1.src`
 - `symbol_table`: `./symtab` (no param)
-- `semantics`: './semantics ../testPgms/correct/test1.src`
+- `semantics`: `./semantics ../testPgms/correct/test1.src`
 
 
