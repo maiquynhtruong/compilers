@@ -4,6 +4,7 @@
 - How to declare and keep track of an array (hint: something to do with compileType() in parser)?
 - Look at llvm documentation
 - The parser should have at least one resync point to try to recover from a parsing error.
+- Optional period at end of file. In case there is no period, parse end of file
 
 - Type Checking
   - At least for expressions and statements, your parsing rules will now have to be expanded to return the type result for the construct just parsed. The upper rules will use that type information to assert type checks at its level.

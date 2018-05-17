@@ -21,8 +21,14 @@ typedef enum {
 	ET_TYPE_MARK,
 	ET_PROCEDURE,
 	ET_PARAMTER,
-	ET_PROGRAM
+	ET_PROGRAM,
 } EntryType;
+
+typedef enum {
+	PT_IN,
+	PT_OUT,
+	PT_INOUT
+} ParamType;
 
 struct ConstantValue;
 struct Type;
@@ -65,6 +71,7 @@ typedef struct ProcedureAttributes {
 
 typedef struct ParameterAttributes {
 	struct Type *type;
+	ParamType paramType;
 	struct Entry *procedure;
 } ParameterAttributes;
 
@@ -78,6 +85,7 @@ struct Type {
 struct Entry {
 	char name[MAX_IDENT_LENGTH];
 	EntryType entryType;
+	int global = 0;
 	union {
 		ConstantValueAttributes *constAttrs;
 		VariableAttributes *varAttrs;
@@ -97,7 +105,7 @@ struct EntryNode {
 /* outerScope:  each scope is a list of entries a scope also keeps a pointer to
 its parent scope so a variable can be searched upward
 parent: the Entry that upon creating it we also need to create a new scope
-(e.g. procedure)
+(e.g. procedure and program)
 */
 
 struct Scope {

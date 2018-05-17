@@ -364,7 +364,8 @@ void free_scope(Scope *scope) {
 }
 // for declarations
 void declare_entry(Entry *entry) {
-	if (entry->entryType == ET_PARAMTER) {
+	if (entry->global) add_entry(&(symbolTable->globalEntryList), entry);
+	else if (entry->entryType == ET_PARAMTER) {
 		Entry *procedureEntry = symbolTable->currentScope->parent;
 		add_entry(&(procedureEntry->procAttrs->paramList), entry);
 	} else add_entry(&(symbolTable->currentScope->entryList), entry);

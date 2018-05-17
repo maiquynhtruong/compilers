@@ -16,10 +16,20 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSTRING); break;
         case E_INVALID_SYMBOL:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSYMBOL); break;
+        case E_INVALID_IDENT:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDIDENT); break;
+        case E_INVALID_CONSTANT:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDCONSTANT);
         case E_INVALID_TYPE:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDTYPE); break;
         case E_INVALID_PARAM_TYPE:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDPARAMTYPE); break;
+        case E_INVALID_VARIABLE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDVARIABLE); break;
+        case E_INVALID_PROCEDURE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDPROCEDURE); break;
+        case E_INVALID_PARAM:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDPARAM); break;
         case E_INVALID_STATEMENT:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDSTATEMENT); break;
         case E_INVALID_ARGUMENT:
@@ -34,6 +44,24 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDTERM); break;
         case E_INVALID_FACTOR:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDFACTOR); break;
+        case E_INVALID_LVALUE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INVALIDLVALUE); break;
+        case E_UNDECLARED_IDENT:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDIDENT); break;
+        case E_UNDECLARED_CONST:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDCONST); break;
+        case E_UNDECLARED_TYPE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDTYPE); break;
+        case E_UNDECLARED_VARIABLE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDVARIABLE); break;
+        case E_UNDECLARED_PROCEDURE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDPROCEDURE); break;
+        case E_DUPLICATE_IDENT:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_DUPLICATEIDENT); break;
+        case E_INCOSISTENT_TYPE:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INCONSISENTTYPE); break;
+        case E_INCONSISTENT_PARAM_ARGS:
+            printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INCONSISENTPARAMARGS); break;
     }
     exit(0);
 }

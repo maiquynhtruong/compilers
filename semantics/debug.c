@@ -39,6 +39,7 @@ void print_constant_value(ConstantValue *value) {
     }
 }
 
+//TODO: How about global?
 void print_entry(Entry *entry) {
     switch (entry->entryType) {
         case ET_CONSTANT:

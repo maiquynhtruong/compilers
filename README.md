@@ -3,7 +3,7 @@ Final Project for Compiler Design class in Spring 2018. The class project is to 
 
 This compiler compiles a made-up language. The file `projectLanguageDescription.pdf` in the root folder specifies the grammar and semantics of the language.
 
-There are five development phases: 
+There are five development phases:
 - Scanner -> the `scanner` folder
 - Parser -> the `parser` folder
 - Type Checking -> the `symbol_table`, `semantics` and `type_checking` folders
@@ -16,5 +16,3 @@ To run any component, type `make` and run whatever file generated, with command 
 - `parser`: `./parser ../testPgms/correct/test1.src`
 - `symbol_table`: `./symtab` (no param)
 - `semantics`: `./semantics ../testPgms/correct/test1.src`
-
-
