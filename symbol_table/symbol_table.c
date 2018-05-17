@@ -10,7 +10,7 @@ Type *floatType;
 Type *stringType;
 Type *boolType;
 
-/* Type functions */
+/******************************* Make Types ********************************/
 Type *make_int_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_INT;
@@ -41,11 +41,11 @@ Type *make_bool_type() {
 	return type;
 }
 
-Type *make_array_type(int size, Type *type) {
+Type *make_array_type(int size, Type *elementType) {
 	Type *type = (Type *) malloc(sizeof(Type));
 	type->typeClass = TC_ARRAY;
 	type->arraySize = size;
-	type->elementType = type;
+	type->elementType = elementType;
 	return type;
 }
 
@@ -67,64 +67,75 @@ void free_type(Type *type) {
 
 ConstantValue *make_int_constant(int i) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-
+	value->typeClass = TC_INT;
+	value->intVal = i;
 	return value;
 }
 
 ConstantValue *make_char_constant(char c) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-
+	value->typeClass = TC_CHAR;
+	value->charVal = c;
 	return value;
 }
 
 ConstantValue *make_float_constant(float f) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-
+	value->typeClass = TC_FLOAT;
+	value->floatVal = f;
 	return value;
 }
 
-ConstantValue *make_bool_contant(bool b) {
+ConstantValue *make_bool_constant(bool b) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-
+	value->typeClass = TC_BOOL;
+	value->boolVal = b;
 	return value;
 }
 
 ConstantValue *make_string_constant(char *str) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-
+	value->typeClass = TC_STRING;
+	strcpy(value->stringVal, str);
 	return value;
 }
 
 /******************************* Create Entries ********************************/
+
 Entry *create_program_entry(char *name) {
 	Entry *programEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(programEntry->name, name);
 	programEntry->entryType = ET_PROGRAM;
 	programEntry->progAttrs = (ProgramAttributes *) malloc(sizeof(ProgramAttributes));
-	// program->progAttrs->scope = new_scope()
+	programEntry->progAttrs->scope = new_scope(NULL, programEntry);
+	symbolTable->program = programEntry;
 	return programEntry;
 }
 
 Entry *create_type_entry(char *name) {
 	Entry *typeEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(typeEntry->name, name);
+	typeEntry->entryType = ET_TYPE_MARK;
 	typeEntry->typeAttrs = (TypeAttributes *) malloc(sizeof(TypeAttributes));
-	// typeEntry->typeAttrs->type = ;
+	typeEntry->typeAttrs->type = NULL;
 	return typeEntry;
 }
 
 Entry *create_constant_entry(char *name) {
 	Entry *constEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(constEntry->name, name);
+	constEntry->entryType = ET_CONSTANT;
 	constEntry->constAttrs = (ConstantValueAttributes *) malloc(sizeof(ConstantValueAttributes));
+	constEntry->constAttrs->constantValue = NULL;
 	return constEntry;
 }
 
 Entry *create_variable_entry(char *name) {
 	Entry *variableEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(variableEntry->name, name);
+	variableEntry->entryType = ET_VARIABLE;
 	variableEntry->varAttrs = (VariableAttributes *) malloc(sizeof(VariableAttributes));
-	// varEntry->varAttrs->type = ;
+	variableEntry->varAttrs->type = NULL;
 	variableEntry->varAttrs->scope = symbolTable->currentScope;
 	return variableEntry;
 }
@@ -132,56 +143,58 @@ Entry *create_variable_entry(char *name) {
 Entry *create_procedure_entry(char *name) {
 	Entry *procedureEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(procedureEntry->name, name);
+	procedureEntry->entryType = ET_PROCEDURE;
 	procedureEntry->procAttrs = (ProcedureAttributes *) malloc(sizeof(ProcedureAttributes));
 	procedureEntry->procAttrs->paramList = NULL;
-	// procedureEntry->procAttrs->scope = symbolTable->currentScope;
+	procedureEntry->procAttrs->scope = new_scope(symbolTable->currentScope, procedureEntry);
 	return procedureEntry;
 }
 
 Entry *create_parameter_entry(char *name, Entry *procedure) {
 	Entry *parameterEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(parameterEntry->name, name);
+	parameterEntry->entryType = ET_PARAMTER;
 	parameterEntry->paramAttrs = (ParameterAttributes *) malloc(sizeof(ParameterAttributes));
-	// parameterEntry->paramAttrs->type = ;
+	parameterEntry->paramAttrs->type = NULL;
 	parameterEntry->paramAttrs->procedure = procedure;
 	return parameterEntry;
 }
 
+//TODO: Fix this one
 void free_entry(Entry *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
+			case ET_CONSTANT:
+				if (entry->constAttrs->constantValue != NULL) {
+					free(entry->constAttrs->constantValue);
+					entry->constAttrs->constantValue = NULL;
+				} break;
 			case ET_VARIABLE:
 				if (entry->varAttrs->type != NULL) {
 					free(entry->varAttrs->type);
 					entry->varAttrs->type = NULL;
-				}
-				break;
+				} break;
 			case ET_TYPE_MARK:
 				if (entry->typeAttrs->type != NULL) {
 					free(entry->typeAttrs->type);
 					entry->typeAttrs->type = NULL;
-				}
-				break;
+				} break;
 			case ET_PROCEDURE:
 				if (entry->procAttrs->scope != NULL) {
 					free_scope(entry->procAttrs->scope);
 					entry->procAttrs->scope = NULL;
-				}
-				break;
+				} break;
 			case ET_PARAMTER:
 				if (entry->paramAttrs->type != NULL) {
 					free(entry->paramAttrs->type);
 					entry->paramAttrs->type = NULL;
-				}
-				break;
+				} break;
 			case ET_PROGRAM:
 				if (entry->progAttrs->scope != NULL) {
 					free_scope(entry->progAttrs->scope);
 					entry->progAttrs->scope = NULL;
-				}
-				break;
-			default:
-				break;
+				} break;
+			default: break;
 		}
 		free(entry);
 		entry = NULL;
@@ -212,10 +225,11 @@ void add_entry(EntryNode **list, Entry *entry) {
 
 // find entry by name
 Entry *find_entry(EntryNode *list, char *name) {
-	while (list != NULL) {
-		if (strcmp(list->entry->name, name) == 0)
-			return list->entry;
-		else list = list->next;
+	EntryNode *curNode = list;
+	while (curNode != NULL) {
+		if (strcmp(curNode->entry->name, name) == 0)
+			return curNode->entry;
+		else curNode = curNode->next;
 	}
 	return NULL;
 }
@@ -224,15 +238,14 @@ Entry *find_entry(EntryNode *list, char *name) {
 
 void init_symbol_table() {
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
-	symbolTable->currentScope = new_scope(NULL); // shoudl first layer scope point to global scope?
-	symbolTable->program = NULL;
+	// symbolTable->currentScope = new_scope(NULL, NULL);
+	// symbolTable->program = NULL;
 	symbolTable->globalEntryList = NULL;
 
 	Entry *entry;
 	Entry* param;
 
-	// built-in functions
-	// e.g. getInteger(integer val out)
+	// built-in functions e.g. getInteger(integer val out)
 	entry = create_procedure_entry("getBool");
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_bool_type();
@@ -289,13 +302,17 @@ void init_symbol_table() {
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	// symbolTable->globalEntryList
+	intType = make_int_type();
+	charType = make_char_type();
+	floatType = make_float_type();
+	stringType = make_string_type();
+	boolType = make_bool_type();
 }
 
 void clear_symbol_table() {
 	free_entry(symbolTable->program);
 	free_entry_list(symbolTable->globalEntryList);
-	free_scope(symbolTable->currentScope);
+	// free_scope(symbolTable->currentScope);
 	free(symbolTable);
 	free_type(intType);
 	free_type(charType);
@@ -304,10 +321,11 @@ void clear_symbol_table() {
 	free_type(boolType);
 }
 
-Scope *new_scope(Scope *outerScope) {
+Scope *new_scope(Scope *outerScope, Entry *parent) {
 	Scope *scope = (Scope* ) malloc(sizeof(Scope));
 	scope->entryList = NULL;
 	scope->outerScope = outerScope;
+	scope->parent = parent;
 	return scope;
 }
 
@@ -346,5 +364,8 @@ void free_scope(Scope *scope) {
 }
 // for declarations
 void declare_entry(Entry *entry) {
-	add_entry(&(symbolTable->currentScope->entryList), entry);
+	if (entry->entryType == ET_PARAMTER) {
+		Entry *procedureEntry = symbolTable->currentScope->parent;
+		add_entry(&(procedureEntry->procAttrs->paramList), entry);
+	} else add_entry(&(symbolTable->currentScope->entryList), entry);
 }

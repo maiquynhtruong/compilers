@@ -30,33 +30,6 @@ struct Entry;
 struct EntryNode;
 struct Scope;
 
-typedef struct ConstantValueAttributes {
-	struct ConstantValue *constantValue;
-} ConstantValueAttributes;
-
-typedef struct VariableAttributes {
-	struct Type *type;
-	struct Scope *scope;
-} VariableAttributes;
-
-typedef struct TypeAttributes {
-	struct Type *type;
-} TypeAttributes;
-
-typedef struct ProcedureAttributes {
-	struct EntryNode* paramList;
-	struct Scope *scope;
-} ProcedureAttributes;
-
-typedef struct ProgramAttributes {
-	struct Scope *scope;
-} ProgramAttributes;
-
-typedef struct ParameterAttributes {
-	struct Type *type;
-	struct Entry *procedure;
-} ParameterAttributes;
-
 struct ConstantValue {
 	TypeClass typeClass;
 	union {
@@ -67,6 +40,33 @@ struct ConstantValue {
         char charVal;
 	};
 };
+
+typedef struct ProgramAttributes {
+	struct Scope *scope;
+} ProgramAttributes;
+
+typedef struct TypeAttributes {
+	struct Type *type;
+} TypeAttributes;
+
+typedef struct ConstantValueAttributes {
+	struct ConstantValue *constantValue;
+} ConstantValueAttributes;
+
+typedef struct VariableAttributes {
+	struct Type *type;
+	struct Scope *scope;
+} VariableAttributes;
+
+typedef struct ProcedureAttributes {
+	struct EntryNode* paramList;
+	struct Scope *scope;
+} ProcedureAttributes;
+
+typedef struct ParameterAttributes {
+	struct Type *type;
+	struct Entry *procedure;
+} ParameterAttributes;
 
 struct Type {
 	TypeClass typeClass;
@@ -94,9 +94,12 @@ struct EntryNode {
 	struct EntryNode *next;
 };
 
-// each scope is a list of entries
-// a scope also keeps a pointer to its parent scope so
-// a variable can be search upward
+/* outerScope:  each scope is a list of entries a scope also keeps a pointer to
+its parent scope so a variable can be searched upward
+parent: the Entry that upon creating it we also need to create a new scope
+(e.g. procedure)
+*/
+
 struct Scope {
 	struct EntryNode* entryList;
 	struct Entry *parent;
@@ -131,10 +134,11 @@ void free_type(Type *type);
 
 ConstantValue *make_int_constant(int i);
 ConstantValue *make_char_constant(char c);
-ConstantValue *make_float_constant(float f)
-ConstantValue *make_bool_contant(bool b);
+ConstantValue *make_float_constant(float f);
+ConstantValue *make_bool_constant(bool b);
 ConstantValue *make_string_constant(char *str);
 
+Entry *create_constant_entry(char *name);
 Entry *create_program_entry(char *name);
 Entry *create_type_entry(char *name);
 Entry *create_variable_entry(char *name);
@@ -147,7 +151,7 @@ void add_entry(EntryNode **list, Entry *entry);
 
 void init_symbol_table();
 void clear_symbol_table();
-Scope *new_scope(Scope *outerScope);
+Scope *new_scope(Scope *outerScope, Entry *parent);
 void enter_scope(Scope *scope);
 void exit_scope();
 Entry* lookup(char *name);
