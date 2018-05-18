@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "symbol_table.h"
+#include "error.h"
 
 SymbolTable *symbolTable;
 Type *intType;
@@ -103,9 +104,13 @@ ConstantValue *make_string_constant(char *str) {
 /******************************* Create Entries ********************************/
 
 Entry *create_program_entry(char *name) {
+	assert("Create program entry");
+	assert(name);
+
 	Entry *programEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(programEntry->name, name);
 	programEntry->entryType = ET_PROGRAM;
+	programEntry->global = 1; // TODO: Not sure
 	programEntry->progAttrs = (ProgramAttributes *) malloc(sizeof(ProgramAttributes));
 	programEntry->progAttrs->scope = new_scope(NULL, programEntry);
 	symbolTable->program = programEntry;
@@ -113,37 +118,53 @@ Entry *create_program_entry(char *name) {
 }
 
 Entry *create_type_entry(char *name) {
+	assert("Create type entry");
+	assert(name);
+
 	Entry *typeEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(typeEntry->name, name);
 	typeEntry->entryType = ET_TYPE_MARK;
+	typeEntry->global = 0;
 	typeEntry->typeAttrs = (TypeAttributes *) malloc(sizeof(TypeAttributes));
 	typeEntry->typeAttrs->type = NULL;
 	return typeEntry;
 }
 
 Entry *create_constant_entry(char *name) {
+	assert("Create constant entry");
+	assert(name);
+
 	Entry *constEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(constEntry->name, name);
 	constEntry->entryType = ET_CONSTANT;
+	constEntry->global = 0;
 	constEntry->constAttrs = (ConstantValueAttributes *) malloc(sizeof(ConstantValueAttributes));
 	constEntry->constAttrs->constantValue = NULL;
 	return constEntry;
 }
 
-Entry *create_variable_entry(char *name) {
+Entry *create_variable_entry(char *name, int global) {
+	assert("Create variable entry");
+	assert(name);
+
 	Entry *variableEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(variableEntry->name, name);
 	variableEntry->entryType = ET_VARIABLE;
+	variableEntry->global = global;
 	variableEntry->varAttrs = (VariableAttributes *) malloc(sizeof(VariableAttributes));
 	variableEntry->varAttrs->type = NULL;
 	variableEntry->varAttrs->scope = symbolTable->currentScope;
 	return variableEntry;
 }
 
-Entry *create_procedure_entry(char *name) {
+Entry *create_procedure_entry(char *name, int global) {
+	assert("Create procedure entry");
+	assert(name);
+
 	Entry *procedureEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(procedureEntry->name, name);
 	procedureEntry->entryType = ET_PROCEDURE;
+	procedureEntry->global = global;
 	procedureEntry->procAttrs = (ProcedureAttributes *) malloc(sizeof(ProcedureAttributes));
 	procedureEntry->procAttrs->paramList = NULL;
 	procedureEntry->procAttrs->scope = new_scope(symbolTable->currentScope, procedureEntry);
@@ -151,9 +172,13 @@ Entry *create_procedure_entry(char *name) {
 }
 
 Entry *create_parameter_entry(char *name, Entry *procedure) {
+	assert("Create parameter entry");
+	assert(name);
+
 	Entry *parameterEntry = (Entry *) malloc(sizeof(Entry));
 	strcpy(parameterEntry->name, name);
 	parameterEntry->entryType = ET_PARAMTER;
+	parameterEntry->global = 0;
 	parameterEntry->paramAttrs = (ParameterAttributes *) malloc(sizeof(ParameterAttributes));
 	parameterEntry->paramAttrs->type = NULL;
 	parameterEntry->paramAttrs->procedure = procedure;
@@ -246,58 +271,58 @@ void init_symbol_table() {
 	Entry* param;
 
 	// built-in functions e.g. getInteger(integer val out)
-	entry = create_procedure_entry("getBool");
+	entry = create_procedure_entry("getBool", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_bool_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("getInteger");
+	entry = create_procedure_entry("getInteger", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_int_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("getFloat");
+	entry = create_procedure_entry("getFloat", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_float_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("getString");
+	entry = create_procedure_entry("getString", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_string_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("getChar");
+	entry = create_procedure_entry("getChar", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_char_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("putBool");
+	entry = create_procedure_entry("putBool", 1);
 	param = create_parameter_entry("val", entry);
 	param->paramAttrs->type = make_bool_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("putInteger");
+	entry = create_procedure_entry("putInteger", 1);
 	param->paramAttrs->type = make_int_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("putFloat");
+	entry = create_procedure_entry("putFloat", 1);
 	param->paramAttrs->type = make_float_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("putString");
+	entry = create_procedure_entry("putString", 1);
 	param->paramAttrs->type = make_string_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
 
-	entry = create_procedure_entry("putChar");
+	entry = create_procedure_entry("putChar", 1);
 	param->paramAttrs->type = make_char_type();
 	add_entry(&(entry->procAttrs->paramList), param);
 	add_entry(&(symbolTable->globalEntryList), entry);
@@ -362,7 +387,7 @@ void free_scope(Scope *scope) {
 		scope = NULL;
 	}
 }
-// for declarations
+// TODO: Should global entry added to current scope?
 void declare_entry(Entry *entry) {
 	if (entry->global) add_entry(&(symbolTable->globalEntryList), entry);
 	else if (entry->entryType == ET_PARAMTER) {

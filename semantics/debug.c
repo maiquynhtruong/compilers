@@ -66,6 +66,7 @@ void print_entry(Entry *entry) {
             printf("Program: %s\n", entry->name);
             print_scope(entry->progAttrs->scope);
             break;
+        default: break;
     }
 }
 

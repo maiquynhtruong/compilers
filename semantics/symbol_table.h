@@ -85,7 +85,7 @@ struct Type {
 struct Entry {
 	char name[MAX_IDENT_LENGTH];
 	EntryType entryType;
-	int global = 0;
+	int global;
 	union {
 		ConstantValueAttributes *constAttrs;
 		VariableAttributes *varAttrs;
@@ -149,8 +149,8 @@ ConstantValue *make_string_constant(char *str);
 Entry *create_constant_entry(char *name);
 Entry *create_program_entry(char *name);
 Entry *create_type_entry(char *name);
-Entry *create_variable_entry(char *name);
-Entry *create_procedure_entry(char *name);
+Entry *create_variable_entry(char *name, int global);
+Entry *create_procedure_entry(char *name, int global);
 Entry *create_parameter_entry(char *name, Entry* procedure);
 Entry *find_entry(EntryNode *list, char *name);
 void free_entry(Entry *entry);
