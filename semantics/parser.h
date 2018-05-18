@@ -11,7 +11,7 @@ void parse_program_body();
 void parse_declarations();
 void parse_declaration();
 void parse_proc_declaration(Entry *entry, int global);
-void parse_var_declaration(Entry *entry, int global);
+void parse_var_declaration(Entry **entry, int global);
 Type *parse_type_mark();
 void parse_statements();
 void parse_statement_chain();

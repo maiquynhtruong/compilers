@@ -89,7 +89,7 @@ void parse_program_body() {
     match_token(K_BEGIN);
 
     if (look_ahead->type != K_END) {
-//         parse_statements();
+        parse_statements();
     }
     match_token(K_END);
     match_token(K_PROGRAM);
@@ -110,14 +110,16 @@ void parse_declarations() {
         case K_PROCEDURE:
             parse_proc_declaration(entry, global);
             match_token(T_SEMI_COLON);
+            declare_entry(entry);
             parse_declarations();
             break;
         // FOLLOW set
         case K_BEGIN: // from program_body, procedure_body
             break;
         default:
-            parse_var_declaration(entry, global);
+            parse_var_declaration(&entry, global);
             match_token(T_SEMI_COLON);
+            declare_entry(entry);
             parse_declarations();
             break;
     }
@@ -135,36 +137,30 @@ void parse_proc_declaration(Entry *entry, int global) {
     enter_scope(entry->procAttrs->scope);
 
     match_token(T_LPAREN);
-    if (look_ahead->type != T_RPAREN) {
-        parse_param_list();
-    }
+    if (look_ahead->type != T_RPAREN) parse_param_list();
     match_token(T_RPAREN);
-//
-//     // procedure body
-//     if (look_ahead->type != K_BEGIN) {
-//         parse_declarations();
-//     }
-//     match_token(K_BEGIN);
-//
-//     if (look_ahead->type != K_END) {
-//         parse_statements();
-//     }
-//
-//     match_token(K_END);
-//     match_token(K_PROCEDURE);
-//     exit_scope();
+
+    // procedure body
+    if (look_ahead->type != K_BEGIN) parse_declarations();
+    match_token(K_BEGIN);
+
+    if (look_ahead->type != K_END) parse_statements();
+    match_token(K_END);
+    match_token(K_PROCEDURE);
+    exit_scope();
+    // declare_entry(entry);
 
     assert("Done parsing a procedure declaration");
 }
 
-void parse_var_declaration(Entry *entry, int global) {
+void parse_var_declaration(Entry **entry, int global) {
     assert("Parsing a variable declaration");
 
     Type *typeMark = parse_type_mark();
     match_token(T_IDENTIFIER);
 
-    entry = create_variable_entry(current_token->val.stringVal, global);
-    entry->varAttrs->type = typeMark;
+    *entry = create_variable_entry(current_token->val.stringVal, global);
+    (*entry)->varAttrs->type = typeMark;
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -174,12 +170,15 @@ void parse_var_declaration(Entry *entry, int global) {
 //
 //         // match_token(T_COLON);
 //
-//         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
+        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         // match_token(T_NUMBER_INT); // uppper bound
+        (*entry)->varAttrs->type->elementType = (*entry)->varAttrs->type;
+        (*entry)->varAttrs->type->typeClass = TC_ARRAY;
+        (*entry)->varAttrs->type->arraySize = current_token->val.intVal;
         match_token(T_RBRACKET);
     }
-    // TODO: if it's an array, need to declare it as array type
-//     declare_entry(entry);
+    // declare_entry(entry); // parse_declarations() should do this
+
     assert("Done parsing a variable declaration");
 }
 
@@ -190,24 +189,19 @@ Type* parse_type_mark() {
     switch(look_ahead->type) {
         case K_INT:
             match_token(K_INT);
-            typeMark->typeClass = TC_INT;
-            break;
-//         case K_FLOAT:
-//             match_token(K_FLOAT);
-//             typeMark->typeClass = TC_FLOAT;
-//             break;
-//         case K_BOOL:
-//             match_token(K_BOOL);
-//             typeMark->typeClass = TC_BOOL;
-//             break;
-//         case K_CHAR:
-//             match_token(K_CHAR);
-//             typeMark->typeClass = TC_CHAR;
-//             break;
-//         case K_STRING:
-//             match_token(K_STRING);
-//             typeMark->typeClass = TC_STRING;
-//             break;
+            typeMark->typeClass = TC_INT; break;
+        case K_FLOAT:
+            match_token(K_FLOAT);
+            typeMark->typeClass = TC_FLOAT; break;
+        case K_BOOL:
+            match_token(K_BOOL);
+            typeMark->typeClass = TC_BOOL; break;
+        case K_CHAR:
+            match_token(K_CHAR);
+            typeMark->typeClass = TC_CHAR; break;
+        case K_STRING:
+            match_token(K_STRING);
+            typeMark->typeClass = TC_STRING; break;
         default:
             throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
@@ -216,60 +210,65 @@ Type* parse_type_mark() {
     return typeMark;
 }
 //
-// void parse_statements() {
-//     parse_statement();
-//     parse_statement_chain();
-// }
-//
-// void parse_statement_chain() {
-//     switch (look_ahead->type) {
-//         case T_SEMI_COLON:
-//             match_token(T_SEMI_COLON);
-//             parse_statement();
-//             parse_statement_chain();
-//             break;
-//         // FOLLOW set
-//         case K_END: case K_ELSE: // if statement, for loop
-//             break;
-//         default:
-//             throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
-//     }
-// }
-//
-// void parse_statement() {
-//     assert("Parsing a statement");
-//     switch (look_ahead->type) {
-//         case K_IF: parse_if_statement(); break;
-//         case K_FOR: parse_loop_statement(); break;
-//         case K_RETURN: parse_return_statement(); break;
-//         case T_IDENTIFIER:
-//             // match_token(T_IDENTIFIER);
-//             parse_assignment_statement();
-//             if (look_ahead->type == T_LPAREN) parse_procedure_call();
-//             break;
-//         // FOLLOW set
-//         case K_END: case K_ELSE: case T_SEMI_COLON: // if statement, for loop
-//             break;
-//         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
-//     }
-//     assert("Done parsing a statement");
-// }
-//
-// void parse_destination() {
-//     assert("Parsing a destination");
-//     match_token(T_IDENTIFIER);
-//     if (look_ahead->type == T_LPAREN) {
-//         assert("Not a destination. Backtracking to parse a procedure call");
-//         return; // back track to parse_statement
-//     }
-//
-//     if (look_ahead->type == T_LBRACKET) {
-//         match_token(T_LBRACKET);
-//         parse_expression();
-//         match_token(T_RBRACKET);
-//     }
-//     assert("Done parsing an destination");
-// }
+void parse_statements() {
+    parse_statement();
+    parse_statement_chain();
+}
+
+void parse_statement_chain() {
+    switch (look_ahead->type) {
+        case T_SEMI_COLON:
+            match_token(T_SEMI_COLON);
+            parse_statement();
+            parse_statement_chain();
+            break;
+        // FOLLOW set
+        case K_END: case K_ELSE: // if statement, for loop
+            break;
+        default:
+            throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+}
+
+void parse_statement() {
+    assert("Parsing a statement");
+    switch (look_ahead->type) {
+        case K_IF: parse_if_statement(); break;
+        case K_FOR: parse_loop_statement(); break;
+        case K_RETURN: parse_return_statement(); break;
+        case T_IDENTIFIER:
+            parse_assignment_statement();
+            if (look_ahead->type == T_LPAREN) parse_procedure_call();
+            break;
+        // FOLLOW set
+        case K_END: case K_ELSE: case T_SEMI_COLON: // if statement, for loop
+            break;
+        default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+    assert("Done parsing a statement");
+}
+
+void parse_indexes() {
+    if (look_ahead->type == T_LBRACKET) {
+        match_token(T_LBRACKET);
+        parse_expression();
+        match_token(T_RBRACKET);
+        parse_indexes(); // for 2D array or more
+    }
+}
+
+void parse_destination() {
+    assert("Parsing a destination");
+    match_token(T_IDENTIFIER);
+    if (look_ahead->type == T_LPAREN) {
+        assert("Not a destination. Backtracking to parse a procedure call");
+        return; // back track to parse_statement
+    }
+
+    parse_indexes();
+
+    assert("Done parsing a destination");
+}
 //
 // void parse_assignment_statement() {
 //     assert("Parsing an assignment statement");
@@ -327,7 +326,8 @@ Type* parse_type_mark() {
 //     match_token(T_RPAREN);
 //     assert("Done parsing a procedure call");
 // }
-//
+
+// TODO: There's another way of parsing params
 void parse_param_list() {
     parse_param();
     parse_param_list_param();
@@ -348,7 +348,7 @@ void parse_param_list_param() {
 void parse_param() {
     assert("Parsing a parameter");
     Entry *entry = NULL;
-    parse_var_declaration(entry, 0);
+    parse_var_declaration(&entry, 0);
     // TODO: delete the declaration of the variable in the outerscope
     entry = create_parameter_entry(entry->name, symbolTable->currentScope->parent);
     switch (look_ahead->type) {
@@ -570,14 +570,4 @@ void parse_param() {
 //         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
 //     }
 //     assert("Done parsing a factor");
-// }
-//
-// // helper function to parse index of array
-// void parse_indexes() {
-//     if (look_ahead->type == T_LBRACKET) {
-//         match_token(T_LBRACKET);
-//         parse_expression();
-//         match_token(T_RBRACKET);
-//         parse_indexes(); // for 2D array or more
-//     }
 // }
