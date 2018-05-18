@@ -43,7 +43,6 @@ int strcicmp(char const *a, char const *b){
 }
 
 TokenType check_reserved_word(char *str) {
-    printf("In check_reserved_word\n");
     int i, count = sizeof(keywords)/sizeof(keywords[0]);
 
     for (i = 0; i < count; i++) {

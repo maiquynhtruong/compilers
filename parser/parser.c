@@ -304,11 +304,13 @@ void parse_destination() {
         return; // back track to parse_statement
     }
 
-    if (look_ahead->type == T_LBRACKET) {
-        match_token(T_LBRACKET);
-        parse_expression();
-        match_token(T_RBRACKET);
-    }
+    // if (look_ahead->type == T_LBRACKET) {
+    //     match_token(T_LBRACKET);
+    //     parse_expression();
+    //     match_token(T_RBRACKET);
+    // }
+    parse_indexes();
+
     assert("Done parsing an destination");
 }
 

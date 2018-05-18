@@ -5,7 +5,8 @@
 - Look at llvm documentation
 - The parser should have at least one resync point to try to recover from a parsing error.
 - Optional period at end of file. In case there is no period, parse end of file
-
+- Global declarations has to be defined at the outermost scope. Throw an error if it K_GLOBAL is used in a procedure. Consider passing a
+global variable to declare_entry instead of the entry knowing about itself
 - Type Checking
   - At least for expressions and statements, your parsing rules will now have to be expanded to return the type result for the construct just parsed. The upper rules will use that type information to assert type checks at its level.
   - A full symbol table complete with scoping data must be constructed.

@@ -16,3 +16,6 @@ To run any component, type `make` and run whatever file generated, with command 
 - `parser`: `./parser ../testPgms/correct/test1.src`
 - `symbol_table`: `./symtab` (no param)
 - `semantics`: `./semantics ../testPgms/correct/test1.src`
+
+# Debugging
+To turn off debugging, comment out the body of the `assert(char *mesg)` function in `error.c` file in each folder. Do otherwise to turn on printing assertion messages.
