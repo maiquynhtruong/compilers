@@ -2,3 +2,4 @@
 *.gch
 *.o
 *.temp
+.DS_Store
