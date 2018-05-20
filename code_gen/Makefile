@@ -1,21 +1,21 @@
-CFLAGS= -c -Wall
-CC=gcc
-LIBS=-lm llvm-config --libs core jit native --cxxflags --ldflags
+CC=clang
+CFLAGS=-g `llvm-config --cflags`
+LD=clang++
+LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine jit interpreter analysis native bitwriter --system-libs`
 
-all: codegen
+all: sum
 
-symtab: debug.o main.o symbol_table.o
-		${CC} debug.o main.o symbol_table.o -o codegen
+sum.o: sum.c
+	$(CC) $(CFLAGS) -c $<
 
-main.o: main.c
-		${CC} ${CFLAGS} main.c
+sum: sum.o
+	$(LD) $< $(LDFLAGS) -o $@
 
-debug.o: debug.c
-		 ${CC} ${CFLAGS} debug.c
+sum.bc: sum
+	./sum 0 0
 
-symbol_table.o: symbol_table.c
-				${CC} ${CFLAGS} symbol_table.c
-.PHONY: clean
+sum.ll: sum.bc
+	llvm-dis $<
 
 clean:
-	rm -f *.o *.gch *~
+	-rm -f sum.o sum sum.bc sum.ll
