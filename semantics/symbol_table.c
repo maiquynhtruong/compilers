@@ -389,6 +389,7 @@ void free_scope(Scope *scope) {
 }
 // TODO: Should global entry added to current scope?
 void declare_entry(Entry *entry) {
+	assert("Declaring an entry");
 	if (entry->global) add_entry(&(symbolTable->globalEntryList), entry);
 	else if (entry->entryType == ET_PARAMTER) {
 		Entry *procedureEntry = symbolTable->currentScope->parent;

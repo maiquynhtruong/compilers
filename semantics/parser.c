@@ -108,7 +108,7 @@ void parse_declarations() {
 
     switch (look_ahead->type) {
         case K_PROCEDURE:
-            parse_proc_declaration(entry, global);
+            parse_proc_declaration(&entry, global);
             match_token(T_SEMI_COLON);
             declare_entry(entry);
             parse_declarations();
@@ -126,15 +126,15 @@ void parse_declarations() {
     assert("Done parsing declarations");
 }
 
-void parse_proc_declaration(Entry *entry, int global) {
+void parse_proc_declaration(Entry **entry, int global) {
     assert("Parsing a procedure declaration");
 
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
 
-    entry = create_procedure_entry(current_token->val.stringVal, global);
-    enter_scope(entry->procAttrs->scope);
+    *entry = create_procedure_entry(current_token->val.stringVal, global);
+    enter_scope((*entry)->procAttrs->scope);
 
     match_token(T_LPAREN);
     if (look_ahead->type != T_RPAREN) parse_param_list();
