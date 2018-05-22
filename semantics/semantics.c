@@ -33,9 +33,7 @@ Entry *lookup(char *name) {
 	return entry;
 }
 
-/* Check if an entry has been inserted in table before
-	throws an error if that happens
-*/
+// Check if an entry has been inserted in table before throws an error if that happens
 void checkNewIdentifier(char *name) {
 	Entry *entry = findEntry(symbolTable->currentScope->entryList, name);
 	if (entry != NULL) perror("Duplicate Identifier\n");
@@ -43,13 +41,10 @@ void checkNewIdentifier(char *name) {
 
 Entry *checkDeclaredIdentifier(char *name) {
 	searching = 0; // start searching
-
 	Entry *entry = lookup(name);
-
 	searching = 0; // stop searching
 
 	if (entry == NULL) perror("Undeclared Identifier\n");
-
 	return entry;
 }
 
