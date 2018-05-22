@@ -333,6 +333,9 @@ void parse_param_list() {
     parse_param_list_param();
 }
 
+// <parameter_list> ::=
+// <parameter> , <parameter_list>
+// | <parameter>
 void parse_param_list_param() {
     switch (look_ahead->type) {
         case T_COMMA:

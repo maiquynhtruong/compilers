@@ -56,7 +56,7 @@ Entry *checkDeclaredIdentifier(char *name) {
 Entry *checkDeclaredVariable(char *name) {
 	Entry *entry = NULL;
 
-	searching = 0; 
+	searching = 0;
 
 	do {
 		entry = lookup(name);
@@ -88,5 +88,29 @@ Entry *checkDeclaredProcedure(char *name) {
 }
 
 Entry *checkDeclaredLValueIdentifier(char *name) {
+
+}
+
+void checkIntType(Type *type) {
+
+}
+
+void checkCharType(Type *type) {
+
+}
+
+void checkStringType(Type *type) {
+
+}
+
+void checkFloatType(Type *type) {
+
+}
+
+void checkBoolType(Type *type) {
+
+}
+
+void checkTypeEquality(Type *type1, Type *type2) {
 
 }
