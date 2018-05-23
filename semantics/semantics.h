@@ -2,17 +2,17 @@
 #define SEMANTICS_H
 
 #include "symbol_table.h"
-Entry *lookupObject(char *name);
-void checkNewIdentifier(char *name);
-Entry *checkDeclaredIdentifier(char *name);
-Entry *checkDeclaredVariable(char *name);
-Entry *checkDeclaredProcedure(char *name);
-Entry *checkDeclaredLValueIdentifier(char *name);
+Entry *lookup_object(char *name);
+void check_new_identifier(char *name);
+Entry *check_declared_identifier(char *name);
+Entry *check_declared_variable(char *name);
+Entry *check_declared_procedure(char *name);
+Entry *check_declared_LValue_identifier(char *name);
 
-void checkIntType(Type *type);
-void checkCharType(Type *type);
-void checkStringType(Type *type);
-void checkFloatType(Type *type);
-void checkBoolType(Type *type);
-void checkTypeEquality(Type *type1, Type *type2);
+void check_int_type(Type *type);
+void check_char_type(Type *type);
+void check_string_type(Type *type);
+void check_float_type(Type *type);
+void check_bool_type(Type *type);
+void check_type_equality(Type *type1, Type *type2);
 #endif

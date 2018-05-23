@@ -10,7 +10,7 @@ Token* look_ahead;
 Token* current_token;
 
 // from symbol_table.c
-extern SymbolTable *symbolTable;
+extern SymbolTable *symbol_table;
 extern Type *intType;
 extern Type *charType;
 extern Type *floatType;
@@ -52,7 +52,7 @@ int parse(char *file_name) {
     init_symbol_table();
 
     parse_program();
-    print_entry(symbolTable->program);
+    print_entry(symbol_table->program);
 
     clear_symbol_table();
 
@@ -353,7 +353,7 @@ void parse_param() {
     Entry *entry = NULL;
     parse_var_declaration(&entry, 0);
     // TODO: delete the declaration of the variable in the outerscope
-    entry = create_parameter_entry(entry->name, symbolTable->currentScope->parent);
+    entry = create_parameter_entry(entry->name, symbol_table->currentScope->parent);
     switch (look_ahead->type) {
         case K_IN:
             entry->paramAttrs->paramType = PT_IN;
