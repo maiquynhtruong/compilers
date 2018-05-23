@@ -1,10 +1,9 @@
 CC=clang
-# CFLAGS=-g `llvm-config --cflags`
+CFLAGS=-g `llvm-config --cflags`
 CPPFLAGS +=  -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/
 CXX=$(CC)++
 LD=clang++
-- LDFLAGS=`llvm-config --cxxflags --cflags --ldflags --libs core executionengine interpreter analysis native bitwriter --system-libs -L/usr/local/opt/llvm/lib`
-LDFLAGS += -L/usr/local/opt/llvm/lib -W1,-rpath,/usr/local/opt/llvm/lib
+LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine mcjit interpreter analysis native bitwriter --system-libs`
 
 # Generating the object file is a no-brainer:
 
@@ -17,7 +16,7 @@ LDFLAGS += -L/usr/local/opt/llvm/lib -W1,-rpath,/usr/local/opt/llvm/lib
 all: sum
 
 sum.o: sum.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c sum.c
+	$(CC) $(CFLAGS) -c sum.c
 
 sum: sum.o
 	$(LD) $< $(LDFLAGS) -o $@
