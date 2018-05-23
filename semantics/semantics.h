@@ -2,7 +2,7 @@
 #define SEMANTICS_H
 
 #include "symbol_table.h"
-Entry *lookup_object(char *name);
+Entry *lookup(char *name);
 void check_new_identifier(char *name);
 Entry *check_declared_identifier(char *name);
 Entry *check_declared_variable(char *name);
