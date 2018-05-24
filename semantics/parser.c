@@ -248,7 +248,7 @@ void parse_statement() {
     assert("Done parsing a statement");
 }
 
-void parse_indexes() {
+Type *parse_indexes() {
     if (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
         parse_expression();
@@ -392,7 +392,7 @@ void parse_argument_list_expression() {
     }
 }
 
-void parse_expression() {
+Type *parse_expression() {
     assert("Parsing an expression");
     if (look_ahead->type == K_NOT) {
         match_token(K_NOT);
@@ -402,7 +402,7 @@ void parse_expression() {
     assert("Done parsing an expression");
 }
 
-void parse_expression_arith_op() {
+Type *parse_expression_arith_op() {
     switch(look_ahead->type) {
         case T_AND:
             match_token(T_AND);
@@ -504,7 +504,7 @@ void parse_relation_term() {
     }
 }
 
-void parse_term() {
+Type *parse_term() {
     assert("Parsing a term");
     parse_factor();
     parse_term_factor();
@@ -535,7 +535,7 @@ void parse_term_factor() {
     }
 }
 
-void parse_factor() {
+Type *parse_factor() {
     assert("Parsing a factor");
     switch (look_ahead->type) {
         case T_STRING:
