@@ -28,15 +28,16 @@ void parse_procedure_call();
 void parse_destination();
 void parse_argument_list();
 void parse_argument_list_expression();
-void parse_expression();
-void parse_expression_arith_op();
+Type *parse_expression();
+Type *parse_expression_arith_op();
 void parse_arith_op();
 void parse_arith_op_relation();
 void parse_relation();
 void parse_relation_term();
-void parse_term();
+Type *parse_term();
 void parse_term_factor();
-void parse_factor();
-void parse_indexes();
+Type *parse_factor();
+Type *parse_indexes();
+Type *parseLValue();
 
 #endif

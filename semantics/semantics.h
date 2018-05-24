@@ -15,4 +15,5 @@ void check_string_type(Type *type);
 void check_float_type(Type *type);
 void check_bool_type(Type *type);
 void check_type_equality(Type *type1, Type *type2);
+
 #endif
