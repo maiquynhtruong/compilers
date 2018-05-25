@@ -30,6 +30,13 @@ typedef enum {
 	PT_INOUT
 } ParamType;
 
+typedef enum {
+	BO_PLUS;
+	BO_MINUS;
+	BO_DIVIDE;
+	BO_MULTIPLY;
+} BinaryOpType;
+
 struct ConstantValue;
 struct Type;
 struct Entry;
@@ -96,7 +103,6 @@ struct Entry {
 	};
 };
 
-// to make life easier when defining a chain of nodes
 struct EntryNode {
 	struct Entry *entry;
 	struct EntryNode *next;
