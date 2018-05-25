@@ -31,10 +31,10 @@ typedef enum {
 } ParamType;
 
 typedef enum {
-	BO_PLUS;
-	BO_MINUS;
-	BO_DIVIDE;
-	BO_MULTIPLY;
+	BO_PLUS,
+	BO_MINUS,
+	BO_DIVIDE,
+	BO_MULTIPLY
 } BinaryOpType;
 
 struct ConstantValue;

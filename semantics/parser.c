@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "debug.h"
 #include "error.h"
 #include "reader.h"
@@ -65,8 +66,8 @@ int parse(char *file_name) {
 void parse_program() {
     assert("Parsing the program");
 
-    // create, enter and exit a program scope
-    Entry *entry = NULL;
+    Entry *entry = NULL; // create, enter and exit a program scope
+
     // program header
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
