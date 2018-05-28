@@ -38,8 +38,7 @@ LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuild
     LLVMValueRef func = LLVMGetNamedFunction(module, name);
 
     if (func == NULL) return NULL;
-    // TODO: LLVMCountParamTypes (LLVMTypeRef FunctionTy) ??
-    if (LLVMCountParamTypes(func) != entry->procCallAST->argc) return NULL;
+    if (LLVMCountParams(func) != entry->procCallAST->argc) return NULL;
 
     LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * entry->callProcAST->argc);
     unsigned int i, arg_cnt = entry->callProcAST->argc;
@@ -53,12 +52,31 @@ LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuild
     return LLVMBuildCall(builder, func, args, argc, "calltmp");
 }
 
-EntryAST *create_constant(ConstantValue *value);
-EntryAST *create_variable(char *name);
-EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
-EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
-EntryAST *create_param(char *name, EntryAST *procedure);
-EntryAST *create_prototype(char *name, char **args, int argc);
-EntryAST *create_procedure_declaration(EntryAST *prototype, EntryAST *body);
-EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
-void free_entry_AST(EntryAST *entry);
+LLVMValueRef code_gen_param(char *name, EntryAST *procedure) {
+    // get types of params
+    switch (type) {
+        case TC_INT:
+            params[i] = LLVMIntType();
+        case TC_FLOAT:
+            params[i] = LLVMDoubleType();
+        case TC_STRING:
+            params[i] = LLVMStringType();
+    }
+
+}
+
+LLVMValueRef code_gen_prototype(char *name, char **args, int argc) {
+    LLVMFunctionType (LLVMTypeRef ReturnType, LLVMTypeRef *ParamTypes, unsigned ParamCount, LLVMBool IsVarArg)
+}
+
+LLVMValueRef code_gen_procedure_declaration(EntryAST *prototype, EntryAST *body) {
+
+}
+
+LLVMValueRef code_gen_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock) {
+
+}
+
+void free_entry_AST(EntryAST *entry) {
+
+}
