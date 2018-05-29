@@ -3,6 +3,7 @@
 
 #include <llvm-c/Core.h>
 #include "ast.h"
+#include "error.h"
 
 // the goal of all this is to call LLVM C API functions
 

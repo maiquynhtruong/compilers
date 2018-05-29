@@ -42,7 +42,7 @@ typedef struct PrototypeAST {
 
 typedef struct ProcedureAST {
     Scope *scope;
-    struct EntryAST *PrototypeAST;
+    struct EntryAST *prototype;
     struct EntryAST *body;
 } ProcedureAST;
 
@@ -62,6 +62,7 @@ typedef struct EntryAST {
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
         ProcedureCallAST *procCallAST;
+		PrototypeAST *protoAST;
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
 		IfStatementAST *ifAST;

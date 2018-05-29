@@ -1,6 +1,8 @@
 #include "code_gen.h"
 #include <llvm-c/Analysis.h>
 
+extern Token *current_token;
+
 LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
 
 }
@@ -35,10 +37,10 @@ LLVMValueRef code_gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuild
 }
 
 LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
-    LLVMValueRef func = LLVMGetNamedFunction(module, name);
+    LLVMValueRef func = LLVMGetNamedFunction(module, entry->protoAST->name);
 
     if (func == NULL) return NULL;
-    if (LLVMCountParams(func) != entry->procCallAST->argc) return NULL;
+    if (LLVMCountParams(func) != entry->protoAST->argc) return NULL;
 
     LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * entry->callProcAST->argc);
     unsigned int i, arg_cnt = entry->callProcAST->argc;
@@ -52,21 +54,46 @@ LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuild
     return LLVMBuildCall(builder, func, args, argc, "calltmp");
 }
 
-LLVMValueRef code_gen_param(char *name, EntryAST *procedure) {
-    // get types of params
-    switch (type) {
-        case TC_INT:
-            params[i] = LLVMIntType();
+LLVMTypeRef code_gen_param(ParamAST *param) {
+    switch (param->type->typeClass) {
+        case TC_INT: case TC_BOOL: case TC_CHAR:
+            return LLVMInt32Type();
         case TC_FLOAT:
-            params[i] = LLVMDoubleType();
-        case TC_STRING:
-            params[i] = LLVMStringType();
+            return LLVMFloatType();
+        case TC_ARRAY:
+            return LLVMArrayType(code_gen_param(type->elementType), (unsigned) type->arraySize);
+        case TC_STRING: // string is array of char. MAX_STRING_LENGTH from symbol_table.h
+            return LLVMArrayType(LLVMInt32Type(), MAX_STRING_LENGTH);
+        default:
+            return LLVMVoidType();
     }
-
 }
 
-LLVMValueRef code_gen_prototype(char *name, char **args, int argc) {
-    LLVMFunctionType (LLVMTypeRef ReturnType, LLVMTypeRef *ParamTypes, unsigned ParamCount, LLVMBool IsVarArg)
+LLVMValueRef code_gen_prototype(EntryAST *entry, LLVMModuleRef module) {
+    unsigned int i, argc = entry->protoAST->argc;
+
+    // take the existing definition if exists
+    LLVMValueRef func = LLVMGetNamedFunction(module, entry->protoAST->name);
+    if (func != NULL) {
+        if (LLVMCountParams(func) != argc) {
+            fprintf(stderr, "Existing function exists with different parameter count");
+            return NULL;
+        }
+        if (LLVMCountBasicBlocks(func) != ) { // function is empty
+            fprintf(stderr, "Existing function exists with a body");
+            return NULL;
+        }
+    } else { // create new function definition
+        LLVMTypeRef *params = malloc(sizeof(LLVMTypeRef) * argc);
+        for (i = 0; i < argc; i++) {
+            params[i] = code_gen_param(entry->protoAST->args[i]);
+        }
+        LLVMTypeRef funcType = LLVMFunctionType (LLVMVoidType(), params, argc, 0);
+    }
+
+    func = LLVMAddFunction(module, entry->protoAST->name, funcType);
+    LLVMSetLinkage(func, LLVMExternalLinkage);
+
 }
 
 LLVMValueRef code_gen_procedure_declaration(EntryAST *prototype, EntryAST *body) {
