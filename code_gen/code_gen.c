@@ -96,12 +96,71 @@ LLVMValueRef code_gen_prototype(EntryAST *entry, LLVMModuleRef module) {
 
 }
 
-LLVMValueRef code_gen_procedure_declaration(EntryAST *prototype, EntryAST *body) {
+LLVMValueRef code_gen_procedure_declaration(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+    // prototype
+    LLVMValueRef func = code_gen(entry->procAST->prototype, module, builder);
+    if (func == NULL) return NULL;
 
+    LLVMBasicBlockRef block = LLVMAppendBasicBlock(func, "entry");
+    LLVMPositionBuilderAtEnd(builder, block);
+
+    // body
+    LLVMValueRef body = code_gen(entry->procAST->body, module, builder);
+    if (body == NULL) {
+        LLVMDeleteFunction(func);
+        return NULL;
+    }
+
+    LLVMBuildRet(builder, body); // insert body as return value
+
+    // verify function
+
+    if (LLVMVerifyFunction(func, LLVMPrintMessageAction) == 1) {
+        fprintf(stderr, "Invalid function\n");
+        LLVMDeleteFunction(func);
+        return NULL;
+    }
+
+    return func;
 }
 
-LLVMValueRef code_gen_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock) {
+LLVMValueRef code_gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+    LLVMValueRef condition = code_gen(entry->ifAST->condition, module, builder); // generate the condition
+    if (condition == NULL) return NULL;
 
+    LLVMValueRef zero = LLVMConstReal(LLVMDoubleType(), 0); // convert condition to bool
+    condition = LLVMBuildFCmp(builder, LLVMRealONE, condition, zero, "ifcond");
+
+    LLVMValueRef func = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder)); // retrieve function
+
+    // true/false expressions and merge them
+    LLVMBasicBlockRef thenBlock = LLVMAppendBasicBlock(func, "then");
+    LLVMBasicBlockRef elseBlock = LLVMAppendBasicBlock(func, "else");
+    LLVMBasicBlockRef mergeBlock = LLVMAppendBasicBlock(func, "ifcont");
+
+    LLVMBuildCondBr(builder, condition, thenBlock, elseBlock);
+
+    // generate then block
+    LLVMPositionBuilderAtEnd(builder, thenBlock);
+    LLVMValueRef thenValue = code_gen(entry->ifAST->trueBlock, module, builder);
+    if (thenValue == NULL) return NULL;
+
+    LLVMBuildBr(builder, mergeBlock);
+    thenBlock = LLVMGetInsertBlock(builder);
+
+    LLVMPositionBuilderAtEnd(builder, elseBlock);
+    LLVMValueRef elseValue = code_gen(entry->ifAST->falseBlock, module, builder);
+    if (elseValue == NULL) return NULL;
+
+    LLVMBuildBr(builder, mergeBlock);
+    elseBlock = LLVMGetInsertBlock(builder);
+
+    LLVMPositionBuilderAtEnd(builder, mergeBlock);
+    LLVMValueRef phi = LLVMBuildPhi(builder, LLVMDoubleType(), "");
+    LLVMAddIncoming(phi, &thenValue, &thenBlock, 1);
+    LLVMAddIncoming(phi, &elseValue, &elseBlock, 1);
+
+    return phi;
 }
 
 void free_entry_AST(EntryAST *entry) {
