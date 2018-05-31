@@ -22,6 +22,9 @@ typedef enum {
 	ET_PROCEDURE,
 	ET_PARAMTER,
 	ET_PROGRAM,
+	ET_BIN_OP,
+	ET_CALL,
+	ET_IF
 } EntryType;
 
 typedef enum {

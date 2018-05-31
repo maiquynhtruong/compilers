@@ -163,6 +163,30 @@ LLVMValueRef code_gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBu
     return phi;
 }
 
+// recursively generates LLVM objects to build the code
+// entry: the entry to generate code for
+// module: module code is being generated for
+// builder: LLVM builder that is creating the IR
+
+LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+    // recursively free dependent data
+    switch (entry->type) {
+        case ET_CONSTANT:
+            return code_gen_constant(entry);
+        case ET_VARIABLE:
+            return code_gen_variable(entry);
+        case ET_BIN_OP:
+            return code_gen_binary_op(entry, module, builder);
+        case ET_CALL:
+            return code_gen_proc_call(entry, module, builder);
+        case ET_PROCEDURE:
+            return code_gen_prototype(entry, module);
+        case ET_IF:
+            return code_gen_if_statement(entry, module, builder);
+    }
+    return NULL;
+}
+
 void free_entry_AST(EntryAST *entry) {
 
 }
