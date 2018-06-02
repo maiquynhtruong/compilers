@@ -354,9 +354,7 @@ void parse_argument_list() {
 
 Type *parse_expression() {
     assert("Parsing an expression");
-    if (look_ahead->type == K_NOT) {
-        match_token(K_NOT);
-    }
+    if (look_ahead->type == K_NOT) match_token(K_NOT);
     parse_arith_op();
     parse_expression_arith_op();
     assert("Done parsing an expression");
@@ -460,7 +458,6 @@ Type *parse_relation_term() {
         case T_SEMI_COLON: // statements
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
-        // default: break;
     }
 }
 
@@ -495,16 +492,18 @@ Type *parse_term_factor() {
     }
 }
 
-ConstantValue *parse_factor() {
+void parse_factor() {
     assert("Parsing a factor");
-
+    Entry *entry;
     switch (look_ahead->type) {
         case T_STRING:
-            match_token(T_STRING);
-            return make_string_constant(current_token->val.stringVal);
+            match_token(T_STRING); break;
         case T_CHAR:
-            match_token(T_CHAR);
-            return make_char_constant(current_token->val.charVal);
+            match_token(T_CHAR); break;
+        case T_NUMBER_INT:
+            match_token(T_NUMBER_INT); break;
+        case T_NUMBER_FLOAT:
+            match_token(T_NUMBER_FLOAT); break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             parse_expression();
@@ -515,23 +514,15 @@ ConstantValue *parse_factor() {
             assert("A negative number of a negative name");
             parse_factor();
             break;
-        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
+        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
-            parse_indexes();
+            entry = check_declared_identifier(current_token->val.stringVal);
+            parse_destination();
             break;
-        case T_NUMBER_INT:
-            match_token(T_NUMBER_INT);
-            return make_int_constant(current_token->val.intVal);
-//         case T_NUMBER_FLOAT:
-//             match_token(T_NUMBER_FLOAT);
-            // return make_float_constant(current_token->val.floatVal);
         case K_TRUE:
-            match_token(K_TRUE);
-            // constVal = make_bool_constant(current_token->val.boolVal);
-            return make_bool_constant(true);
+            match_token(K_TRUE); break;
         case K_FALSE:
-            match_token(K_FALSE);
-            return make_bool_constant(false);
+            match_token(K_FALSE); break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement

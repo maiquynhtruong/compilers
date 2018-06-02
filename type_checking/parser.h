@@ -34,7 +34,7 @@ Type *parse_relation();
 Type *parse_relation_term();
 Type *parse_term();
 Type *parse_term_factor();
-Type *parse_factor();
+void parse_factor();
 Type *parse_indexes();
 Type *parseLValue();
 
