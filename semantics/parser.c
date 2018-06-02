@@ -231,7 +231,7 @@ void parse_statement_chain() {
     }
 }
 
-void parse_statement() {
+Type *parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
@@ -425,14 +425,14 @@ Type *parse_expression_arith_op() {
     }
 }
 
-void parse_arith_op() {
+Type *parse_arith_op() {
     assert("Parsing an arithmetic operation");
     parse_relation();
     parse_arith_op_relation();
     assert("Done parsing an arithmetic operation");
 }
 
-void parse_arith_op_relation() {
+Type *parse_arith_op_relation() {
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
@@ -454,14 +454,14 @@ void parse_arith_op_relation() {
     }
 }
 
-void parse_relation() {
+Type *parse_relation() {
     assert("Parsing a relation");
     parse_term();
     parse_relation_term();
     assert("Done parsing a relation");
 }
 
-void parse_relation_term() {
+Type *parse_relation_term() {
     switch(look_ahead->type) {
         case T_LT:
             match_token(T_LT);
@@ -512,7 +512,7 @@ Type *parse_term() {
     assert("Done parsing a term");
 }
 
-void parse_term_factor() {
+Type *parse_term_factor() {
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
@@ -538,11 +538,15 @@ void parse_term_factor() {
 
 Type *parse_factor() {
     assert("Parsing a factor");
+
+    ConstantValue *constVal = NULL;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING); break;
         case T_CHAR:
-            match_token(T_CHAR); break;
+            match_token(T_CHAR);
+            constVal = make_char_constant(current_token->val.charVal);
+            break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             parse_expression();
@@ -558,13 +562,22 @@ Type *parse_factor() {
             parse_indexes();
             break;
         case T_NUMBER_INT:
-            match_token(T_NUMBER_INT); break;
+            match_token(T_NUMBER_INT);
+            constVal = make_int_constant(current_token->val.intVal);
+            break;
 //         case T_NUMBER_FLOAT:
-//             match_token(T_NUMBER_FLOAT); break;
+//             match_token(T_NUMBER_FLOAT);
+            // constVal = make_float_constant(current_token->val.floatVal);
+            // break;
         case K_TRUE:
-            match_token(K_TRUE); break;
+            match_token(K_TRUE);
+            // constVal = make_bool_constant(current_token->val.boolVal);
+            constVal = make_bool_constant(true);
+            break;
         case K_FALSE:
-            match_token(K_FALSE); break;
+            match_token(K_FALSE);
+            constVal = make_bool_constant(false);
+            break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
