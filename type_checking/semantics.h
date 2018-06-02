@@ -7,7 +7,7 @@ void check_new_identifier(char *name);
 Entry *check_declared_identifier(char *name);
 Entry *check_declared_variable(char *name);
 Entry *check_declared_procedure(char *name);
-Entry *check_declared_LValue_identifier(char *name);
+Entry *check_declared_destination(char *name);
 
 void check_int_type(Type *type);
 void check_char_type(Type *type);
