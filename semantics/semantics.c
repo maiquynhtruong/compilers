@@ -98,13 +98,18 @@ void check_bool_type(Type *type) {
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
+void check_array_type(Type *type) {
+	if (type->typeClass != TC_ARRAY)
+		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
 void check_type_equality(Type *type1, Type *type2) {
 	if (type1->typeClass != type2->typeClass)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 	else if (type1->typeClass == TC_ARRAY) {
 		if (type2->typeClass != TC_ARRAY)
 			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-		
+
 		check_type_equality(type1->elementType. type2->elementType);
 		if (type1->arraySize != type2->arraySize)
 			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);

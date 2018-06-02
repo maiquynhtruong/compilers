@@ -376,10 +376,6 @@ void exit_scope() {
 	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }
 
-void dump() {
-
-}
-
 void free_scope(Scope *scope) {
 	if (scope != NULL) {
 		free_entry_list(scope->entryList);
