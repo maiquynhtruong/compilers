@@ -57,16 +57,16 @@ Entry *check_declared_procedure(char *name) {
 	return entry;
 }
 
-Entry *check_declared_LValue_identifier(char *name) {
+Entry *check_declared_destination(char *name) {
 	Entry *entry = lookup(name);
 
 	if (entry == NULL) throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 
 	switch (entry->entryType) {
 		case ET_PARAMTER: case ET_VARIABLE: break;
-		case ET_PROCEDURE:
-			if (entry != symbol_table->currentScope->parent) // procedure name
-				throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
+		// case ET_PROCEDURE:
+		// 	if (entry != symbol_table->currentScope->parent) // procedure name
+		// 		throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 		default: throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 	};
 

@@ -13,13 +13,10 @@ void parse_declaration();
 void parse_proc_declaration(Entry **entry, int global);
 void parse_var_declaration(Entry **entry, int global);
 Type *parse_type_mark();
-ConstantValue *parse_constant();
 void parse_statements();
-void parse_statement_chain();
 Type *parse_statement();
 void parse_param();
 void parse_param_list();
-void parse_param_list_param();
 void parse_assignment_statement();
 void parse_if_statement();
 void parse_loop_statement();
@@ -36,8 +33,7 @@ Type *parse_relation();
 Type *parse_relation_term();
 Type *parse_term();
 Type *parse_term_factor();
-Type *parse_factor();
+void parse_factor();
 Type *parse_indexes();
-Type *parseLValue();
 
 #endif

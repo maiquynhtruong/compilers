@@ -12,11 +12,6 @@ Token* current_token;
 
 // from symbol_table.c
 extern SymbolTable *symbol_table;
-extern Type *intType;
-extern Type *charType;
-extern Type *floatType;
-extern Type *stringType;
-extern Type *boolType;
 
 void match_token(TokenType type) {
     printf("In match_token. Expected type: ");
@@ -167,7 +162,6 @@ void parse_var_declaration(Entry **entry, int global) {
         match_token(T_NUMBER_INT); // lower bound
 //
 //         // match_token(T_COLON);
-//
         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         // match_token(T_NUMBER_INT); // uppper bound
         (*entry)->varAttrs->type->elementType = typeMark;

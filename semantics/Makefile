@@ -4,8 +4,8 @@ LIBS=-lm
 
 all: semantics
 
-semantics: main.o debug.o error.o parser.o reader.o scanner.o symbol_table.o token.o ast.o
-			${CC} main.o debug.o error.o parser.o reader.o scanner.o symbol_table.o token.o ast.o -o semantics
+semantics: main.o debug.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o
+			${CC} main.o debug.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o -o semantics
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c
@@ -24,6 +24,9 @@ reader.o: reader.c
 
 scanner.o: scanner.c
 			${CC} ${CFLAGS} scanner.c
+
+semantics.o: semantics.c
+			${CC} ${CFLAGS} semantics.c
 
 symbol_table.o: symbol_table.c
 				${CC} ${CFLAGS} symbol_table.c

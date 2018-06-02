@@ -12,11 +12,6 @@ Token* current_token;
 
 // from symbol_table.c
 extern SymbolTable *symbol_table;
-extern Type *intType;
-extern Type *charType;
-extern Type *floatType;
-extern Type *stringType;
-extern Type *boolType;
 
 void match_token(TokenType type) {
     printf("In match_token. Expected type: ");
@@ -111,7 +106,6 @@ void parse_declarations() {
         case K_PROCEDURE:
             parse_proc_declaration(&entry, global);
             match_token(T_SEMI_COLON);
-            declare_entry(entry);
             parse_declarations();
             break;
         // FOLLOW set
@@ -119,8 +113,8 @@ void parse_declarations() {
             break;
         default:
             parse_var_declaration(&entry, global);
-            match_token(T_SEMI_COLON);
             declare_entry(entry);
+            match_token(T_SEMI_COLON);
             parse_declarations();
             break;
     }
@@ -133,13 +127,12 @@ void parse_proc_declaration(Entry **entry, int global) {
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
-
+    check_new_identifier(current_token->val.stringVal);
     *entry = create_procedure_entry(current_token->val.stringVal, global);
+    declare_entry(*entry);
     enter_scope((*entry)->procAttrs->scope);
 
-    match_token(T_LPAREN);
-    if (look_ahead->type != T_RPAREN) parse_param_list();
-    match_token(T_RPAREN);
+    parse_param_list();
 
     // procedure body
     if (look_ahead->type != K_BEGIN) parse_declarations();
@@ -149,7 +142,6 @@ void parse_proc_declaration(Entry **entry, int global) {
     match_token(K_END);
     match_token(K_PROCEDURE);
     exit_scope();
-    // declare_entry(entry);
 
     assert("Done parsing a procedure declaration");
 }
@@ -159,7 +151,7 @@ void parse_var_declaration(Entry **entry, int global) {
 
     Type *typeMark = parse_type_mark();
     match_token(T_IDENTIFIER);
-
+    check_new_identifier(current_token->val.stringVal);
     *entry = create_variable_entry(current_token->val.stringVal, global);
     (*entry)->varAttrs->type = typeMark;
 
@@ -170,16 +162,14 @@ void parse_var_declaration(Entry **entry, int global) {
         match_token(T_NUMBER_INT); // lower bound
 //
 //         // match_token(T_COLON);
-//
         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         // match_token(T_NUMBER_INT); // uppper bound
-        (*entry)->varAttrs->type->elementType = (*entry)->varAttrs->type;
+        (*entry)->varAttrs->type->elementType = typeMark;
         (*entry)->varAttrs->type->typeClass = TC_ARRAY;
         (*entry)->varAttrs->type->arraySize = current_token->val.intVal;
         match_token(T_RBRACKET);
     }
-    // declare_entry(entry); // parse_declarations() should do this
-
+    // declare_entry(entry); // in parse_declarations() and parse_param()
     assert("Done parsing a variable declaration");
 }
 
@@ -210,24 +200,12 @@ Type* parse_type_mark() {
     assert("Done parsing a type mark");
     return typeMark;
 }
-//
+
 void parse_statements() {
     parse_statement();
-    parse_statement_chain();
-}
-
-void parse_statement_chain() {
-    switch (look_ahead->type) {
-        case T_SEMI_COLON:
-            match_token(T_SEMI_COLON);
-            parse_statement();
-            parse_statement_chain();
-            break;
-        // FOLLOW set
-        case K_END: case K_ELSE: // if statement, for loop
-            break;
-        default:
-            throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
+    while (look_ahead->type == T_SEMI_COLON) {
+        match_token(T_SEMI_COLON);
+        parse_statement();
     }
 }
 
@@ -238,9 +216,9 @@ Type *parse_statement() {
         case K_FOR: parse_loop_statement(); break;
         case K_RETURN: parse_return_statement(); break;
         case T_IDENTIFIER:
-            parse_assignment_statement();
+            match_token(T_IDENTIFIER);
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
-            break;
+            else parse_assignment_statement();
         // FOLLOW set
         case K_END: case K_ELSE: case T_SEMI_COLON: // if statement, for loop
             break;
@@ -260,13 +238,9 @@ Type *parse_indexes() {
 
 void parse_destination() {
     assert("Parsing a destination");
-    match_token(T_IDENTIFIER);
-    if (look_ahead->type == T_LPAREN) {
-        assert("Not a destination. Backtracking to parse a procedure call");
-        return; // back track to parse_statement
-    }
-
-    parse_indexes();
+    Entry *entry;
+    entry = check_declared_destination(current_token->val.stringVal);
+    if (entry->entryType == ET_VARIABLE) parse_indexes();
 
     assert("Done parsing a destination");
 }
@@ -274,7 +248,7 @@ void parse_destination() {
 void parse_assignment_statement() {
     assert("Parsing an assignment statement");
     parse_destination();
-    if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure
+    if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
     match_token(T_ASSIGNMENT);
     parse_expression();
     assert("Done parsing an assignment statement");
@@ -319,33 +293,22 @@ void parse_return_statement() {
 
 void parse_procedure_call() {
     assert("Parsing a procedure call");
-    // if the identifier had not be parsed by parse_assignment_statement()
-    if (look_ahead->type == T_IDENTIFIER) match_token(T_IDENTIFIER);
-
+    Entry *entry = check_declared_procedure(current_token->val.stringVal);
     match_token(T_LPAREN);
     parse_argument_list();
     match_token(T_RPAREN);
     assert("Done parsing a procedure call");
 }
 
-// TODO: There's another way of parsing params
 void parse_param_list() {
-    parse_param();
-    parse_param_list_param();
-}
-
-// <parameter_list> ::=
-// <parameter> , <parameter_list>
-// | <parameter>
-void parse_param_list_param() {
-    switch (look_ahead->type) {
-        case T_COMMA:
+    if (look_ahead->type == T_LPAREN) {
+        match_token(T_LPAREN);
+        parse_param();
+        while (look_ahead->type == T_COMMA) {
             match_token(T_COMMA);
             parse_param();
-            parse_param_list_param();
-            break;
-        case T_RPAREN: break;
-        default: throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+        }
+        match_token(T_RPAREN);
     }
 }
 
@@ -369,35 +332,23 @@ void parse_param() {
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     declare_entry(entry);
+
     assert("Done parsing a parameter");
 }
 
 void parse_argument_list() {
     assert("Parsing an argument list");
     parse_expression();
-    parse_argument_list_expression();
-    assert("Done parsing an argument list");
-}
-
-void parse_argument_list_expression() {
-    switch (look_ahead->type) {
-        case T_COMMA:
-            match_token(T_COMMA);
-            parse_expression();
-            parse_argument_list_expression();
-            break;
-        // FOLLOW set
-        case T_RPAREN:
-            break;
-        default: throw_error(E_INVALID_ARGUMENT, look_ahead->lineNo, look_ahead->columnNo);
+    while (look_ahead->type == T_COMMA) {
+        match_token(T_COMMA);
+        parse_expression();
     }
+    assert("Done parsing an argument list");
 }
 
 Type *parse_expression() {
     assert("Parsing an expression");
-    if (look_ahead->type == K_NOT) {
-        match_token(K_NOT);
-    }
+    if (look_ahead->type == K_NOT) match_token(K_NOT);
     parse_arith_op();
     parse_expression_arith_op();
     assert("Done parsing an expression");
@@ -501,7 +452,6 @@ Type *parse_relation_term() {
         case T_SEMI_COLON: // statements
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
-        // default: break;
     }
 }
 
@@ -536,17 +486,18 @@ Type *parse_term_factor() {
     }
 }
 
-Type *parse_factor() {
+void parse_factor() {
     assert("Parsing a factor");
-
-    ConstantValue *constVal = NULL;
+    Entry *entry;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING); break;
         case T_CHAR:
-            match_token(T_CHAR);
-            constVal = make_char_constant(current_token->val.charVal);
-            break;
+            match_token(T_CHAR); break;
+        case T_NUMBER_INT:
+            match_token(T_NUMBER_INT); break;
+        case T_NUMBER_FLOAT:
+            match_token(T_NUMBER_FLOAT); break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             parse_expression();
@@ -557,27 +508,15 @@ Type *parse_factor() {
             assert("A negative number of a negative name");
             parse_factor();
             break;
-        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
+        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
-            parse_indexes();
+            entry = check_declared_identifier(current_token->val.stringVal);
+            parse_destination();
             break;
-        case T_NUMBER_INT:
-            match_token(T_NUMBER_INT);
-            constVal = make_int_constant(current_token->val.intVal);
-            break;
-//         case T_NUMBER_FLOAT:
-//             match_token(T_NUMBER_FLOAT);
-            // constVal = make_float_constant(current_token->val.floatVal);
-            // break;
         case K_TRUE:
-            match_token(K_TRUE);
-            // constVal = make_bool_constant(current_token->val.boolVal);
-            constVal = make_bool_constant(true);
-            break;
+            match_token(K_TRUE); break;
         case K_FALSE:
-            match_token(K_FALSE);
-            constVal = make_bool_constant(false);
-            break;
+            match_token(K_FALSE); break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
