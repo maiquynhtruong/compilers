@@ -227,12 +227,11 @@ Type *parse_statement() {
     assert("Done parsing a statement");
 }
 
-Type *parse_indexes() {
-    if (look_ahead->type == T_LBRACKET) {
+void parse_indexes() {
+    while (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
         parse_expression();
         match_token(T_RBRACKET);
-        parse_indexes(); // for 2D array or more
     }
 }
 

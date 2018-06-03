@@ -157,11 +157,11 @@ void parse_var_declaration(Entry **entry, int global) {
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
-//         //TODO: Is there upper and lower bound or just a number for array size?
-//         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
+        //TODO: Is there upper and lower bound or just a number for array size?
+        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         match_token(T_NUMBER_INT); // lower bound
-//
-//         // match_token(T_COLON);
+
+        // match_token(T_COLON);
         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         // match_token(T_NUMBER_INT); // uppper bound
         (*entry)->varAttrs->type->elementType = typeMark;
@@ -227,30 +227,43 @@ Type *parse_statement() {
     assert("Done parsing a statement");
 }
 
-Type *parse_indexes() {
-    if (look_ahead->type == T_LBRACKET) {
+// parse a sequence of indexes, check the consistency to the arrayType, and return the element type
+Type *parse_indexes(Type *arrayType) {
+    Type *indexType = NULL;
+    Type *elemType = NULL;
+    while (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
-        parse_expression();
+
+        check_array_type(arrayType); // if current element is not of array type, then the access to the next dimension is invalid
+        elemType = parse_expression();
+        check_int_type(elemType); // Array indexes must be of type integer.
+        // TODO: Bounds checking to insure that the index is within the upper and lower bound is required for all indexed array references
+
         match_token(T_RBRACKET);
-        parse_indexes(); // for 2D array or more
+        arrayType = arrayType->elementType; // Down 1 level of dimension
     }
+    elemType = arrayType; // arrayType becomes elmType when we traverse to the last dimension
+    return elemType;
 }
 
-void parse_destination() {
+Type *parse_destination() {
     assert("Parsing a destination");
     Entry *entry;
+    Type *entryType;
     entry = check_declared_destination(current_token->val.stringVal);
-    if (entry->entryType == ET_VARIABLE) parse_indexes();
-
+    if (entry->entryType == ET_VARIABLE) entryType = parse_indexes();
     assert("Done parsing a destination");
+    return entryType;
 }
 
 void parse_assignment_statement() {
     assert("Parsing an assignment statement");
-    parse_destination();
+    Type *destType = NULL, *expType = NULL;
+    destType = parse_destination();
     if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
     match_token(T_ASSIGNMENT);
-    parse_expression();
+    expType = parse_expression();
+    check_type_equality(destType, expType);
     assert("Done parsing an assignment statement");
 }
 
@@ -348,22 +361,28 @@ void parse_argument_list() {
 
 Type *parse_expression() {
     assert("Parsing an expression");
+    Type *arithOpType = NULL;
     if (look_ahead->type == K_NOT) match_token(K_NOT);
-    parse_arith_op();
+    arithOpType = parse_arith_op();
+    check_int_type(arithOpType);
     parse_expression_arith_op();
     assert("Done parsing an expression");
+    return arithOpType;
 }
 
 Type *parse_expression_arith_op() {
+    Type *arithOpType = NULL;
     switch(look_ahead->type) {
         case T_AND:
             match_token(T_AND);
-            parse_arith_op();
+            arithOpType = parse_arith_op();
+            check_int_type(arithOpType);
             parse_expression_arith_op();
             break;
         case T_OR:
             match_token(T_OR);
-            parse_arith_op();
+            arithOpType = parse_arith_op();
+            check_int_type(arithOpType);
             parse_expression_arith_op();
             break;
         // FOLLOW set
@@ -378,21 +397,28 @@ Type *parse_expression_arith_op() {
 
 Type *parse_arith_op() {
     assert("Parsing an arithmetic operation");
-    parse_relation();
+    Type *relationType = NULL;
+    relationType = parse_relation();
     parse_arith_op_relation();
     assert("Done parsing an arithmetic operation");
+    return relationType;
 }
 
-Type *parse_arith_op_relation() {
+void parse_arith_op_relation() {
+    Type *relationType = NULL;
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
-            parse_relation();
+            relationType = parse_relation();
+            check_int_type(relationType);
+            check_float_type(relationType);
             parse_arith_op_relation();
             break;
         case T_MINUS:
             match_token(T_MINUS);
-            parse_relation();
+            relationType = parse_relation();
+            check_int_type(relationType);
+            check_float_type(relationType);
             parse_arith_op_relation();
             break;
         // FOLLOW set
@@ -407,42 +433,51 @@ Type *parse_arith_op_relation() {
 
 Type *parse_relation() {
     assert("Parsing a relation");
-    parse_term();
+    Type *termType = NULL;
+    termType = parse_term();
     parse_relation_term();
     assert("Done parsing a relation");
+    return termType;
 }
 
-Type *parse_relation_term() {
+void parse_relation_term() {
+    Type *termType = NULL, *relationType = NULL;
     switch(look_ahead->type) {
         case T_LT:
             match_token(T_LT);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         case T_GTEQ:
             match_token(T_GTEQ);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         case T_LTEQ:
             match_token(T_LTEQ);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         case T_GT:
             match_token(T_GT);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         case T_EQ:
             match_token(T_EQ);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         case T_NEQ:
             match_token(T_NEQ);
-            parse_term();
-            parse_relation_term();
+            termType = parse_term();
+            relationType = parse_relation_term();
+            check_type_equality(termType, relationType);
             break;
         // FOLLOW set
         case T_PLUS: case T_MINUS: // arith op
@@ -457,21 +492,28 @@ Type *parse_relation_term() {
 
 Type *parse_term() {
     assert("Parsing a term");
-    parse_factor();
+    Type *termType = NULL;
+    termType = parse_factor();
     parse_term_factor();
     assert("Done parsing a term");
+    return termType;
 }
 
-Type *parse_term_factor() {
+void parse_term_factor() {
+    Type *factorType = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
-            parse_factor();
+            factorType = parse_factor();
+            check_int_type(factorType);
+            check_float_type(factorType);
             parse_term_factor();
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
-            parse_factor();
+            factorType = parse_factor();
+            check_int_type(factorType);
+            check_float_type(factorType);
             parse_term_factor();
             break;
         // FOLLOW set
@@ -486,18 +528,28 @@ Type *parse_term_factor() {
     }
 }
 
-void parse_factor() {
+// parse a factor and return its type
+Type *parse_factor() {
     assert("Parsing a factor");
-    Entry *entry;
+    Entry *entry = NULL;
+    Type *factorType = NULL;
     switch (look_ahead->type) {
         case T_STRING:
-            match_token(T_STRING); break;
+            match_token(T_STRING);
+            factorType = make_string_type();
+            break;
         case T_CHAR:
-            match_token(T_CHAR); break;
+            match_token(T_CHAR);
+            factorType = make_char_type();
+            break;
         case T_NUMBER_INT:
-            match_token(T_NUMBER_INT); break;
+            match_token(T_NUMBER_INT);
+            factorType = make_int_type();
+            break;
         case T_NUMBER_FLOAT:
-            match_token(T_NUMBER_FLOAT); break;
+            match_token(T_NUMBER_FLOAT);
+            factorType = make_float_type();
+            break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             parse_expression();
@@ -511,7 +563,13 @@ void parse_factor() {
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
             entry = check_declared_identifier(current_token->val.stringVal);
-            parse_destination();
+            switch (entry->entryType ) {
+                case ET_VARIABLE:
+                    if (entry->varAttrs->type->typeClass != TC_ARRAY) factorType = entry->varAttrs->type;
+                    else factorType = parse_indexes(entry->varAttrs->type);
+                    break;
+                default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
+            }
             break;
         case K_TRUE:
             match_token(K_TRUE); break;
@@ -526,4 +584,5 @@ void parse_factor() {
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a factor");
+    return factorType;
 }
