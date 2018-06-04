@@ -35,5 +35,7 @@ Type *parse_term();
 Type *parse_term_factor();
 void parse_factor();
 Type *parse_indexes();
+Type *int_to_bool(Type *intType);
+Type *bool_to_int(Type *boolType);
 
 #endif

@@ -73,6 +73,16 @@ Entry *check_declared_destination(char *name) {
 	return entry;
 }
 
+void check_int_float_type(Type *type) {
+	if (type->typeClass != TC_INT && type->typeClass != TC_FLOAT)
+		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_int_float_bool_char_type(Type *type) {
+	if (type->typeClass != TC_INT && type->typeClass != TC_FLOAT && type->typeClass != TC_BOOL && type->typeClass != TC_CHAR)
+		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
 void check_int_type(Type *type) {
 	if (type->typeClass != TC_INT)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);

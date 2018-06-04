@@ -227,10 +227,11 @@ Type *parse_statement() {
     assert("Done parsing a statement");
 }
 
-// parse a sequence of indexes, check the consistency to the arrayType, and return the element type
 Type *parse_indexes(Type *arrayType) {
+    // parse a sequence of indexes, check the consistency to the arrayType, and return the element type
     Type *indexType = NULL;
     Type *elemType = NULL;
+
     while (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
 
@@ -242,6 +243,7 @@ Type *parse_indexes(Type *arrayType) {
         match_token(T_RBRACKET);
         arrayType = arrayType->elementType; // Down 1 level of dimension
     }
+
     elemType = arrayType; // arrayType becomes elmType when we traverse to the last dimension
     return elemType;
 }
@@ -271,7 +273,12 @@ void parse_if_statement() {
     assert("Parsing an if statement");
     match_token(K_IF);
     match_token(T_LPAREN);
-    parse_expression();
+
+    Type *expType = parse_expression();
+    check_bool_type(expType);
+    if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
+    else check_bool_type(expType)
+
     match_token(T_RPAREN);
     match_token(K_THEN);
     parse_statements();
@@ -290,7 +297,11 @@ void parse_loop_statement() {
     match_token(T_LPAREN);
     parse_assignment_statement();
     match_token(T_SEMI_COLON);
-    parse_expression();
+
+    Type *expType = parse_expression();
+    if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
+    else check_bool_type(expType);
+
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
         parse_statements();
@@ -308,7 +319,7 @@ void parse_procedure_call() {
     assert("Parsing a procedure call");
     Entry *entry = check_declared_procedure(current_token->val.stringVal);
     match_token(T_LPAREN);
-    parse_argument_list();
+    parse_argument_list(entry->procAttrs->paramList);
     match_token(T_RPAREN);
     assert("Done parsing a procedure call");
 }
@@ -349,14 +360,27 @@ void parse_param() {
     assert("Done parsing a parameter");
 }
 
-void parse_argument_list() {
+void parse_argument_list(EntryNode *paramList) {
     assert("Parsing an argument list");
-    parse_expression();
+
+    if (paramList != NULL) parse_argument(paramList->entry->type);
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
-        parse_expression();
+        paramList = paramList->next;
+        if (paramList != NULL) parse_argument(paramList->entry->type);
+        else throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     }
+
+    // paramList still has another argument but we've done parsing
+    // -> number of args doesn't match number of params
+    if (paramList->next != NULL)
+        throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     assert("Done parsing an argument list");
+}
+
+void parse_argument(Type *paramType) {
+    Type *argType = parse_expression();
+    check_type_equality(paramType, argType);
 }
 
 Type *parse_expression() {
@@ -397,8 +421,7 @@ Type *parse_expression_arith_op() {
 
 Type *parse_arith_op() {
     assert("Parsing an arithmetic operation");
-    Type *relationType = NULL;
-    relationType = parse_relation();
+    Type *relationType = parse_relation();
     parse_arith_op_relation();
     assert("Done parsing an arithmetic operation");
     return relationType;
@@ -410,15 +433,13 @@ void parse_arith_op_relation() {
         case T_PLUS:
             match_token(T_PLUS);
             relationType = parse_relation();
-            check_int_type(relationType);
-            check_float_type(relationType);
+            check_int_float_type(relationType);
             parse_arith_op_relation();
             break;
         case T_MINUS:
             match_token(T_MINUS);
             relationType = parse_relation();
-            check_int_type(relationType);
-            check_float_type(relationType);
+            check_int_float_type(relationType);
             parse_arith_op_relation();
             break;
         // FOLLOW set
@@ -433,8 +454,8 @@ void parse_arith_op_relation() {
 
 Type *parse_relation() {
     assert("Parsing a relation");
-    Type *term1 = NULL;
-    term1 = parse_term();
+    Type *term1 = parse_term();
+    check_int_float_bool_char_type(term1);
     parse_relation_term(term1);
     assert("Done parsing a relation");
     return termType;
@@ -465,6 +486,7 @@ void parse_relation_term(Type *term1) {
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     term2 = parse_term();
+    check_int_float_bool_char_type(term2);
     check_type_equality(term1, term2);
     parse_relation_term(term2);
     return term2;
@@ -472,8 +494,7 @@ void parse_relation_term(Type *term1) {
 
 Type *parse_term() {
     assert("Parsing a term");
-    Type *termType = NULL;
-    termType = parse_factor();
+    Type *termType = parse_factor();
     parse_term_factor();
     assert("Done parsing a term");
     return termType;
@@ -565,4 +586,14 @@ Type *parse_factor() {
     }
     assert("Done parsing a factor");
     return factorType;
+}
+
+Type *int_to_bool(Type *intType) {
+    intType->typeClass = TC_BOOL;
+    return intType;
+}
+
+Type *bool_to_int(Type *boolType) {
+    boolType->typeClass = TC_INT;
+    return boolType;
 }
