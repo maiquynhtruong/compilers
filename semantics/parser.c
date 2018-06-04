@@ -433,52 +433,28 @@ void parse_arith_op_relation() {
 
 Type *parse_relation() {
     assert("Parsing a relation");
-    Type *termType = NULL;
-    termType = parse_term();
-    parse_relation_term();
+    Type *term1 = NULL;
+    term1 = parse_term();
+    parse_relation_term(term1);
     assert("Done parsing a relation");
     return termType;
 }
 
-void parse_relation_term() {
-    Type *termType = NULL, *relationType = NULL;
+void parse_relation_term(Type *term1) {
+    Type *term2 = NULL;
     switch(look_ahead->type) {
         case T_LT:
-            match_token(T_LT);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_LT); break;
         case T_GTEQ:
-            match_token(T_GTEQ);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_GTEQ); break;
         case T_LTEQ:
-            match_token(T_LTEQ);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_LTEQ); break;
         case T_GT:
-            match_token(T_GT);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_GT); break;
         case T_EQ:
-            match_token(T_EQ);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_EQ); break;
         case T_NEQ:
-            match_token(T_NEQ);
-            termType = parse_term();
-            relationType = parse_relation_term();
-            check_type_equality(termType, relationType);
-            break;
+            match_token(T_NEQ); break;
         // FOLLOW set
         case T_PLUS: case T_MINUS: // arith op
         case T_AND: case T_OR: case T_COMMA: // expression
@@ -488,6 +464,10 @@ void parse_relation_term() {
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    term2 = parse_term();
+    check_type_equality(term1, term2);
+    parse_relation_term(term2);
+    return term2;
 }
 
 Type *parse_term() {
