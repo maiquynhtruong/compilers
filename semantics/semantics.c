@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "semantics.h"
+#include "debug.h"
 #include "error.h"
 
 // from symbol_table.c
@@ -74,43 +75,44 @@ Entry *check_declared_destination(char *name) {
 }
 
 void check_int_float_type(Type *type) {
-	if (type->typeClass != TC_INT && type->typeClass != TC_FLOAT)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_int_float_bool_char_type(Type *type) {
-	if (type->typeClass != TC_INT && type->typeClass != TC_FLOAT && type->typeClass != TC_BOOL && type->typeClass != TC_CHAR)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_basic_type(Type *type) {
+	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
+		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR)) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_int_type(Type *type) {
-	if (type->typeClass != TC_INT)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_INT) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_char_type(Type *type) {
-	if (type->typeClass != TC_CHAR)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_CHAR) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_string_type(Type *type) {
-	if (type->typeClass != TC_STRING)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_STRING) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_float_type(Type *type) {
-	if (type->typeClass != TC_FLOAT)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_FLOAT) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_bool_type(Type *type) {
-	if (type->typeClass != TC_BOOL)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_BOOL) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_array_type(Type *type) {
-	if (type->typeClass != TC_ARRAY)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type != NULL && type->typeClass == TC_ARRAY) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_type_equality(Type *type1, Type *type2) {
