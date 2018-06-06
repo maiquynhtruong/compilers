@@ -330,20 +330,6 @@ void enter_scope(Scope *scope) {
 	symbolTable->currentScope = scope;
 }
 
-Entry* lookup(char *name) {
-	// look up through the parent nodes
-	Scope *curScope = symbolTable->currentScope;
-	Entry *entry = NULL;
-	while (curScope != NULL) {
-		entry = find_entry(curScope->entryList, name);
-		if (entry != NULL) return entry;
-		else curScope = curScope->outerScope;
-	}
-	// if still couldn't find, search in global scope
-	entry = find_entry(symbolTable->globalEntryList, name);
-	return entry;
-}
-
 void exit_scope() {
 	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }

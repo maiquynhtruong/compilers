@@ -167,7 +167,6 @@ void clear_symbol_table();
 Scope *new_scope(Scope *outerScope, Entry *parent);
 void enter_scope(Scope *scope);
 void exit_scope();
-Entry* lookup(char *name);
 void dump();
 void free_scope(Scope *scope);
 void add_entry(EntryNode **list, Entry *entry);

@@ -4,12 +4,12 @@
 #include "error.h"
 
 // from symbol_table.c
-extern SymbolTable *symbol_table;
+extern SymbolTable *symbolTable;
 extern Token *current_token;
 
 Entry *lookup(char *name) {
 	Entry *entry = NULL;
-	static Scope *current_scope = symbol_table->currentScope;
+	Scope *current_scope = symbolTable->currentScope;
 
 	while (current_token != NULL) {
 		entry = find_entry(current_scope->entryList, name);
@@ -18,14 +18,14 @@ Entry *lookup(char *name) {
 	}
 
 	// search in global scope as the last resort
-	entry = find_entry(symbol_table->globalEntryList, name);
+	entry = find_entry(symbolTable->globalEntryList, name);
 	if (entry != NULL) return entry;
 	else return NULL;
 }
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
-	Entry *entry = find_entry(symbol_table->currentScope->entryList, name);
+	Entry *entry = find_entry(symbolTable->currentScope->entryList, name);
 
 	if (entry != NULL) throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
 }
@@ -65,7 +65,7 @@ Entry *check_declared_destination(char *name) {
 	switch (entry->entryType) {
 		case ET_PARAMTER: case ET_VARIABLE: break;
 		// case ET_PROCEDURE:
-		// 	if (entry != symbol_table->currentScope->parent) // procedure name
+		// 	if (entry != symbolTable->currentScope->parent) // procedure name
 		// 		throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 		default: throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 	};
@@ -114,14 +114,6 @@ void check_array_type(Type *type) {
 }
 
 void check_type_equality(Type *type1, Type *type2) {
-	if (type1->typeClass != type2->typeClass)
+	if (compare_type(type1, type2) == 0)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-	else if (type1->typeClass == TC_ARRAY) {
-		if (type2->typeClass != TC_ARRAY)
-			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-
-		check_type_equality(type1->elementType, type2->elementType);
-		if (type1->arraySize != type2->arraySize)
-			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-	}
 }
