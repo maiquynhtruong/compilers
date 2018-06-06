@@ -1,7 +1,9 @@
 #ifndef SEMANTICS_H
 #define SEMANTICS_H
 
+#include "symbol_table.h"
 #include "ast.h"
+
 Entry *lookup(char *name);
 void check_new_identifier(char *name);
 Entry *check_declared_identifier(char *name);

@@ -31,7 +31,7 @@ typedef struct ParamAST {
     Type *type;
     ParamType paramType;
     char *name;
-    EntryAST *procedure;
+    struct EntryAST *procedure;
 } ParamAST;
 
 typedef struct PrototypeAST {

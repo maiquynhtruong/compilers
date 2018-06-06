@@ -5,6 +5,7 @@
 #include "error.h"
 #include "reader.h"
 #include "parser.h"
+#include "semantics.h"
 #include "scanner.h"
 
 Token* look_ahead;

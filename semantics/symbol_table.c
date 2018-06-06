@@ -66,34 +66,6 @@ void free_type(Type *type) {
 
 /******************************* Create Constants ********************************/
 
-ConstantValue *make_int_constant(int i) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_INT;
-	value->intVal = i;
-	return value;
-}
-
-ConstantValue *make_char_constant(char c) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_CHAR;
-	value->charVal = c;
-	return value;
-}
-
-ConstantValue *make_float_constant(float f) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_FLOAT;
-	value->floatVal = f;
-	return value;
-}
-
-ConstantValue *make_bool_constant(bool b) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_BOOL;
-	value->boolVal = b;
-	return value;
-}
-
 ConstantValue *make_string_constant(char *str) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
 	value->typeClass = TC_STRING;
@@ -356,20 +328,6 @@ Scope *new_scope(Scope *outerScope, Entry *parent) {
 
 void enter_scope(Scope *scope) {
 	symbolTable->currentScope = scope;
-}
-
-Entry* lookup(char *name) {
-	// look up through the parent nodes
-	Scope *curScope = symbolTable->currentScope;
-	Entry *entry = NULL;
-	while (curScope != NULL) {
-		entry = find_entry(curScope->entryList, name);
-		if (entry != NULL) return entry;
-		else curScope = curScope->outerScope;
-	}
-	// if still couldn't find, search in global scope
-	entry = find_entry(symbolTable->globalEntryList, name);
-	return entry;
 }
 
 void exit_scope() {

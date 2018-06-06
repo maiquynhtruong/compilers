@@ -149,10 +149,6 @@ Type *make_array_type(int size, Type *type);
 int compare_type(Type *type1, Type *type2);
 void free_type(Type *type);
 
-ConstantValue *make_int_constant(int i);
-ConstantValue *make_char_constant(char c);
-ConstantValue *make_float_constant(float f);
-ConstantValue *make_bool_constant(bool b);
 ConstantValue *make_string_constant(char *str);
 
 Entry *create_constant_entry(char *name);
@@ -171,7 +167,6 @@ void clear_symbol_table();
 Scope *new_scope(Scope *outerScope, Entry *parent);
 void enter_scope(Scope *scope);
 void exit_scope();
-Entry* lookup(char *name);
 void dump();
 void free_scope(Scope *scope);
 void add_entry(EntryNode **list, Entry *entry);

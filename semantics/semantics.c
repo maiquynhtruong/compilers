@@ -5,12 +5,12 @@
 #include "error.h"
 
 // from symbol_table.c
-extern SymTab *symbol_table;
+extern SymbolTable *symbol_table;
 extern Token *current_token;
 
 Entry *lookup(char *name) {
 	Entry *entry = NULL;
-	static Scope *current_scope = symbol_table->currentScope;
+	Scope *current_scope = symbol_table->currentScope;
 
 	while (current_token != NULL) {
 		entry = find_entry(current_scope->entryList, name);
