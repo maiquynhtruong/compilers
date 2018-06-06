@@ -4,7 +4,7 @@
 #include "error.h"
 
 // from symbol_table.c
-extern SymTab *symbol_table;
+extern SymbolTable *symbol_table;
 extern Token *current_token;
 
 Entry *lookup(char *name) {
@@ -120,7 +120,7 @@ void check_type_equality(Type *type1, Type *type2) {
 		if (type2->typeClass != TC_ARRAY)
 			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 
-		check_type_equality(type1->elementType. type2->elementType);
+		check_type_equality(type1->elementType, type2->elementType);
 		if (type1->arraySize != type2->arraySize)
 			throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 	}

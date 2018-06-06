@@ -4,7 +4,7 @@ LIBS=-lm
 
 all: type_checking
 
-semantics: main.o debug.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o
+type_checking: main.o debug.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o
 			${CC} main.o debug.o error.o parser.o reader.o scanner.o semantics.o ymbol_table.o token.o ast.o -o type_checking
 
 main.o: main.c

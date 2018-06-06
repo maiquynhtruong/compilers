@@ -66,34 +66,6 @@ void free_type(Type *type) {
 
 /******************************* Create Constants ********************************/
 
-ConstantValue *make_int_constant(int i) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_INT;
-	value->intVal = i;
-	return value;
-}
-
-ConstantValue *make_char_constant(char c) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_CHAR;
-	value->charVal = c;
-	return value;
-}
-
-ConstantValue *make_float_constant(float f) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_FLOAT;
-	value->floatVal = f;
-	return value;
-}
-
-ConstantValue *make_bool_constant(bool b) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_BOOL;
-	value->boolVal = b;
-	return value;
-}
-
 ConstantValue *make_string_constant(char *str) {
 	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
 	value->typeClass = TC_STRING;

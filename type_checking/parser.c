@@ -5,6 +5,7 @@
 #include "error.h"
 #include "reader.h"
 #include "parser.h"
+#include "semantics.h"
 #include "scanner.h"
 
 Token* look_ahead;
@@ -209,7 +210,7 @@ void parse_statements() {
     }
 }
 
-Type *parse_statement() {
+void parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
@@ -345,7 +346,7 @@ void parse_argument_list() {
     assert("Done parsing an argument list");
 }
 
-Type *parse_expression() {
+void parse_expression() {
     assert("Parsing an expression");
     if (look_ahead->type == K_NOT) match_token(K_NOT);
     parse_arith_op();
@@ -353,7 +354,7 @@ Type *parse_expression() {
     assert("Done parsing an expression");
 }
 
-Type *parse_expression_arith_op() {
+void parse_expression_arith_op() {
     switch(look_ahead->type) {
         case T_AND:
             match_token(T_AND);
@@ -375,14 +376,14 @@ Type *parse_expression_arith_op() {
     }
 }
 
-Type *parse_arith_op() {
+void parse_arith_op() {
     assert("Parsing an arithmetic operation");
     parse_relation();
     parse_arith_op_relation();
     assert("Done parsing an arithmetic operation");
 }
 
-Type *parse_arith_op_relation() {
+void parse_arith_op_relation() {
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
@@ -404,14 +405,14 @@ Type *parse_arith_op_relation() {
     }
 }
 
-Type *parse_relation() {
+void parse_relation() {
     assert("Parsing a relation");
     parse_term();
     parse_relation_term();
     assert("Done parsing a relation");
 }
 
-Type *parse_relation_term() {
+void parse_relation_term() {
     switch(look_ahead->type) {
         case T_LT:
             match_token(T_LT);
@@ -454,14 +455,14 @@ Type *parse_relation_term() {
     }
 }
 
-Type *parse_term() {
+void parse_term() {
     assert("Parsing a term");
     parse_factor();
     parse_term_factor();
     assert("Done parsing a term");
 }
 
-Type *parse_term_factor() {
+void parse_term_factor() {
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
