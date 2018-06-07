@@ -24,18 +24,8 @@ void print_type_class(Type *type) {
 
 void print_constant_value(ConstantValue *value) {
     switch (value->typeClass) {
-        case TC_INT:
-            printf("%d\n", value->intVal); break;
-    	case TC_FLOAT:
-            printf("%f\n", value->floatVal); break;
     	case TC_STRING:
             printf("\"%s\"\n", value->stringVal); break;
-    	case TC_BOOL:
-            printf("%d\n", value->boolVal); break;
-    	case TC_CHAR:
-            printf("'%c'\n", value->charVal); break;
-        default:
-            printf("Unknow value\n");break;
     }
 }
 
