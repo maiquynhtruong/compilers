@@ -250,47 +250,56 @@ void init_symbol_table() {
 	symbolTable->program = NULL;
 	symbolTable->globalEntryList = NULL;
 
-	Entry *entry;
 	Entry* param;
 
 	// built-in functions e.g. getInteger(integer val out)
-	entry = create_procedure_entry("getBool", 1);
+	getBool = create_procedure_entry("getBool", 1);
 	declare_entry(getBool);
 	enter_scope(getBool->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
+		param = create_parameter_entry("val");
 		param->paramAttrs->type = make_bool_type();
 		declare_entry(param);
 	exit_scope();
 
-	entry = create_procedure_entry("getInteger", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_int_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	getInteger = create_procedure_entry("getInteger", 1);
+	declare_entry(getInteger);
+	enter_scope(getInteger->procAttrs->scope);
+		param = create_parameter_entry("val");
+		param->paramAttrs->type = make_int_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("getFloat", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_float_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	getFloat = create_procedure_entry("getFloat", 1);
+	declare_entry(getFloat);
+	enter_scope(getFloat->procAttrs->scope);
+		param = create_parameter_entry("val");
+		param->paramAttrs->type = make_float_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("getString", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_string_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	getString = create_procedure_entry("getString", 1);
+	declare_entry(getString);
+	enter_scope(getString->procAttrs->scope);
+		param = create_parameter_entry("val");
+		param->paramAttrs->type = make_string_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("getChar", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_char_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	getChar = create_procedure_entry("getChar", 1);
+	declare_entry(getChar);
+	enter_scope(getChar->procAttrs->scope);
+		param = create_parameter_entry("val");
+		param->paramAttrs->type = make_float_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("putBool", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_bool_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	putBool = create_procedure_entry("putBool", 1);
+	declare_entry(putBool);
+	enter_scope(putBool->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_bool_type();
+		declare_entry(param);
+	exit_scope();
 
 	entry = create_procedure_entry("putInteger", 1);
 	param->paramAttrs->type = make_int_type();
