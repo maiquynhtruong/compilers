@@ -11,6 +11,17 @@ Type *floatType;
 Type *stringType;
 Type *boolType;
 
+Entry *getBool;
+Entry *getInteger;
+Entry *getFloat;
+Entry *getString;
+Entry *getChar;
+Entry *putBool;
+Entry *putInteger;
+Entry *putFloat;
+Entry *putString;
+Entry *putChar;
+
 /******************************* Make Types ********************************/
 Type *make_int_type() {
 	Type *type = (Type *) malloc(sizeof(Type));
@@ -235,8 +246,8 @@ Entry *find_entry(EntryNode *list, char *name) {
 
 void init_symbol_table() {
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
-	// symbolTable->currentScope = new_scope(NULL, NULL);
-	// symbolTable->program = NULL;
+	symbolTable->currentScope = NULL;
+	symbolTable->program = NULL;
 	symbolTable->globalEntryList = NULL;
 
 	Entry *entry;
@@ -244,10 +255,12 @@ void init_symbol_table() {
 
 	// built-in functions e.g. getInteger(integer val out)
 	entry = create_procedure_entry("getBool", 1);
-	param = create_parameter_entry("val", entry);
-	param->paramAttrs->type = make_bool_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	declare_entry(getBool);
+	enter_scope(getBool->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_bool_type();
+		declare_entry(param);
+	exit_scope();
 
 	entry = create_procedure_entry("getInteger", 1);
 	param = create_parameter_entry("val", entry);
