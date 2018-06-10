@@ -156,7 +156,7 @@ Entry *create_program_entry(char *name);
 Entry *create_type_entry(char *name);
 Entry *create_variable_entry(char *name, int global);
 Entry *create_procedure_entry(char *name, int global);
-Entry *create_parameter_entry(char *name, Entry* procedure);
+Entry *create_parameter_entry(char *name);
 Entry *find_entry(EntryNode *list, char *name);
 void free_entry(Entry *entry);
 void free_entry_list(EntryNode *node);

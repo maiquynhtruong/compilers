@@ -154,7 +154,7 @@ Entry *create_procedure_entry(char *name, int global) {
 	return procedureEntry;
 }
 
-Entry *create_parameter_entry(char *name, Entry *procedure) {
+Entry *create_parameter_entry(char *name) {
 	assert("Create parameter entry");
 	assert(name);
 
@@ -289,7 +289,7 @@ void init_symbol_table() {
 	declare_entry(getChar);
 	enter_scope(getChar->procAttrs->scope);
 		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_float_type();
+		param->paramAttrs->type = make_char_type();
 		declare_entry(param);
 	exit_scope();
 
@@ -301,25 +301,37 @@ void init_symbol_table() {
 		declare_entry(param);
 	exit_scope();
 
-	entry = create_procedure_entry("putInteger", 1);
-	param->paramAttrs->type = make_int_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	putInteger = create_procedure_entry("putInteger", 1);
+	declare_entry(putInteger);
+	enter_scope(putInteger->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_int_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("putFloat", 1);
-	param->paramAttrs->type = make_float_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	putFloat = create_procedure_entry("putFloat", 1);
+	declare_entry(putFloat);
+	enter_scope(putFloat->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_float_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("putString", 1);
-	param->paramAttrs->type = make_string_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	putString = create_procedure_entry("putString", 1);
+	declare_entry(putString);
+	enter_scope(putString->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_string_type();
+		declare_entry(param);
+	exit_scope();
 
-	entry = create_procedure_entry("putChar", 1);
-	param->paramAttrs->type = make_char_type();
-	add_entry(&(entry->procAttrs->paramList), param);
-	add_entry(&(symbolTable->globalEntryList), entry);
+	putChar = create_procedure_entry("putChar", 1);
+	declare_entry(putChar);
+	enter_scope(putChar->procAttrs->scope);
+		param = create_parameter_entry("val", entry);
+		param->paramAttrs->type = make_char_type();
+		declare_entry(param);
+	exit_scope();
 
 	intType = make_int_type();
 	charType = make_char_type();

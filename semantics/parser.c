@@ -230,23 +230,21 @@ Type *parse_statement() {
 
 Type *parse_indexes(Type *arrayType) {
     // parse a sequence of indexes, check the consistency to the arrayType, and return the element type
-    Type *indexType = NULL;
     Type *elemType = NULL;
 
     while (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
 
-        check_array_type(arrayType); // if current element is not of array type, then the access to the next dimension is invalid
         elemType = parse_expression();
         check_int_type(elemType); // Array indexes must be of type integer.
         // TODO: Bounds checking to insure that the index is within the upper and lower bound is required for all indexed array references
+        check_array_type(arrayType); // if current element is not of array type, then the access to the next dimension is invalid
+        arrayType = arrayType->elementType;
 
         match_token(T_RBRACKET);
-        arrayType = arrayType->elementType; // Down 1 level of dimension
     }
-
-    elemType = arrayType; // arrayType becomes elmType when we traverse to the last dimension
-    return elemType;
+    
+    return arrayType;
 }
 
 Type *parse_destination() {
@@ -309,7 +307,7 @@ void parse_loop_statement() {
 
     Type *expType = parse_expression();
     if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
-    else check_bool_type(expType);
+    check_bool_type(expType);
 
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
@@ -350,7 +348,7 @@ void parse_param() {
     Entry *entry = NULL;
     parse_var_declaration(&entry, 0);
     // TODO: delete the declaration of the variable in the outerscope
-    entry = create_parameter_entry(entry->name, symbol_table->currentScope->parent);
+    entry = create_parameter_entry(entry->name);
     switch (look_ahead->type) {
         case K_IN:
             entry->paramAttrs->paramType = PT_IN;
@@ -372,17 +370,22 @@ void parse_param() {
 void parse_argument_list(EntryNode *paramList) {
     assert("Parsing an argument list");
 
-    if (paramList != NULL) parse_argument(paramList->entry->type);
+    EntryNode *node = paramList;
+    if (node != NULL) parse_argument(node->entry->type);
+    node = node->next;
+
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
-        paramList = paramList->next;
-        if (paramList != NULL) parse_argument(paramList->entry->type);
-        else throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+        node = node->next;
+        if (node != NULL) {
+            parse_argument(node->entry->type);
+            node = node->next;
+        } else throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     }
 
     // paramList still has another argument but we've done parsing
     // -> number of args doesn't match number of params
-    if (paramList->next != NULL)
+    if (node != NULL)
         throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     assert("Done parsing an argument list");
 }
@@ -432,133 +435,105 @@ Type *parse_expression_arith_op() {
 Type *parse_arith_op() {
     assert("Parsing an arithmetic operation");
     Type *relationType = parse_relation();
-    parse_arith_op_relation();
+    parse_arith_op_relation(relationType);
     assert("Done parsing an arithmetic operation");
     return relationType;
 }
 
-void parse_arith_op_relation() {
-    Type *relationType = NULL;
+Type* parse_arith_op_relation(Type *relation1) {
+    Type *relation2 = NULL;
+    Type *arithOpType = NULL; // result type of the arithmetic operation
+    check_int_float_type(relation1);
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
-            relationType = parse_relation();
-            check_int_float_type(relationType);
-            parse_arith_op_relation();
+            relation2 = parse_relation();
+            check_int_float_type(relation2);
+            arithOpType = parse_arith_op_relation(relation1);
             break;
         case T_MINUS:
             match_token(T_MINUS);
             relationType = parse_relation();
-            check_int_float_type(relationType);
-            parse_arith_op_relation();
+            check_int_float_type(relation2);
+            arithOpType = parse_arith_op_relation(relation1);
             break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
+            arithOpType = relation1;
             break;
         default: throw_error(E_INVALID_ARITH_OPERATOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    return arithOpType;
 }
 
 Type *parse_relation() {
     assert("Parsing a relation");
     Type *term1 = parse_term();
     check_basic_type(term1);
-    parse_relation_term(term1);
+    Type *relationType = parse_relation_term(term1);
     assert("Done parsing a relation");
-    return termType;
+    return relationType;
 }
 
-void parse_relation_term(Type *term1) {
-    Type *term2 = NULL, *result = NULL;
+Type* parse_relation_term(Type *term1) {
+    Type *term2 = NULL, *relationType = NULL;
     switch(look_ahead->type) {
         case T_LT:
-            match_token(T_LT);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_LT); break;
         case T_GTEQ:
-            match_token(T_GTEQ);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_GTEQ); break;
         case T_LTEQ:
-            match_token(T_LTEQ);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_LTEQ); break;
         case T_GT:
-            match_token(T_GT);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_GT); break;
         case T_EQ:
-            match_token(T_EQ);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_EQ); break;
         case T_NEQ:
-            match_token(T_NEQ);
-            term2 = parse_term();
-            check_basic_type(term2);
-            check_type_equality(term1, term2);
-            // TODO: compare here and return a boolean result
-            parse_relation_term(term2);
-            break;
+            match_token(T_NEQ); break;
         // FOLLOW set
         case T_PLUS: case T_MINUS: // arith op
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
+            relationType = term1;
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-
-    return term2;
+    term2 = parse_term();
+    check_basic_type(term2);
+    check_type_equality(term1, term2);
+    parse_relation_term(term2);
+    return relationType;
 }
 
 Type *parse_term() {
     assert("Parsing a term");
-    Type *termType = parse_factor();
-    parse_term_factor();
+    Type *factorType = parse_factor();
+    check_int_float_type(factorType);
+    Type *termType = parse_term_factor(factorType);
     assert("Done parsing a term");
     return termType;
 }
 
-void parse_term_factor() {
-    Type *factorType = NULL;
+Type* parse_term_factor(Type *factor1) {
+    Type *factor2 = NULL;
+    Type *termType = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
-            factorType = parse_factor();
-            check_int_type(factorType);
-            check_float_type(factorType);
-            parse_term_factor();
+            factor2 = parse_factor();
+            check_int_float_type(factor2);
+            termType = parse_term_factor(factor2);
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
-            factorType = parse_factor();
-            check_int_type(factorType);
-            check_float_type(factorType);
-            parse_term_factor();
+            factor2 = parse_factor();
+            check_int_float_type(factor2);
+            termType = parse_term_factor(factor2);
             break;
         // FOLLOW set
         case T_LT: case T_LTEQ: case T_GT: case T_GTEQ: case T_EQ: case T_NEQ: // relation
@@ -567,9 +542,11 @@ void parse_term_factor() {
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
+            termType = factor1;
             break;
         default: throw_error(E_INVALID_TERM, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    return termType;
 }
 
 Type *parse_factor() {
