@@ -5,27 +5,9 @@
 #define MAX_IDENT_LENGTH 15
 
 #include <stdbool.h>
+#include "ast.h"
 
-typedef enum {
-	TC_INT,
-	TC_FLOAT,
-	TC_STRING,
-	TC_BOOL,
-	TC_CHAR,
-	TC_ARRAY
-} TypeClass;
 
-typedef enum {
-	ET_CONSTANT,
-	ET_VARIABLE,
-	ET_TYPE_MARK,
-	ET_PROCEDURE,
-	ET_PARAMTER,
-	ET_PROGRAM,
-	ET_BIN_OP,
-	ET_CALL,
-	ET_IF
-} EntryType;
 
 typedef enum {
 	PT_IN,
@@ -33,78 +15,11 @@ typedef enum {
 	PT_INOUT
 } ParamType;
 
-typedef enum {
-	BO_PLUS,
-	BO_MINUS,
-	BO_DIVIDE,
-	BO_MULTIPLY
-} BinaryOpType;
-
 struct ConstantValue;
 struct Type;
 struct Entry;
 struct EntryNode;
 struct Scope;
-
-struct ConstantValue {
-	TypeClass typeClass;
-	union {
-		char stringVal[MAX_STRING_LENGTH+1];
-        int intVal;
-        float floatVal;
-        bool boolVal;
-        char charVal;
-	};
-};
-
-typedef struct ProgramAttributes {
-	struct Scope *scope;
-} ProgramAttributes;
-
-typedef struct TypeAttributes {
-	struct Type *type;
-} TypeAttributes;
-
-typedef struct ConstantValueAttributes {
-	struct ConstantValue *constantValue;
-} ConstantValueAttributes;
-
-typedef struct VariableAttributes {
-	struct Type *type;
-	struct Scope *scope;
-} VariableAttributes;
-
-typedef struct ProcedureAttributes {
-	struct EntryNode* paramList;
-	struct Scope *scope;
-} ProcedureAttributes;
-
-typedef struct ParameterAttributes {
-	struct Type *type;
-	ParamType paramType;
-	struct Entry *procedure;
-} ParameterAttributes;
-
-struct Type {
-	TypeClass typeClass;
-	int arraySize;
-	struct Type *elementType;
-};
-
-// an entry: <name, type, attribute>
-struct Entry {
-	char name[MAX_IDENT_LENGTH];
-	EntryType entryType;
-	int global;
-	union {
-		ConstantValueAttributes *constAttrs;
-		VariableAttributes *varAttrs;
-		TypeAttributes *typeAttrs;
-		ProcedureAttributes *procAttrs;
-		ParameterAttributes *paramAttrs;
-		ProgramAttributes *progAttrs;
-	};
-};
 
 struct EntryNode {
 	struct Entry *entry;
@@ -148,19 +63,6 @@ Type *make_bool_type();
 Type *make_array_type(int size, Type *type);
 int compare_type(Type *type1, Type *type2);
 void free_type(Type *type);
-
-ConstantValue *make_string_constant(char *str);
-
-Entry *create_constant_entry(char *name);
-Entry *create_program_entry(char *name);
-Entry *create_type_entry(char *name);
-Entry *create_variable_entry(char *name, int global);
-Entry *create_procedure_entry(char *name, int global);
-Entry *create_parameter_entry(char *name);
-Entry *find_entry(EntryNode *list, char *name);
-void free_entry(Entry *entry);
-void free_entry_list(EntryNode *node);
-void add_entry(EntryNode **list, Entry *entry);
 
 void init_symbol_table();
 void clear_symbol_table();

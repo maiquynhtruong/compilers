@@ -38,7 +38,6 @@ void match_token(TokenType type) {
     }
 }
 
-// holy entry point
 int parse(char *file_name) {
     if (open_input_stream(file_name) == IO_ERROR)
         return IO_ERROR;
@@ -210,7 +209,7 @@ void parse_statements() {
     }
 }
 
-Type *parse_statement() {
+EntryAST *parse_statement() {
     assert("Parsing a statement");
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
@@ -228,7 +227,7 @@ Type *parse_statement() {
     assert("Done parsing a statement");
 }
 
-Type *parse_indexes(Type *arrayType) {
+EntryAST *parse_indexes(Type *arrayType) {
     // parse a sequence of indexes, check the consistency to the arrayType, and return the element type
     Type *elemType = NULL;
 
@@ -243,7 +242,7 @@ Type *parse_indexes(Type *arrayType) {
 
         match_token(T_RBRACKET);
     }
-    
+
     return arrayType;
 }
 
@@ -395,27 +394,32 @@ void parse_argument(Type *paramType) {
     check_type_equality(paramType, argType);
 }
 
-Type *parse_expression() {
+EntryAST *parse_expression() {
     assert("Parsing an expression");
-    Type *arithOpType = NULL;
     if (look_ahead->type == K_NOT) match_token(K_NOT);
-    arithOpType = parse_arith_op();
-    check_int_type(arithOpType);
-    if (arithOpType->typeClass == TC_BOOL) {
-        arithOpType->typeClass = TC_INT;
-    }
-    parse_expression_arith_op();
+    EntryAST *expAST = parse_arith_op();
+    expAST = parse_expression_arith_op(expAST);
     assert("Done parsing an expression");
-    return arithOpType;
+    return expAST;
 }
 
-Type *parse_expression_arith_op() {
-    Type *arithOpType = NULL;
+EntryAST *parse_expression_arith_op(EntryAST *expAST) {
+    EntryAST *arithOpAST = NULL;
     switch(look_ahead->type) {
         case T_AND:
-            match_token(T_AND); break;
+            match_token(T_AND);
+            arithOpAST = parse_arith_op();
+            check_int_type(arithOpType);
+            expAST = create_binary_op(BO_AND, expAST, arithOpAST);
+            expAST = parse_expression_arith_op();
+            break;
         case T_OR:
-            match_token(T_OR); break;
+            match_token(T_OR);
+            arithOpAST = parse_arith_op();
+            check_int_type(arithOpType);
+            expAST = create_binary_op(BO_OR, expAST, arithOpAST);
+            expAST = parse_expression_arith_op();
+            break;
         // FOLLOW set
         case T_COMMA: // argument list
         case T_RPAREN: // for loop, if statement
@@ -424,116 +428,143 @@ Type *parse_expression_arith_op() {
             break;
         default: throw_error(E_INVALID_EXPRESSION, look_ahead->lineNo, look_ahead->columnNo);
     }
-    arithOpType = parse_arith_op();
-    if (arithOpType->typeClass == TC_BOOL) {
-        arithOpType->typeClass = TC_INT;
-    }
-    check_int_type(arithOpType);
-    parse_expression_arith_op();
+    return expAST;
 }
 
-Type *parse_arith_op() {
+EntryAST *parse_arith_op() {
     assert("Parsing an arithmetic operation");
-    Type *relationType = parse_relation();
-    parse_arith_op_relation(relationType);
+    Type *arithOpAST = parse_relation();
+    check_int_float_type(arithOpAST);
+    arithOpAST = parse_arith_op_relation(arithOpAST);
     assert("Done parsing an arithmetic operation");
-    return relationType;
+    return arithOpAST;
 }
 
-Type* parse_arith_op_relation(Type *relation1) {
-    Type *relation2 = NULL;
-    Type *arithOpType = NULL; // result type of the arithmetic operation
-    check_int_float_type(relation1);
+EntryAST *parse_arith_op_relation(EntryAST *arithOpAST) {
+    EntryAST *relationAST = NULL;
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
-            relation2 = parse_relation();
-            check_int_float_type(relation2);
-            arithOpType = parse_arith_op_relation(relation1);
+            relationAST = parse_relation();
+            check_int_float_type(relationAST);
+            arithOpAST = create_binary_op(BO_PLUS, arithOpAST, relationAST);
+            arithOpAST = parse_arith_op_relation(arithOpAST);
             break;
         case T_MINUS:
             match_token(T_MINUS);
-            relationType = parse_relation();
-            check_int_float_type(relation2);
-            arithOpType = parse_arith_op_relation(relation1);
+            relationAST = parse_relation();
+            check_int_float_type(relationAST);
+            arithOpAST = create_binary_op(BO_MINUS, arithOpAST, relationAST);
+            arithOpAST = parse_arith_op_relation(arithOpAST);
             break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
-            arithOpType = relation1;
             break;
         default: throw_error(E_INVALID_ARITH_OPERATOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    return arithOpType;
+    return arithOpAST;
 }
 
-Type *parse_relation() {
+EntryAST *parse_relation() {
     assert("Parsing a relation");
-    Type *term1 = parse_term();
-    check_basic_type(term1);
-    Type *relationType = parse_relation_term(term1);
+    EntryAST *relationAST = parse_term();
+    check_basic_type(relationAST);
+    relationAST = parse_relation_term(relationAST);
     assert("Done parsing a relation");
-    return relationType;
+    return relationAST;
 }
 
-Type* parse_relation_term(Type *term1) {
-    Type *term2 = NULL, *relationType = NULL;
+EntryAST *parse_relation_term(EntryAST *relationAST) {
+    EntryAST *termAST = NULL;
     switch(look_ahead->type) {
         case T_LT:
-            match_token(T_LT); break;
-        case T_GTEQ:
-            match_token(T_GTEQ); break;
+            match_token(T_LT);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_LT, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
         case T_LTEQ:
-            match_token(T_LTEQ); break;
+            match_token(T_LTEQ);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_LTEQ, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
         case T_GT:
-            match_token(T_GT); break;
+            match_token(T_GT);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_GT, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
+        case T_GTEQ:
+            match_token(T_GTEQ);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_GTEQ, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
         case T_EQ:
-            match_token(T_EQ); break;
+            match_token(T_EQ);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_EQ, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
         case T_NEQ:
-            match_token(T_NEQ); break;
+            match_token(T_NEQ);
+            termAST = parse_term();
+            check_basic_type(termAST);
+            check_type_equality(relationAST, termAST);
+            relationAST = create_binary_op(BO_NEQ, relationAST, termAST);
+            relationAST = parse_relation_term(relationAST);
+            break;
         // FOLLOW set
         case T_PLUS: case T_MINUS: // arith op
         case T_AND: case T_OR: case T_COMMA: // expression
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
-            relationType = term1;
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    term2 = parse_term();
-    check_basic_type(term2);
-    check_type_equality(term1, term2);
-    parse_relation_term(term2);
-    return relationType;
+    return relationAST;
 }
 
-Type *parse_term() {
+EntryAST *parse_term() {
     assert("Parsing a term");
-    Type *factorType = parse_factor();
-    check_int_float_type(factorType);
-    Type *termType = parse_term_factor(factorType);
+    EntryAST* termAST = parse_factor();
+    check_int_float_type(termAST);
+    termAST = parse_term_factor(termAST);
     assert("Done parsing a term");
-    return termType;
+    return termAST;
 }
 
-Type* parse_term_factor(Type *factor1) {
-    Type *factor2 = NULL;
-    Type *termType = NULL;
+EntryAST *parse_term_factor(EntryAST *termAST) {
+    EntryAST *factorAST = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
-            factor2 = parse_factor();
-            check_int_float_type(factor2);
-            termType = parse_term_factor(factor2);
+            factorAST = parse_factor();
+            check_int_float_type(factorAST);
+            termAST = create_binary_op(BO_MULTIPLY, termAST, factorAST);
+            termAST = parse_term_factor(termAST);
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
-            factor2 = parse_factor();
-            check_int_float_type(factor2);
-            termType = parse_term_factor(factor2);
+            factorAST2 = parse_factor();
+            check_int_float_type(factorAST);
+            termAST = create_binary_op(BO_DIVIDE, termAST, factorAST);
+            termAST = parse_term_factor(termAST);
             break;
         // FOLLOW set
         case T_LT: case T_LTEQ: case T_GT: case T_GTEQ: case T_EQ: case T_NEQ: // relation
@@ -546,13 +577,12 @@ Type* parse_term_factor(Type *factor1) {
             break;
         default: throw_error(E_INVALID_TERM, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    return termType;
+    return termAST;
 }
 
-Type *parse_factor() {
+EntryAST *parse_factor() {
     assert("Parsing a factor");
-    Entry *entry = NULL;
-    Type *factorType = NULL;
+    EntryAST *factorAST = NULL;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
@@ -560,15 +590,18 @@ Type *parse_factor() {
             break;
         case T_CHAR:
             match_token(T_CHAR);
-            factorType = make_char_type();
+            factorAST = create_constant_entry(current_token->val.stringVal, TC_CHAR);
+            factorAST->charVal = current_token->val.charVal;
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
-            factorType = make_int_type();
+            factorAST = create_constant_entry(current_token->val.stringVal, TC_INT);
+            factorAST->intVal = current_token->val.intVal;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
-            factorType = make_float_type();
+            factorAST = create_constant_entry(current_token->val.stringVal, TC_FLOAT);
+            factorAST->charVal = current_token->val.floatVal;
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
@@ -583,7 +616,7 @@ Type *parse_factor() {
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
             entry = check_declared_identifier(current_token->val.stringVal);
-            switch (entry->entryType ) {
+            switch (entry->entryType) {
                 case ET_VARIABLE:
                     if (entry->varAttrs->type->typeClass != TC_ARRAY) factorType = entry->varAttrs->type;
                     else factorType = parse_indexes(entry->varAttrs->type);
@@ -604,7 +637,7 @@ Type *parse_factor() {
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a factor");
-    return factorType;
+    return factorAST;
 }
 
 int bool_to_int(bool boolean) {

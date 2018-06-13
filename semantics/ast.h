@@ -1,13 +1,66 @@
 #ifndef AST_H
 #define AST_H
 
-#include "symbol_table.h"
+typedef enum EntryType {
+	ET_CONSTANT,
+	ET_VARIABLE,
+	ET_TYPE_MARK,
+	ET_PROCEDURE,
+	ET_PARAMTER,
+	ET_PROGRAM,
+	ET_BIN_OP,
+	ET_CALL,
+	ET_IF
+} EntryType;
 
-struct EntryAST;
+typedef enum TypeClass {
+	TC_INT,
+	TC_FLOAT,
+	TC_STRING,
+	TC_BOOL,
+	TC_CHAR,
+	TC_ARRAY
+} TypeClass;
+
+typedef enum BinaryOpType {
+	BO_PLUS,
+	BO_MINUS,
+	BO_DIVIDE,
+	BO_MULTIPLY,
+	BO_LE,
+	BO_LTEQ,
+	BO_GE,
+	BO_GTEQ,
+	BO_EQ,
+	BO_NEQ,
+	BO_AND,
+	BO_OR
+} BinaryOpType;
+
+struct Type {
+	TypeClass typeClass;
+	int arraySize;
+	struct Type *elementType;
+};
 
 typedef struct ConstantAST {
-	struct ConstantValue *constVal;
+	TypeClass typeClass;
+	union {
+		char stringVal[MAX_STRING_LENGTH+1];
+        int intVal;
+        float floatVal;
+        bool boolVal;
+        char charVal;
+	};
 } ConstantAST;
+
+typedef struct ProgramAST {
+	// struct Scope *scope;
+} ProgramAST;
+
+typedef struct TypeAttributes {
+	struct Type *type;
+} TypeAttributes;
 
 typedef struct VariableAST {
 	Type *type;
@@ -46,19 +99,22 @@ typedef struct ProcedureAST {
     struct EntryAST *body;
 } ProcedureAST;
 
+// typedef struct ProcedureAttributes {
+// 	struct EntryNode* paramList;
+// 	struct Scope *scope;
+// } ProcedureAttributes;
+
 typedef struct IfStatementAST {
     struct EntryAST *condition;
     struct EntryAST *trueBlock;
     struct EntryAST *falseBlock;
 } IfStatementAST;
 
-// an entry: <name, type, attribute>
 typedef struct EntryAST {
-	// char name[MAX_IDENT_LENGTH];
-	EntryType entryType;
-	int global;
+	EntryType entryType; // type
 	union {
 		ConstantAST *constAST;
+		TypeAST *typeAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
         ProcedureCallAST *procCallAST;
@@ -66,11 +122,12 @@ typedef struct EntryAST {
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
 		IfStatementAST *ifAST;
-	};
+	}; // value
 } EntryAST;
 
-EntryAST *create_constant(ConstantValue *value);
-EntryAST *create_variable(char *name);
+EntryAST *create_constant(char *name, TypeClass typeClass);
+EntryAST *create_program(char *name, EntryType entryType);
+EntryAST *create_variable(char *name, TypeClass typeClass);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
 EntryAST *create_param(char *name, EntryAST *procedure);
@@ -78,5 +135,14 @@ EntryAST *create_prototype(char *name, char **args, int argc);
 EntryAST *create_procedure_declaration(EntryAST *prototype, EntryAST *body);
 EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
 void free_entry_AST(EntryAST *entry);
+
+EntryAST *create_type_entry(char *name);
+EntryAST *create_variable_entry(char *name, int global);
+EntryAST *create_procedure_entry(char *name, int global);
+EntryAST *create_parameter_entry(char *name);
+EntryAST *find_entry(EntryNode *list, char *name);
+void free_entry(Entry *entry);
+void free_entry_list(EntryNode *node);
+void add_entry(EntryNode **list, Entry *entry);
 
 #endif
