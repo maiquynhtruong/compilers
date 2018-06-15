@@ -20,3 +20,5 @@ Another tutorial: http://releases.llvm.org/2.6/docs/tutorial/JITTutorial1.html
 https://www.ibm.com/developerworks/library/os-createcompilerllvm1/index.html
 
 http://www.duskborn.com/optimizing-llvm-ir-from-the-c-api/
+
+yuyuvn/ctd-bai2

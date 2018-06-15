@@ -146,14 +146,13 @@ void parse_proc_declaration(Entry **entry, int global) {
     assert("Done parsing a procedure declaration");
 }
 
-void parse_var_declaration(Entry **entry, int global) {
+EntryAST *parse_var_declaration(EntryAST **entry, int global) {
     assert("Parsing a variable declaration");
 
     Type *typeMark = parse_type_mark();
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
-    *entry = create_variable_entry(current_token->val.stringVal, global);
-    (*entry)->varAttrs->type = typeMark;
+    EntryAST *entryAST = create_variable(current_token->val.stringVal, typeMark);
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -171,6 +170,7 @@ void parse_var_declaration(Entry **entry, int global) {
     }
     // declare_entry(entry); // in parse_declarations() and parse_param()
     assert("Done parsing a variable declaration");
+    return entryAST;
 }
 
 Type* parse_type_mark() {
@@ -246,7 +246,7 @@ EntryAST *parse_indexes(Type *arrayType) {
     return arrayType;
 }
 
-Type *parse_destination() {
+EntryAST *parse_destination() {
     assert("Parsing a destination");
     Entry *entry;
     Type *entryType;
@@ -256,23 +256,25 @@ Type *parse_destination() {
     return entryType;
 }
 
-void parse_assignment_statement() {
+EntryAST *parse_assignment_statement() {
     assert("Parsing an assignment statement");
-    Type *destType = NULL, *expType = NULL;
-    destType = parse_destination();
+    EntryAST *destAST = NULL, *expAST = NULL;
+    destAST = parse_destination();
     if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
     match_token(T_ASSIGNMENT);
-    expType = parse_expression();
-    if (destType->typeClass == TC_INT) {
-        expType->typeClass = TC_BOOL;
+    expAST = parse_expression();
+    if (destAST->varAST->type->typeClass == TC_INT) {
+        expAST->varAST->type->typeClass = TC_BOOL;
         // TODO: call int_to_bool() here
-    } else if (destType->typeClass == TC_BOOL){
-        expType->typeClass = TC_INT;
+    } else if (destAST->varAST->type->typeClass == TC_BOOL){
+        expAST->varAST->type->typeClass = TC_INT;
         // TODO: call bool_to_int() here
     }
-    check_type_equality(destType, expType);
-
+    check_type_equality(destAST, expAST);
+    EntryAST *assigmentAST = create_binary_op(BO_EQ, destAST, expAST);
+    // destAST->varAST->value = expAST->constAST;
     assert("Done parsing an assignment statement");
+    return assigmentAST;
 }
 
 void parse_if_statement() {
@@ -433,7 +435,7 @@ EntryAST *parse_expression_arith_op(EntryAST *expAST) {
 
 EntryAST *parse_arith_op() {
     assert("Parsing an arithmetic operation");
-    Type *arithOpAST = parse_relation();
+    EntryAST *arithOpAST = parse_relation();
     check_int_float_type(arithOpAST);
     arithOpAST = parse_arith_op_relation(arithOpAST);
     assert("Done parsing an arithmetic operation");
@@ -583,6 +585,7 @@ EntryAST *parse_term_factor(EntryAST *termAST) {
 EntryAST *parse_factor() {
     assert("Parsing a factor");
     EntryAST *factorAST = NULL;
+    Type *factorType = create_type();
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
@@ -590,17 +593,20 @@ EntryAST *parse_factor() {
             break;
         case T_CHAR:
             match_token(T_CHAR);
-            factorAST = create_constant_entry(current_token->val.stringVal, TC_CHAR);
+            factorType->typeClass = TC_CHAR;
+            factorAST = create_constant(current_token->val.stringVal, factorType);
             factorAST->charVal = current_token->val.charVal;
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
-            factorAST = create_constant_entry(current_token->val.stringVal, TC_INT);
+            factorType->typeClass = TC_INT;
+            factorAST = create_constant(current_token->val.stringVal, factorType);
             factorAST->intVal = current_token->val.intVal;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
-            factorAST = create_constant_entry(current_token->val.stringVal, TC_FLOAT);
+            factorType->typeClass = TC_FLOAT;
+            factorAST = create_constant_entry(current_token->val.stringVal, factorType);
             factorAST->charVal = current_token->val.floatVal;
             break;
         case T_LPAREN: // ( <expression> )

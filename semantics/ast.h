@@ -63,9 +63,10 @@ typedef struct TypeAttributes {
 } TypeAttributes;
 
 typedef struct VariableAST {
-	Type *type;
+	Type *varType;
     char *name;
 	Scope *scope;
+	ConstantAST *value;
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -125,9 +126,11 @@ typedef struct EntryAST {
 	}; // value
 } EntryAST;
 
-EntryAST *create_constant(char *name, TypeClass typeClass);
+Type *create_type();
+
+EntryAST *create_constant(char *name, Type *type);
 EntryAST *create_program(char *name, EntryType entryType);
-EntryAST *create_variable(char *name, TypeClass typeClass);
+EntryAST *create_variable(char *name, Type *type, ConstantAST *value);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
 EntryAST *create_param(char *name, EntryAST *procedure);
