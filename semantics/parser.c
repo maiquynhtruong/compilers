@@ -62,7 +62,7 @@ void parse_body_block() {
     if (look_ahead->type != K_BEGIN) parse_declarations();
     match_token(K_BEGIN);
 
-    if (look_ahead->type != K_END) parse_statements();
+    if (look_ahead->type != K_END) parse_statement_list();
     match_token(K_END);
 }
 
@@ -141,7 +141,7 @@ EntryAST *parse_var_declaration(EntryAST **entry, int global) {
     Type *typeMark = parse_type_mark();
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
-    EntryAST *entryAST = create_variable(current_token->val.stringVal, typeMark);
+    EntryAST *entryAST = create_variable(current_token->val.stringVal, typeMark, NULL);
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -190,16 +190,20 @@ Type* parse_type_mark() {
     return typeMark;
 }
 
-void parse_statements() {
-    parse_statement();
+void parse_statement_list() {
+    declare_entry(parse_statement());
+
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
-        parse_statement();
+        declare_entry(parse_statement());
     }
+    if (current_token->type == T_IDENTIFIER)
+        throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo);
 }
 
 EntryAST *parse_statement() {
     assert("Parsing a statement");
+    EntryAST *statementAST = NULL;
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
         case K_FOR: parse_loop_statement(); break;
@@ -207,13 +211,14 @@ EntryAST *parse_statement() {
         case T_IDENTIFIER:
             match_token(T_IDENTIFIER);
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
-            else parse_assignment_statement();
+            else statementAST = parse_assignment_statement();
         // FOLLOW set
         case K_END: case K_ELSE: case T_SEMI_COLON: // if statement, for loop
             break;
         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert("Done parsing a statement");
+    return statementAST;
 }
 
 EntryAST *parse_indexes(Type *arrayType) {
@@ -247,11 +252,15 @@ EntryAST *parse_destination() {
 
 EntryAST *parse_assignment_statement() {
     assert("Parsing an assignment statement");
+
     EntryAST *destAST = NULL, *expAST = NULL;
     destAST = parse_destination();
     if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
+
     match_token(T_ASSIGNMENT);
+
     expAST = parse_expression();
+
     if (destAST->varAST->type->typeClass == TC_INT) {
         expAST->varAST->type->typeClass = TC_BOOL;
         // TODO: call int_to_bool() here
@@ -260,8 +269,9 @@ EntryAST *parse_assignment_statement() {
         // TODO: call bool_to_int() here
     }
     check_type_equality(destAST, expAST);
+
     EntryAST *assigmentAST = create_binary_op(BO_EQ, destAST, expAST);
-    // destAST->varAST->value = expAST->constAST;
+
     assert("Done parsing an assignment statement");
     return assigmentAST;
 }
@@ -278,10 +288,10 @@ void parse_if_statement() {
 
     match_token(T_RPAREN);
     match_token(K_THEN);
-    parse_statements();
+    parse_statement_list();
     if (look_ahead->type == K_ELSE) {
         match_token(K_ELSE);
-        parse_statements();
+        parse_statement_list();
     }
     match_token(K_END);
     match_token(K_IF);
@@ -301,7 +311,7 @@ void parse_loop_statement() {
 
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
-        parse_statements();
+        parse_statement_list();
     }
     match_token(K_END);
     match_token(K_FOR);
@@ -606,7 +616,8 @@ EntryAST *parse_factor() {
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
             assert("A negative number of a negative name");
-            parse_factor();
+            factorAST = parse_factor();
+            factorAST = create_unary_op(UN_MINUS, factorAST);
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);

@@ -37,6 +37,11 @@ typedef enum BinaryOpType {
 	BO_OR
 } BinaryOpType;
 
+typedef enum UnaryOpAST {
+	UN_PLUS,
+	UN_MINUS
+} UnaryOpAST;
+
 struct EntryNodeAST {
 	struct EntryAST *entryAST;
 	struct EntryNodeAST *next;
@@ -52,6 +57,11 @@ struct Type {
 	TypeClass typeClass;
 	int arraySize;
 	struct Type *elementType;
+};
+
+typedef struct UnaryOpAST {
+	UnaryOpAST unaOp;
+	EntryAST *factorAST;
 };
 
 typedef struct ConstantAST {
@@ -124,6 +134,7 @@ typedef struct IfStatementAST {
 typedef struct EntryAST {
 	EntryType entryType; // type
 	union {
+		UnaryOpAST *unaOpAST;
 		ConstantAST *constAST;
 		TypeAST *typeAST;
 		VariableAST *varAST;
@@ -138,6 +149,7 @@ typedef struct EntryAST {
 
 Type *create_type();
 
+EntryAST *create_unary_op(UnaryOpAST, EntryAST *factorAST);
 EntryAST *create_constant(char *name, Type *type);
 EntryAST *create_program(char *name, EntryType entryType);
 EntryAST *create_variable(char *name, Type *type, ConstantAST *value);

@@ -13,7 +13,7 @@ void parse_declaration();
 void parse_proc_declaration(Entry **entry, int global);
 void parse_var_declaration(Entry **entry, int global);
 Type *parse_type_mark();
-void parse_statements();
+void parse_statement_list();
 Type *parse_statement();
 void parse_param();
 void parse_param_list();

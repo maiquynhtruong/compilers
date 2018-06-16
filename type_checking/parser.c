@@ -63,7 +63,7 @@ void parse_body_block() {
     if (look_ahead->type != K_BEGIN) parse_declarations();
     match_token(K_BEGIN);
 
-    if (look_ahead->type != K_END) parse_statements();
+    if (look_ahead->type != K_END) parse_statement_list();
     match_token(K_END);
 }
 
@@ -191,7 +191,7 @@ Type* parse_type_mark() {
     return typeMark;
 }
 
-void parse_statements() {
+void parse_statement_list() {
     parse_statement();
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
@@ -250,10 +250,10 @@ void parse_if_statement() {
     parse_expression();
     match_token(T_RPAREN);
     match_token(K_THEN);
-    parse_statements();
+    parse_statement_list();
     if (look_ahead->type == K_ELSE) {
         match_token(K_ELSE);
-        parse_statements();
+        parse_statement_list();
     }
     match_token(K_END);
     match_token(K_IF);
@@ -269,7 +269,7 @@ void parse_loop_statement() {
     parse_expression();
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
-        parse_statements();
+        parse_statement_list();
     }
     match_token(K_END);
     match_token(K_FOR);
