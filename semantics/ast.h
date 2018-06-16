@@ -48,21 +48,22 @@ typedef enum UnaryOpAST {
 	UN_MINUS
 } UnaryOpAST;
 
-struct EntryNodeAST {
+/* LinkedList of EntryAST to store variable number of statements and declarations in program and procedure. Also list of entries in a scope */
+typedef struct EntryNodeAST {
 	struct EntryAST *entryAST;
 	struct EntryNodeAST *next;
-};
+} EntryNodeAST;
 
 /* outerScope:  each scope is a list of entries a scope also keeps a pointer to
 its parent scope so a variable can be searched upward
 parent: the Entry that upon creating it we also need to create a new scope
 (e.g. procedure and program)
 */
-struct Scope {
-	struct EntryNodeAST* entryList;
-	struct EntryAST *parent;
+typedef struct Scope {
+	EntryNodeAST* entryList;
+	// struct EntryAST *parent;
 	struct Scope *outerScope;
-};
+} Scope;
 
 struct TypeAST {
 	TypeClass typeClass;
@@ -101,7 +102,7 @@ typedef struct VariableAST {
 	TypeAST *varType;
     char *name;
 	Scope *scope;
-	ConstantAST *value;
+	struct ConstantAST *value;
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -117,22 +118,18 @@ typedef struct ProcedureCallAST {
 } ProcedureCallAST;
 
 typedef struct ParamAST {
-    TypeAST *type;
+    // TypeAST *type;
     ParamType paramType;
-    VariableAST *var;
-    struct EntryAST *procedure;
+    struct VariableAST *var;
+    // struct ProcedureAST *procedure;
 } ParamAST;
-
-typedef struct PrototypeAST {
-    char *name;
-    struct ParamAST **args;
-    unsigned int argc;
-} PrototypeAST;
 
 typedef struct ProcedureAST {
     Scope *scope;
-    struct EntryAST *prototype;
-	struct ParamAST *params;
+	char *name;
+	struct ParamAST **params;
+	// EntryNodeAST *params;
+	unsigned int argc;
 	struct BodyAST *body;
 } ProcedureAST;
 
@@ -173,6 +170,8 @@ TypeAST *make_array_type(int size, TypeAST *type);
 int compare_type(TypeAST *type1, TypeAST *type2);
 void free_type(TypeAST *type);
 
+EntryNodeAST *create_entryAST_node(EntryAST *entryAST, EntryNodeAST *next);
+
 EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
 EntryAST *create_constant(char *name, TypeAST *type);
 EntryAST *create_body_block(EntryAST *decls, EntryAST *statements);
@@ -180,9 +179,8 @@ EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_variable(char *name, TypeAST *type);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
-EntryAST *create_param(char *name, EntryAST *procedure);
-EntryAST *create_prototype(char *name, char **args, int argc);
-EntryAST *create_procedure_declaration(EntryAST *prototype, EntryAST *body);
+EntryAST *create_param(char *name, TypeAST *type,);
+EntryAST *create_procedure(char *name, EntryAST *body);
 EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
 
 #endif

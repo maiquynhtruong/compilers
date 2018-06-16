@@ -59,14 +59,15 @@ int parse(char *file_name) {
 }
 
 EntryAST *parse_body_block() {
-    EntryAST *bodyAST = NULL, *declAST = NULL, *statementsAST = NULL;
+    EntryAST *bodyAST = NULL, *declAST = NULL;
+    EntryNodeAST **statementList = NULL;
     if (look_ahead->type != K_BEGIN) declAST = parse_declarations();
     match_token(K_BEGIN);
 
-    if (look_ahead->type != K_END) statementAST = parse_statement_list();
+    if (look_ahead->type != K_END) statementList = parse_statement_list();
     match_token(K_END);
 
-    bodyAST = create_body_block(declAST, statementAST);
+    bodyAST = create_body_block(declAST, statementList);
     return bodyAST;
 }
 
@@ -80,7 +81,7 @@ EntryAST *parse_program() {
     match_token(T_IDENTIFIER);
     match_token(K_IS);
 
-    // enter_scope(new_scope());
+    enter_scope(new_scope());
     bodyAST = parse_body_block(); // program body
     match_token(K_PROGRAM);
     programAST = create_program(current_token->val.stringVal, bodyAST);
@@ -92,34 +93,39 @@ EntryAST *parse_program() {
     return programAST;
 }
 
-void parse_declarations() {
+EntryNodeAST *parse_declarations(EntryNodeAST *node) {
     assert("Parsing declarations");
-
-    Entry *entry = NULL;
+    int isGlobal = 0;
 
     if (look_ahead->type == K_GLOBAL) {
         match_token(K_GLOBAL);
+        isGlobal = 1;
     }
 
     switch (look_ahead->type) {
         case K_PROCEDURE:
-            parse_proc_declaration(&entry, global);
+            EntryAST *procAST = parse_proc_declaration(isGlobal);
             match_token(T_SEMI_COLON);
-            parse_declarations();
+            node = create_entryAST_node(procAST, NULL);
+            node->next = parse_declarations(node);
+            node = node->next;
             break;
         // FOLLOW set
         case K_BEGIN: // from program_body, procedure_body
             break;
         default:
-            parse_var_declaration(&entry, global);
+            EntryAST *varAST = parse_var_declaration();
             match_token(T_SEMI_COLON);
-            parse_declarations();
+            declare_entry(varAST, isGlobal);
+            node = create_entryAST_node(varAST, NULL);
+            node->next = parse_declarations(node);
+            node = node->next;
             break;
     }
     assert("Done parsing declarations");
 }
 
-EntryAST *parse_proc_declaration(EntryAST **procAST, int global) {
+EntryAST *parse_proc_declaration(int isGlobal) {
     assert("Parsing a procedure declaration");
     EntryAST *procAST = NULL, *bodyAST = NULL;
     // procedure header
@@ -127,13 +133,14 @@ EntryAST *parse_proc_declaration(EntryAST **procAST, int global) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
-    declare_entry(*entry);
-    // enter_scope(new_scope());
+    *procAST = create_procedure(current_token->val.stringVal, NULL);
+    declare_entry(procAST, isGlobal);
 
-    parse_param_list();
+    enter_scope(new_scope());
+
+    (*procAST)->params = parse_param_list();
     bodyAST = parse_body_block(); // procedure body
     match_token(K_PROCEDURE);
-    *procAST = create_procedure(current_token->val.stringVal, bodyAST);
 
     exit_scope();
 
@@ -141,7 +148,7 @@ EntryAST *parse_proc_declaration(EntryAST **procAST, int global) {
     return procAST;
 }
 
-EntryAST *parse_var_declaration(EntryAST **entry, int global) {
+EntryAST *parse_var_declaration() {
     assert("Parsing a variable declaration");
 
     TypeAST *typeMark = parse_type_mark();
@@ -167,7 +174,7 @@ EntryAST *parse_var_declaration(EntryAST **entry, int global) {
         match_token(T_RBRACKET);
     }
 
-    declare_entry(entry); // in parse_declarations() and parse_param()
+    // declare_entry(varAST); // in parse_declarations() and parse_param()
     assert("Done parsing a variable declaration");
     return varAST;
 }
@@ -200,7 +207,7 @@ Type* parse_type_mark() {
     return typeMark;
 }
 
-void parse_statement_list() {
+EntryAST *parse_statement_list() {
     declare_entry(parse_statement());
 
     while (look_ahead->type == T_SEMI_COLON) {
@@ -255,7 +262,7 @@ EntryAST *parse_destination() {
     Entry *entry;
     TypeAST *entryType;
     entry = check_declared_destination(current_token->val.stringVal);
-    
+
     if (entry->entryType == ET_VARIABLE) entryType = parse_indexes();
     assert("Done parsing a destination");
     return entryType;
@@ -342,40 +349,44 @@ void parse_procedure_call() {
     assert("Done parsing a procedure call");
 }
 
-void parse_param_list() {
+ParamAST **parse_param_list() {
+    ParamAST *param = NULL;
+    ParamAST **paramList = &param, pointer = *paramList;
     if (look_ahead->type == T_LPAREN) {
         match_token(T_LPAREN);
-        parse_param();
+        pointer = parse_param(); pointer++;
         while (look_ahead->type == T_COMMA) {
             match_token(T_COMMA);
-            parse_param();
+            pointer = parse_param();
+            pointer++;
         }
         match_token(T_RPAREN);
     }
+    return paramList;
 }
 
-void parse_param() {
+ParamAST *parse_param() {
     assert("Parsing a parameter");
-    Entry *entry = NULL;
-    parse_var_declaration(&entry, 0);
+    EntryAST *paramAST = NULL;
+    EntryAST *varAST = parse_var_declaration(&entry, 0);
     // TODO: delete the declaration of the variable in the outerscope
-    entry = create_parameter_entry(entry->name);
     switch (look_ahead->type) {
         case K_IN:
-            entry->paramAttrs->paramType = PT_IN;
+            paramAST = create_parameter(varAST, PT_IN);
             match_token(K_IN); break;
         case K_OUT:
-            entry->paramAttrs->paramType = PT_OUT;
+            paramAST = create_parameter(varAST, PT_OUT);
             match_token(K_OUT); break;
         case K_INOUT:
-            entry->paramAttrs->paramType = PT_INOUT;
+            paramAST = create_parameter(varAST, PT_INOUT);
             match_token(K_INOUT); break;
         default:
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    declare_entry(entry);
+    declare_entry(paramAST);
 
     assert("Done parsing a parameter");
+    return paramAST;
 }
 
 void parse_argument_list(EntryNode *paramList) {

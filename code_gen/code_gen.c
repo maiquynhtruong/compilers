@@ -42,7 +42,7 @@ LLVMValueRef gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef
     if (func == NULL) return NULL;
     if (LLVMCountParams(func) != entry->protoAST->argc) return NULL;
 
-    LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * entry->callProcAST->argc);
+    LLVMValueRef *args = malloc(sizeof(LLVMValueRef) *entry->callProcAST->argc);
     unsigned int i, arg_cnt = entry->callProcAST->argc;
     for (i = 0; i < arg_cnt; i++) {
         args[i] = code_gen(entry->callProcAST->args[i], module, builder);
@@ -164,7 +164,7 @@ LLVMValueRef gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBuilder
 }
 
 LLVMValueRef gen_assignment(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
-    
+
 }
 
 // recursively generates LLVM objects to build the code

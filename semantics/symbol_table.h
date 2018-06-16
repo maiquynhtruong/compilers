@@ -9,7 +9,7 @@
 
 struct SymbolTable {
 	struct Scope *currentScope;
-	struct EntryAST *program; // root is program
+	struct EntryAST *root; // root is program
 	struct EntryNodeAST* globalEntryList;
 };
 
@@ -19,7 +19,8 @@ void add_entryAST(EntryNodeAST **list, EntryAST *entry);
 
 void init_symbol_table();
 void clear_symbol_table();
-Scope *new_scope(Scope *outerScope, Entry *parent);
+// Scope *new_scope(Scope *outerScope, Entry *parent);
+Scope *new_scope();
 void enter_scope(Scope *scope);
 void exit_scope();
 void free_scope(Scope *scope);

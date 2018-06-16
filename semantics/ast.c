@@ -60,6 +60,8 @@ Type *create_type() {
     return type;
 }
 
+EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
+
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
     BinaryOpAST *binOpAST = (BinaryOpAST *) malloc(sizeof(BinaryOpAST));
@@ -80,3 +82,11 @@ EntryAST *create_variable(char *name, Type *type, ConstantAST *value) {
     } // else do something for variable AST
     return varAST;
 }
+
+EntryAST *create_constant(char *name, TypeAST *type);
+EntryAST *create_body_block(EntryAST *decls, EntryAST *statements);
+EntryAST *create_program(char *name, EntryAST *body);
+EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
+EntryAST *create_param(char *name, EntryAST *procedure);
+EntryAST *create_procedure(char *name, EntryAST *body);
+EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);

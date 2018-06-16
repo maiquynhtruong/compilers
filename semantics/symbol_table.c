@@ -24,19 +24,17 @@ EntryAST *putChar;
 
 /******************************* Symbol table functions ********************************/
 
-// TODO: Should global entry added to current scope?
-void declare_entry(EntryAST *entryAST) {
+void declare_entry(EntryAST *entryAST, int isGlobal) {
 	assert("Declaring an entry");
 
 	if (entryAST == NULL) return;
 
-	if (entry->currentScope = NULL)
-		add_entry(&(symbolTable->globalEntryList), entry);
-	else if (entry->entryType == ET_PARAMTER) {
-		EntryAST *procAST = symbolTable->currentScope->parent;
-		ParamAST **paramAST = entryAST->procAST->prototype->params;
-		add_entry((paramAST), entry);
-	} else add_entry(&(symbolTable->currentScope->entryList), entry);
+	Scope *currentScope = NULL;
+
+	if (entry->currentScope = NULL || isGlobal) currentScope = symbolTable->globalEntryList;
+	else currentScope = symbolTable->currentScope->entryList;
+
+	add_entry(&currentScope, entry);
 }
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
@@ -66,7 +64,7 @@ EntryAST *find_entry(EntryNode *list, char *name) {
 void init_symbol_table() {
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
 	symbolTable->currentScope = NULL;
-	symbolTable->program = NULL;
+	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
 
 	Entry* param;
@@ -171,11 +169,18 @@ void clear_symbol_table() {
 	free_type(boolType);
 }
 
-Scope *new_scope(Scope *outerScope, EntryAST *parent) {
-	Scope *scope = (Scope* ) malloc(sizeof(Scope));
+// Scope *new_scope(Scope *outerScope, EntryAST *parent) {
+// 	Scope *scope = (Scope* ) malloc(sizeof(Scope));
+// 	scope->entryList = NULL;
+// 	scope->outerScope = outerScope;
+// 	scope->parent = parent;
+// 	return scope;
+// }
+
+Scope *new_scope() {
+	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
-	scope->outerScope = outerScope;
-	scope->parent = parent;
+	scope->outerScope = currentScope;
 	return scope;
 }
 
