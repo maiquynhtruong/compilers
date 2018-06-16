@@ -8,15 +8,15 @@ int parse(char *file_name);
 
 void parse_body_block();
 void parse_program();
-void parse_declarations();
+EntryNodeAST *parse_declaration_list();
 void parse_declaration();
 void parse_proc_declaration(Entry **entry, int global);
 void parse_var_declaration(Entry **entry, int global);
 Type *parse_type_mark();
-void parse_statement_list();
+EntryNodeAST *parse_statement_list();
 Type *parse_statement();
 void parse_param();
-void parse_param_list();
+ParamAST **parse_param_list();
 void parse_assignment_statement();
 void parse_if_statement();
 void parse_loop_statement();

@@ -61,7 +61,7 @@ int parse(char *file_name) {
 EntryAST *parse_body_block() {
     EntryAST *bodyAST = NULL, *declAST = NULL;
     EntryNodeAST **statementList = NULL;
-    if (look_ahead->type != K_BEGIN) declAST = parse_declarations();
+    if (look_ahead->type != K_BEGIN) declAST = parse_declaration_list();
     match_token(K_BEGIN);
 
     if (look_ahead->type != K_END) statementList = parse_statement_list();
@@ -93,7 +93,7 @@ EntryAST *parse_program() {
     return programAST;
 }
 
-EntryNodeAST *parse_declarations(EntryNodeAST *node) {
+EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
     assert("Parsing declarations");
     int isGlobal = 0;
 
@@ -107,7 +107,7 @@ EntryNodeAST *parse_declarations(EntryNodeAST *node) {
             EntryAST *procAST = parse_proc_declaration(isGlobal);
             match_token(T_SEMI_COLON);
             node = create_entryAST_node(procAST, NULL);
-            node->next = parse_declarations(node);
+            node->next = parse_declaration_list(node);
             node = node->next;
             break;
         // FOLLOW set
@@ -118,11 +118,12 @@ EntryNodeAST *parse_declarations(EntryNodeAST *node) {
             match_token(T_SEMI_COLON);
             declare_entry(varAST, isGlobal);
             node = create_entryAST_node(varAST, NULL);
-            node->next = parse_declarations(node);
+            node->next = parse_declaration_list(node);
             node = node->next;
             break;
     }
     assert("Done parsing declarations");
+    return node;
 }
 
 EntryAST *parse_proc_declaration(int isGlobal) {
@@ -174,7 +175,7 @@ EntryAST *parse_var_declaration() {
         match_token(T_RBRACKET);
     }
 
-    // declare_entry(varAST); // in parse_declarations() and parse_param()
+    // declare_entry(varAST); // in parse_declaration_list() and parse_param()
     assert("Done parsing a variable declaration");
     return varAST;
 }
@@ -207,15 +208,20 @@ Type* parse_type_mark() {
     return typeMark;
 }
 
-EntryAST *parse_statement_list() {
-    declare_entry(parse_statement());
+EntryNodeAST *parse_statement_list(EntryNodeAST *node) {
+    EntryAST *statementAST = parse_statement();
 
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
-        declare_entry(parse_statement());
+        node = create_entryAST_node(statementAST, NULL);
+        node->next = parse_statement_list(node);
+        node = node->next;
+
+        statementAST = parse_statement();
     }
     if (current_token->type == T_IDENTIFIER)
         throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo);
+    return node;
 }
 
 EntryAST *parse_statement() {
