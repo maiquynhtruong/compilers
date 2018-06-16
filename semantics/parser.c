@@ -58,6 +58,14 @@ int parse(char *file_name) {
     return IO_SUCCESS;
 }
 
+void parse_body_block() {
+    if (look_ahead->type != K_BEGIN) parse_declarations();
+    match_token(K_BEGIN);
+
+    if (look_ahead->type != K_END) parse_statements();
+    match_token(K_END);
+}
+
 void parse_program() {
     assert("Parsing the program");
 
@@ -70,25 +78,12 @@ void parse_program() {
     entry = create_program_entry(current_token->val.stringVal);
 
     enter_scope(entry->progAttrs->scope);
-    parse_program_body();
+    parse_body_block(); // program body
+    match_token(K_PROGRAM);
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
     exit_scope();
 
     assert("Done parsing the program");
-}
-
-void parse_program_body() {
-    // program body
-    if (look_ahead->type != K_BEGIN) {
-        parse_declarations();
-    }
-    match_token(K_BEGIN);
-
-    if (look_ahead->type != K_END) {
-        parse_statements();
-    }
-    match_token(K_END);
-    match_token(K_PROGRAM);
 }
 
 void parse_declarations() {
@@ -133,13 +128,7 @@ void parse_proc_declaration(Entry **entry, int global) {
     enter_scope((*entry)->procAttrs->scope);
 
     parse_param_list();
-
-    // procedure body
-    if (look_ahead->type != K_BEGIN) parse_declarations();
-    match_token(K_BEGIN);
-
-    if (look_ahead->type != K_END) parse_statements();
-    match_token(K_END);
+    parse_body_block(); // procedure body
     match_token(K_PROCEDURE);
     exit_scope();
 

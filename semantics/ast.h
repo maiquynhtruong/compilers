@@ -37,6 +37,17 @@ typedef enum BinaryOpType {
 	BO_OR
 } BinaryOpType;
 
+struct EntryNodeAST {
+	struct EntryAST *entryAST;
+	struct EntryNodeAST *next;
+};
+
+struct Scope {
+	struct EntryNodeAST* entryList;
+	struct EntryAST *parent;
+	struct Scope *outerScope;
+};
+
 struct Type {
 	TypeClass typeClass;
 	int arraySize;
@@ -97,7 +108,6 @@ typedef struct PrototypeAST {
 typedef struct ProcedureAST {
     Scope *scope;
     struct EntryAST *prototype;
-    struct EntryAST *body;
 } ProcedureAST;
 
 // typedef struct ProcedureAttributes {

@@ -6,8 +6,8 @@
 void match_token(TokenType type);
 int parse(char *file_name);
 
+void parse_body_block();
 void parse_program();
-void parse_program_body();
 void parse_declarations();
 void parse_declaration();
 void parse_proc_declaration(Entry **entry, int global);
