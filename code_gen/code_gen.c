@@ -7,17 +7,17 @@ LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef buil
 
 }
 
-LLVMValueRef code_gen_constant(EntryAST *entry) {
+LLVMValueRef gen_constant(EntryAST *entry) {
     // lookup in language reference
 }
 
-LLVMValueRef code_gen_variable(EntryAST *entry) {
+LLVMValueRef gen_variable(EntryAST *entry) {
     EntryAST *node = find_entry(entry->varAST->name);
 
     // if (node != NULL) return // create a LLVMValueRef
 }
 
-LLVMValueRef code_gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef lhs = code_gen(entry->binOpAST->lhs, module, builder);
     LLVMValueRef rhs = code_gen(entry->binOpAST->rhs, module, builder);
 
@@ -36,7 +36,7 @@ LLVMValueRef code_gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuild
     return NULL;
 }
 
-LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef func = LLVMGetNamedFunction(module, entry->protoAST->name);
 
     if (func == NULL) return NULL;
@@ -54,14 +54,14 @@ LLVMValueRef code_gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuild
     return LLVMBuildCall(builder, func, args, argc, "calltmp");
 }
 
-LLVMTypeRef code_gen_param(ParamAST *param) {
+LLVMTypeRef gen_param(ParamAST *param) {
     switch (param->type->typeClass) {
         case TC_INT: case TC_BOOL: case TC_CHAR:
             return LLVMInt32Type();
         case TC_FLOAT:
             return LLVMFloatType();
         case TC_ARRAY:
-            return LLVMArrayType(code_gen_param(type->elementType), (unsigned) type->arraySize);
+            return LLVMArrayType(gen_param(type->elementType), (unsigned) type->arraySize);
         case TC_STRING: // string is array of char. MAX_STRING_LENGTH from symbol_table.h
             return LLVMArrayType(LLVMInt32Type(), MAX_STRING_LENGTH);
         default:
@@ -69,7 +69,7 @@ LLVMTypeRef code_gen_param(ParamAST *param) {
     }
 }
 
-LLVMValueRef code_gen_prototype(EntryAST *entry, LLVMModuleRef module) {
+LLVMValueRef gen_prototype(EntryAST *entry, LLVMModuleRef module) {
     unsigned int i, argc = entry->protoAST->argc;
 
     // take the existing definition if exists
@@ -86,7 +86,7 @@ LLVMValueRef code_gen_prototype(EntryAST *entry, LLVMModuleRef module) {
     } else { // create new function definition
         LLVMTypeRef *params = malloc(sizeof(LLVMTypeRef) * argc);
         for (i = 0; i < argc; i++) {
-            params[i] = code_gen_param(entry->protoAST->args[i]);
+            params[i] = gen_param(entry->protoAST->args[i]);
         }
         LLVMTypeRef funcType = LLVMFunctionType (LLVMVoidType(), params, argc, 0);
     }
@@ -96,7 +96,7 @@ LLVMValueRef code_gen_prototype(EntryAST *entry, LLVMModuleRef module) {
 
 }
 
-LLVMValueRef code_gen_procedure_declaration(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_procedure_declaration(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
     // prototype
     LLVMValueRef func = code_gen(entry->procAST->prototype, module, builder);
     if (func == NULL) return NULL;
@@ -124,7 +124,7 @@ LLVMValueRef code_gen_procedure_declaration(EntryAST *entry, LLVMModuleRef modul
     return func;
 }
 
-LLVMValueRef code_gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef condition = code_gen(entry->ifAST->condition, module, builder); // generate the condition
     if (condition == NULL) return NULL;
 
@@ -163,6 +163,10 @@ LLVMValueRef code_gen_if_statement(EntryAST *entry, LLVMModuleRef module, LLVMBu
     return phi;
 }
 
+LLVMValueRef gen_assignment(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+    
+}
+
 // recursively generates LLVM objects to build the code
 // entry: the entry to generate code for
 // module: module code is being generated for
@@ -172,17 +176,17 @@ LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef buil
     // recursively free dependent data
     switch (entry->type) {
         case ET_CONSTANT:
-            return code_gen_constant(entry);
+            return gen_constant(entry);
         case ET_VARIABLE:
-            return code_gen_variable(entry);
+            return gen_variable(entry);
         case ET_BIN_OP:
-            return code_gen_binary_op(entry, module, builder);
+            return gen_binary_op(entry, module, builder);
         case ET_CALL:
-            return code_gen_proc_call(entry, module, builder);
+            return gen_proc_call(entry, module, builder);
         case ET_PROCEDURE:
-            return code_gen_prototype(entry, module);
+            return gen_prototype(entry, module);
         case ET_IF:
-            return code_gen_if_statement(entry, module, builder);
+            return gen_if_statement(entry, module, builder);
     }
     return NULL;
 }
