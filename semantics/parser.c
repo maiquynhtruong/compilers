@@ -47,8 +47,8 @@ int parse(char *file_name) {
 
     init_symbol_table();
 
-    parse_program();
-    print_entry(symbol_table->program);
+    symbol_table->root = parse_program();
+    print_entry(symbol_table->root);
 
     clear_symbol_table();
 
@@ -355,23 +355,24 @@ void parse_procedure_call() {
     assert("Done parsing a procedure call");
 }
 
-ParamAST **parse_param_list() {
-    ParamAST *param = NULL;
-    ParamAST **paramList = &param, pointer = *paramList;
+EntryNodeAST *parse_param_list() {
+    EntryAST *param = NULL;
+    EntryNodeAST *node = NULL;
     if (look_ahead->type == T_LPAREN) {
         match_token(T_LPAREN);
-        pointer = parse_param(); pointer++;
+        param = parse_param();
         while (look_ahead->type == T_COMMA) {
             match_token(T_COMMA);
-            pointer = parse_param();
-            pointer++;
+            node = create_entryAST_node(param, NULL);
+            node->next = parse_param();
+            node = node->next;
         }
         match_token(T_RPAREN);
     }
-    return paramList;
+    return node;
 }
 
-ParamAST *parse_param() {
+EntryAST *parse_param() {
     assert("Parsing a parameter");
     EntryAST *paramAST = NULL;
     EntryAST *varAST = parse_var_declaration(&entry, 0);

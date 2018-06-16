@@ -88,21 +88,21 @@ typedef struct ConstantAST {
 } ConstantAST;
 
 typedef struct BodyAST {
-	EntryNodeAST *declarationList;
-	EntryNodeAST *statementList;
+	struct EntryNodeAST *declarationList;
+	struct EntryNodeAST *statementList;
 } BodyAST;
 
 typedef struct ProgramAST {
 	// struct Scope *scope;
 	char *name;
-	struct BodyAST *body;
+	struct EntryAST *body;
 } ProgramAST;
 
 typedef struct VariableAST {
 	TypeAST *varType;
     char *name;
 	Scope *scope;
-	struct ConstantAST *value;
+	struct EntryAST *value;
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -120,17 +120,17 @@ typedef struct ProcedureCallAST {
 typedef struct ParamAST {
     // TypeAST *type;
     ParamType paramType;
-    struct VariableAST *var;
+    struct EntryAST *var;
     // struct ProcedureAST *procedure;
 } ParamAST;
 
 typedef struct ProcedureAST {
     Scope *scope;
 	char *name;
-	struct ParamAST **params;
+	struct EntryAST **params;
 	// EntryNodeAST *params;
 	unsigned int argc;
-	struct BodyAST *body;
+	struct EntryAST *body;
 } ProcedureAST;
 
 // typedef struct ProcedureAttributes {
