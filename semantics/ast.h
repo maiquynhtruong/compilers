@@ -1,6 +1,18 @@
 #ifndef AST_H
 #define AST_H
 
+/*
+There are two main types of entry: EntryAST, EntryNodeAST
+*/
+
+typedef enum StatementType {
+	ST_ASSIGNMENT,
+	ST_IF,
+	ST_LOOP,
+	ST_RETURN,
+	ST_CALL
+} StatementType;
+
 typedef enum ParamType {
 	PT_IN,
 	PT_OUT,
@@ -15,8 +27,7 @@ typedef enum EntryType {
 	ET_PARAMTER,
 	ET_PROGRAM,
 	ET_BIN_OP,
-	ET_CALL,
-	ET_IF
+	ET_STATEMENT
 } EntryType;
 
 typedef enum TypeClass {
@@ -68,12 +79,12 @@ typedef struct Scope {
 struct TypeAST {
 	TypeClass typeClass;
 	int arraySize;
-	struct TypeAST *elementType;
+	struct EntryAST *elementType;
 };
 
 typedef struct UnaryOpAST {
 	UnaryOpAST unaOp;
-	EntryAST *factor;
+	struct EntryAST *factor;
 };
 
 typedef struct ConstantAST {
@@ -99,7 +110,7 @@ typedef struct ProgramAST {
 } ProgramAST;
 
 typedef struct VariableAST {
-	TypeAST *varType;
+	struct EntryAST *varType;
     char *name;
 	Scope *scope;
 	struct EntryAST *value;
@@ -111,12 +122,6 @@ typedef struct BinaryOpAST {
     struct EntryAST *lhs;
 } BinaryOpAST;
 
-typedef struct ProcedureCallAST {
-    char *name;
-    struct EntryAST **args;
-    unsigned int argc;
-} ProcedureCallAST;
-
 typedef struct ParamAST {
     // TypeAST *type;
     ParamType paramType;
@@ -127,8 +132,7 @@ typedef struct ParamAST {
 typedef struct ProcedureAST {
     Scope *scope;
 	char *name;
-	struct EntryAST **params;
-	// EntryNodeAST *params;
+	struct EntryNodeAST *params;
 	unsigned int argc;
 	struct EntryAST *body;
 } ProcedureAST;
@@ -138,11 +142,39 @@ typedef struct ProcedureAST {
 // 	struct Scope *scope;
 // } ProcedureAttributes;
 
-typedef struct IfStatementAST {
+typedef struct IfAST {
     struct EntryAST *condition;
     struct EntryAST *trueBlock;
     struct EntryAST *falseBlock;
 } IfStatementAST;
+
+typedef struct AssignmentAST {
+	struct EntryAST *destAST;
+	struct EntryAST *expAST;
+} AssignmentAST;
+
+typedef struct LoopAST {
+
+} LoopAST;
+
+typedef struct ReturnAST {} ReturnAST;
+
+typedef struct ProcedureCallAST {
+    char *name;
+    struct EntryNodeAST *args;
+    unsigned int argc;
+} ProcedureCallAST;
+
+typedef struct StatementAST {
+	StatementType statementType;
+	union {
+		AssignmentAST *assignment;
+		IfAST *ifAST;
+		LoopAST *loop;
+		ReturnAST *returnAST;
+		ProcedureCallAST *procCall;
+	}
+} StatementAST;
 
 typedef struct EntryAST {
 	EntryType entryType; // type
@@ -152,11 +184,10 @@ typedef struct EntryAST {
 		TypeAST *typeAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
-        ProcedureCallAST *procCallAST;
 		PrototypeAST *protoAST;
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
-		IfStatementAST *ifAST;
+		StatementAST *statementAST;
 	}; // value
 } EntryAST;
 

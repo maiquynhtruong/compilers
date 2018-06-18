@@ -22,7 +22,7 @@ void parse_loop_statement();
 void parse_return_statement();
 void parse_procedure_call();
 EntryAST *parse_destination();
-void parse_argument_list();
+EntryNodeAST *parse_argument_list();
 void parse_argument_list_expression();
 EntryAST *parse_expression();
 EntryAST *parse_expression_arith_op(EntryAST *expAST);
