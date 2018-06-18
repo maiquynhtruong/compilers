@@ -7,17 +7,21 @@ LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef buil
 
 }
 
-LLVMValueRef gen_constant(EntryAST *entry) {
+LLVMValueRef gen_program(EntryAST *programAST) {
+
+}
+
+LLVMValueRef gen_constant(EntryAST *constAST) {
     // lookup in language reference
 }
 
-LLVMValueRef gen_variable(EntryAST *entry) {
+LLVMValueRef gen_variable(EntryAST *varAST) {
     EntryAST *node = find_entry(entry->varAST->name);
 
     // if (node != NULL) return // create a LLVMValueRef
 }
 
-LLVMValueRef gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_binary_op(EntryAST *binOpAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef lhs = code_gen(entry->binOpAST->lhs, module, builder);
     LLVMValueRef rhs = code_gen(entry->binOpAST->rhs, module, builder);
 
@@ -36,7 +40,7 @@ LLVMValueRef gen_binary_op(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef
     return NULL;
 }
 
-LLVMValueRef gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_proc_call(EntryAST *procCallAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef func = LLVMGetNamedFunction(module, entry->protoAST->name);
 
     if (func == NULL) return NULL;
@@ -54,7 +58,7 @@ LLVMValueRef gen_proc_call(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef
     return LLVMBuildCall(builder, func, args, argc, "calltmp");
 }
 
-LLVMTypeRef gen_param(ParamAST *param) {
+LLVMTypeRef gen_param(ParamAST *paramAST) {
     switch (param->type->typeClass) {
         case TC_INT: case TC_BOOL: case TC_CHAR:
             return LLVMInt32Type();
@@ -69,7 +73,7 @@ LLVMTypeRef gen_param(ParamAST *param) {
     }
 }
 
-LLVMValueRef gen_prototype(EntryAST *entry, LLVMModuleRef module) {
+LLVMValueRef gen_prototype(EntryAST *protoAST, LLVMModuleRef module) {
     unsigned int i, argc = entry->protoAST->argc;
 
     // take the existing definition if exists
