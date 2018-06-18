@@ -65,22 +65,11 @@ typedef struct EntryNodeAST {
 	struct EntryNodeAST *next;
 } EntryNodeAST;
 
-/* outerScope:  each scope is a list of entries a scope also keeps a pointer to
-its parent scope so a variable can be searched upward
-parent: the Entry that upon creating it we also need to create a new scope
-(e.g. procedure and program)
-*/
-typedef struct Scope {
-	EntryNodeAST* entryList;
-	// struct EntryAST *parent;
-	struct Scope *outerScope;
-} Scope;
-
-struct TypeAST {
+typedef struct TypeAST {
 	TypeClass typeClass;
 	int arraySize;
 	struct EntryAST *elementType;
-};
+} TypeAST;
 
 typedef struct UnaryOpAST {
 	UnaryOpAST unaOp;
@@ -99,7 +88,7 @@ typedef struct ConstantAST {
 } ConstantAST;
 
 typedef struct BodyAST {
-	struct EntryNodeAST *declarationList;
+	struct EntryNodeAST *declList;
 	struct EntryNodeAST *statementList;
 } BodyAST;
 
@@ -112,7 +101,7 @@ typedef struct ProgramAST {
 typedef struct VariableAST {
 	struct EntryAST *varType;
     char *name;
-	Scope *scope;
+	// Scope *scope;
 	struct EntryAST *value;
 } VariableAST;
 
@@ -130,7 +119,7 @@ typedef struct ParamAST {
 } ParamAST;
 
 typedef struct ProcedureAST {
-    Scope *scope;
+    // Scope *scope;
 	char *name;
 	struct EntryNodeAST *params;
 	unsigned int argc;
@@ -181,6 +170,8 @@ typedef struct EntryAST {
 	union {
 		UnaryOpAST *unaOpAST;
 		ConstantAST *constAST;
+		BodyAST *bodyAST;
+		ProgramAST *progAST;
 		TypeAST *typeAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
@@ -205,7 +196,7 @@ EntryNodeAST *create_entryAST_node(EntryAST *entryAST, EntryNodeAST *next);
 
 EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
 EntryAST *create_constant(char *name, TypeAST *type);
-EntryAST *create_body_block(EntryAST *decls, EntryAST *statements);
+EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_variable(char *name, TypeAST *type);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);

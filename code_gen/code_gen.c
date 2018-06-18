@@ -7,21 +7,38 @@ LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef buil
 
 }
 
-LLVMValueRef gen_program(EntryAST *programAST) {
-
+LLVMValueRef gen_program(EntryAST *entryAST) {
+    LLVMValueRef body = code_gen(entryAST->programAST->body, module, builder);
+    return body;
 }
 
-LLVMValueRef gen_constant(EntryAST *constAST) {
+LLVMValueRef gen_body(EntryAST *entryAST) {
+    EntryNodeAST *node = entryAST->bodyAST->declList;
+    while (node != NULL) {
+        code_gen(node->entryAST, module, builder);
+        node = node->next;
+    }
+    node = entryAST->bodyAST->statementList;
+    while (node != NULL) {
+        code_gen(node->entryAST, module, builder);
+        node = node->next;
+    }
+}
+
+LLVMTypeRef gen_type(EntryAST *typeAST, LLVMModuleRef module, LLVMBuilderRef builder) {
+}
+
+LLVMValueRef gen_constant(EntryAST *constAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     // lookup in language reference
 }
 
-LLVMValueRef gen_variable(EntryAST *varAST) {
+LLVMValueRef gen_variable(EntryAST *varAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     EntryAST *node = find_entry(entry->varAST->name);
 
     // if (node != NULL) return // create a LLVMValueRef
 }
 
-LLVMValueRef gen_binary_op(EntryAST *binOpAST, LLVMModuleRef module, LLVMBuilderRef builder) {
+LLVMValueRef gen_binary_op(EntryAST *entryAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     LLVMValueRef lhs = code_gen(entry->binOpAST->lhs, module, builder);
     LLVMValueRef rhs = code_gen(entry->binOpAST->rhs, module, builder);
 
@@ -41,10 +58,10 @@ LLVMValueRef gen_binary_op(EntryAST *binOpAST, LLVMModuleRef module, LLVMBuilder
 }
 
 LLVMValueRef gen_proc_call(EntryAST *procCallAST, LLVMModuleRef module, LLVMBuilderRef builder) {
-    LLVMValueRef func = LLVMGetNamedFunction(module, entry->protoAST->name);
+    LLVMValueRef func = LLVMGetNamedFunction(module, entryAST->protoAST->name);
 
     if (func == NULL) return NULL;
-    if (LLVMCountParams(func) != entry->protoAST->argc) return NULL;
+    if (LLVMCountParams(func) != entryAST->protoAST->argc) return NULL;
 
     LLVMValueRef *args = malloc(sizeof(LLVMValueRef) *entry->callProcAST->argc);
     unsigned int i, arg_cnt = entry->callProcAST->argc;

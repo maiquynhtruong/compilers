@@ -7,11 +7,22 @@
 #include <stdbool.h>
 #include "ast.h"
 
-struct SymbolTable {
+/* outerScope:  each scope is a list of entries a scope also keeps a pointer to
+its parent scope so a variable can be searched upward
+parent: the Entry that upon creating it we also need to create a new scope
+(e.g. procedure and program)
+*/
+typedef struct Scope {
+	EntryNodeAST* entryList;
+	// struct EntryAST *parent;
+	struct Scope *outerScope;
+} Scope;
+
+typedef struct SymbolTable {
 	struct Scope *currentScope;
 	struct EntryAST *root; // root is program
 	struct EntryNodeAST* globalEntryList;
-};
+} SymbolTable;
 
 void declare_entry(EntryAST *entry);
 EntryAST *find_entryAST(char *name);

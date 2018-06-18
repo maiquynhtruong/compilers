@@ -59,8 +59,8 @@ int parse(char *file_name) {
 }
 
 EntryAST *parse_body_block() {
-    EntryAST *bodyAST = NULL, *declAST = NULL;
-    EntryNodeAST **statementList = NULL;
+    EntryAST *bodyAST = NULL;
+    EntryNodeAST *statementList = NULL, *declAST = NULL;
     if (look_ahead->type != K_BEGIN) declAST = parse_declaration_list();
     match_token(K_BEGIN);
 
