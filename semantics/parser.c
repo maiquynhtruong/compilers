@@ -152,8 +152,8 @@ EntryAST *parse_proc_declaration(int isGlobal) {
 EntryAST *parse_var_declaration() {
     assert("Parsing a variable declaration");
 
-    TypeAST *typeMark = parse_type_mark();
-    check_builtin_type(typeMark);
+    EntryAST *typeMark = parse_type_mark();
+    check_builtin_type(typeMark->typeAST);
 
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
@@ -180,7 +180,7 @@ EntryAST *parse_var_declaration() {
     return varAST;
 }
 
-Type* parse_type_mark() {
+EntryAST* parse_type_mark() {
     assert("Parsing a type mark");
 
     TypeAST *typeMark = (TypeAST *) malloc(sizeof(Type));

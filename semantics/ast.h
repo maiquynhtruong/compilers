@@ -1,6 +1,8 @@
 #ifndef AST_H
 #define AST_H
 
+#include "symbol_table.h"
+
 /*
 There are two main types of entry: EntryAST, EntryNodeAST
 */
