@@ -3,7 +3,6 @@
 #include "ast.h"
 
 // from symbol_table.c
-extern SymbolTable *symbol_table;
 extern Token *current_token;
 
 /******************************* Make Types ********************************/
@@ -37,7 +36,7 @@ TypeAST *make_bool_type() {
 	return type;
 }
 
-TypeAST *make_array_type(int size, TypeAST *elementType) {
+TypeAST *make_array_type(int size, EntryAST *elementType) {
 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
 	type->typeClass = TC_ARRAY;
 	type->arraySize = size;
@@ -65,12 +64,12 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	EntryAST *type = create_type(varType);
 	EntryAST *var = create_variable("val", type, current_token);
 
-	EntryAST *param = create_parameter(paramType, "val", type);
+	EntryAST *param = create_param(paramType, var, type);
 	EntryNodeAST *params = create_entry_node(param, NULL);
-	EntryNodeAST *decls = create_entry_node(var, NULL);
+	// EntryNodeAST *decls = create_entry_node(var, NULL);
 
-	EntryAST *body = create_body_block(decls, NULL);
-	EntryAST *func; = create_procedure(name, params, body);
+	// EntryAST *body = create_body_block(decls, NULL);
+	EntryAST *func = create_procedure(name, params, NULL);
 
 	return func;
 }
@@ -79,7 +78,7 @@ int compare_type(TypeAST *type1, TypeAST *type2) {
 	if (type1->typeClass == type2->typeClass) {
 		if (type1->typeClass == TC_ARRAY) {
 			if (type1->arraySize == type2->arraySize) {
-				return compare_type(type1->elementType, type2->elementType);
+				return compare_type(type1->elementType->typeAST, type2->elementType->typeAST);
 			} else return 0;
 		} else return 1;
 	} else return 0;
@@ -89,7 +88,7 @@ void free_type(TypeAST *type) {
 	free(type);
 }
 
-TypeAST *create_type(TypeClass typeClass) {
+EntryAST *create_type(TypeClass typeClass) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	TypeAST *type = NULL;
 	switch (typeClass) {
@@ -98,7 +97,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_STRING: type = make_string_type(); break;
 		case TC_BOOL: type = make_bool_type(); break;
 		case TC_CHAR: type = make_char_type(); break;
-		case TC_ARRAY: type = make_array_type(); break;
+		// case TC_ARRAY: type = make_array_type(); break;
 	}
 	entryAST->typeAST = type;
 	return entryAST;
@@ -121,10 +120,9 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 
 EntryAST *create_variable(char *name, EntryAST *type, Token *value) {
     EntryAST *varAST = (EntryAST *) malloc(sizeof(EntryAST));
-    if (type->typeClass != TC_ARRAY) {
+    if (type->typeAST->typeClass != TC_ARRAY) {
         if (value != NULL) {
 
-			}
         } // else throw some error
     } // else do something for variable AST
     return varAST;
@@ -135,6 +133,7 @@ EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
+
 EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock) {
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	IfAST *ifAST = entryAST->statementAST->ifAST;

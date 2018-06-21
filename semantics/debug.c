@@ -101,3 +101,7 @@ void print_entry_list(EntryNodeAST *entryList) {
 void print_scope(Scope *scope) {
     print_entry_list(scope->entryList);
 }
+
+void print_symbol_table() {
+    
+}

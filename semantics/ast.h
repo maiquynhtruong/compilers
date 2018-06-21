@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <stdbool.h>
+#include "token.h"
 
 /*
 There are two main types of entry:
@@ -183,7 +184,7 @@ TypeAST *make_char_type();
 TypeAST *make_float_type();
 TypeAST *make_string_type();
 TypeAST *make_bool_type();
-TypeAST *make_array_type(int size, TypeAST *type);
+TypeAST *make_array_type(int size, EntryAST *type);
 int compare_type(TypeAST *type1, TypeAST *type2);
 void free_type(TypeAST *type);
 
