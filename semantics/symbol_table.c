@@ -149,9 +149,6 @@ void free_scope(Scope *scope) {
 void free_entry(EntryAST *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
-			case ET_CONSTANT:
-				if (entry->constAST != NULL) free(entry->constAST);
-				break;
 			case ET_VARIABLE:
 				if (entry->varAST != NULL) free(entry->varAST);
 				break;

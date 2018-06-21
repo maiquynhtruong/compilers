@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "debug.h"
 
-void print_type_class(Type *type) {
+void print_type(TypeAST *type) {
     switch (type->typeClass) {
         case TC_INT:
             printf("TypeClass: Int\n"); break;
@@ -22,30 +22,27 @@ void print_type_class(Type *type) {
     }
 }
 
-void print_constant_value(ConstantValue *value) {
-    switch (value->typeClass) {
+void print_variable(VariableAST *varAST) {
+    printf("Name: %s\n", varAST->name);
+    print_type(varAST->typeAST);
+    switch (varAST->value->typeClass) {
         case TC_INT:
-            printf("%d\n", value->intVal); break;
+            printf("Value: %d\n", value->val.intVal); break;
     	case TC_FLOAT:
-            printf("%f\n", value->floatVal); break;
+            printf("Value: %f\n", value->val.floatVal); break;
     	case TC_STRING:
-            printf("\"%s\"\n", value->stringVal); break;
+            printf("Value: \"%s\"\n", value->val.stringVal); break;
     	case TC_BOOL:
-            printf("%d\n", value->boolVal); break;
+            printf("Value: %d\n", value->val.boolVal); break;
     	case TC_CHAR:
-            printf("'%c'\n", value->charVal); break;
+            printf("Value: '%c'\n", value->val.charVal); break;
         default:
-            printf("Unknow value\n");break;
+            printf("Unknown value\n"); break;
     }
 }
 
-//TODO: How about global?
-void print_entry(Entry *entry) {
+void print_entry(EntryAST *entry) {
     switch (entry->entryType) {
-        case ET_CONSTANT:
-            printf("Constant: %s\n", entry->name);
-            print_constant_value(entry->constAttrs->constantValue);
-            break;
     	case ET_VARIABLE:
             printf("Variable: %s\n", entry->name);
             print_type_class(entry->varAttrs->type);

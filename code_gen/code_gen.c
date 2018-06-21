@@ -28,10 +28,6 @@ LLVMValueRef gen_body(EntryAST *entryAST) {
 LLVMTypeRef gen_type(EntryAST *typeAST, LLVMModuleRef module, LLVMBuilderRef builder) {
 }
 
-LLVMValueRef gen_constant(EntryAST *constAST, LLVMModuleRef module, LLVMBuilderRef builder) {
-    // lookup in language reference
-}
-
 LLVMValueRef gen_variable(EntryAST *varAST, LLVMModuleRef module, LLVMBuilderRef builder) {
     EntryAST *node = find_entry(entry->varAST->name);
 
@@ -196,8 +192,6 @@ LLVMValueRef gen_assignment(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRe
 LLVMValueRef code_gen(EntryAST *entry, LLVMModuleRef module, LLVMBuilderRef builder) {
     // recursively free dependent data
     switch (entry->type) {
-        case ET_CONSTANT:
-            return gen_constant(entry);
         case ET_VARIABLE:
             return gen_variable(entry);
         case ET_BIN_OP:

@@ -23,7 +23,6 @@ typedef enum ParamType {
 } ParamType;
 
 typedef enum EntryType {
-	ET_CONSTANT,
 	ET_VARIABLE,
 	ET_TYPE_MARK,
 	ET_PROCEDURE,
@@ -106,7 +105,7 @@ typedef struct VariableAST {
 	struct EntryAST *varType;
     char *name;
 	// struct EntryAST *value; // replaced by a Token
-	Token *token; // for value
+	Token *value; // for value
 } VariableAST;
 
 typedef struct BinaryOpAST {
