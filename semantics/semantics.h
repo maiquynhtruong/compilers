@@ -3,7 +3,6 @@
 
 #include "symbol_table.h"
 
-EntryAST *lookup(char *name);
 void check_new_identifier(char *name);
 EntryAST *check_declared_identifier(char *name);
 EntryAST *check_declared_variable(char *name);

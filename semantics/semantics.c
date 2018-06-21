@@ -8,22 +8,6 @@
 extern SymbolTable *symbol_table;
 extern Token *current_token;
 
-Entry *lookup(char *name) {
-	Entry *entry = NULL;
-	Scope *current_scope = symbol_table->currentScope;
-
-	while (current_token != NULL) {
-		entry = find_entry(current_scope->entryList, name);
-		if (entry != NULL) return entry;
-		current_scope = current_scope->outerScope;
-	}
-
-	// search in global scope as the last resort
-	entry = find_entry(symbol_table->globalEntryList, name);
-	if (entry != NULL) return entry;
-	else return NULL;
-}
-
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
 	Entry *entry = find_entry(symbol_table->currentScope->entryList, name);

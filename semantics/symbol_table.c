@@ -11,7 +11,7 @@ TypeAST *floatType;
 TypeAST *stringType;
 TypeAST *boolType;
 
-EntryAST *getBool;
+
 EntryAST *getInteger;
 EntryAST *getFloat;
 EntryAST *getString;
@@ -29,12 +29,12 @@ void declare_entry(EntryAST *entryAST, int isGlobal) {
 
 	if (entryAST == NULL) return;
 
-	Scope *currentScope = NULL;
+	EntryNodeAST *curList = NULL;
 
-	if (entry->currentScope = NULL || isGlobal) currentScope = symbolTable->globalEntryList;
-	else currentScope = symbolTable->currentScope->entryList;
+	if (symbolTable->currentScope == NULL || isGlobal) curList = symbolTable->globalEntryList;
+	else curList = symbolTable->currentScope->entryList;
 
-	add_entry(&currentScope, entry);
+	add_entry(&curList, entry);
 }
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
@@ -42,7 +42,7 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	entryNode->entryAST = entry;
 	entryNode->next = NULL;
 
-	if ((*list) == NULL) *list = node;
+	if ((*list) == NULL) *list = entryNode;
 	else {
 		EntryNodeAST *curNode = *list;
 		while (curNode->next != NULL) curNode = curNode->next;
@@ -50,8 +50,23 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	}
 }
 
-// find entry by name
-EntryAST *find_entry(EntryNode *list, char *name) {
+EntryAST *lookup(char *name) {
+	EntryAST *entry = NULL;
+	Scope *current_scope = symbol_table->currentScope;
+
+	while (current_token != NULL) {
+		entry = find_entry(current_scope->entryList, name);
+		if (entry != NULL) return entry;
+		current_scope = current_scope->outerScope;
+	}
+
+	// search in global scope as the last resort
+	// entry = find_entry(symbol_table->globalEntryList, name); // globalEntryList is the outerScope of the second to last scope so no need for this
+	return entry;
+}
+
+// find entry by name in a EntryNodeAST list
+EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	EntryNode *curNode = list;
 	while (curNode != NULL) {
 		if (strcmp(curNode->entry->name, name) == 0)
@@ -67,88 +82,28 @@ void init_symbol_table() {
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
 
-	Entry* param;
-
 	// built-in functions e.g. getInteger(integer val out)
-	getBool = create_procedure_entry("getBool", 1);
-	declare_entry(getBool);
-	enter_scope(getBool->procAttrs->scope);
-		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_bool_type();
-		declare_entry(param);
-	exit_scope();
+	EntryAST *getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
+	declare_entry(getBool, 1); // or should it be add_entry(&(symbolTable->globalEntryList), func)?
+	EntryAST *getInteger = create_builtin_function("getInteger", TC_INT, PT_OUT); // getInteger(integer val out)
+	declare_entry(getInteger, 1);
+	EntryAST *getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
+	declare_entry(getFloat, 1);
+	EntryAST *getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
+	declare_entry(getString, 1);
+	EntryAST *getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
+	declare_entry(getChar, 1);
 
-	getInteger = create_procedure_entry("getInteger", 1);
-	declare_entry(getInteger);
-	enter_scope(getInteger->procAttrs->scope);
-		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_int_type();
-		declare_entry(param);
-	exit_scope();
-
-	getFloat = create_procedure_entry("getFloat", 1);
-	declare_entry(getFloat);
-	enter_scope(getFloat->procAttrs->scope);
-		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_float_type();
-		declare_entry(param);
-	exit_scope();
-
-	getString = create_procedure_entry("getString", 1);
-	declare_entry(getString);
-	enter_scope(getString->procAttrs->scope);
-		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_string_type();
-		declare_entry(param);
-	exit_scope();
-
-	getChar = create_procedure_entry("getChar", 1);
-	declare_entry(getChar);
-	enter_scope(getChar->procAttrs->scope);
-		param = create_parameter_entry("val");
-		param->paramAttrs->type = make_char_type();
-		declare_entry(param);
-	exit_scope();
-
-	putBool = create_procedure_entry("putBool", 1);
-	declare_entry(putBool);
-	enter_scope(putBool->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
-		param->paramAttrs->type = make_bool_type();
-		declare_entry(param);
-	exit_scope();
-
-	putInteger = create_procedure_entry("putInteger", 1);
-	declare_entry(putInteger);
-	enter_scope(putInteger->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
-		param->paramAttrs->type = make_int_type();
-		declare_entry(param);
-	exit_scope();
-
-	putFloat = create_procedure_entry("putFloat", 1);
-	declare_entry(putFloat);
-	enter_scope(putFloat->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
-		param->paramAttrs->type = make_float_type();
-		declare_entry(param);
-	exit_scope();
-
-	putString = create_procedure_entry("putString", 1);
-	declare_entry(putString);
-	enter_scope(putString->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
-		param->paramAttrs->type = make_string_type();
-		declare_entry(param);
-	exit_scope();
-
-	putChar = create_procedure_entry("putChar", 1);
-	declare_entry(putChar);
-	enter_scope(putChar->procAttrs->scope);
-		param = create_parameter_entry("val", entry);
-		param->paramAttrs->type = make_char_type();
-		declare_entry(param);
-	exit_scope();
+	EntryAST *putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
+	declare_entry(putBool, 1);
+	EntryAST *putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
+	declare_entry(putInteger, 1);
+	EntryAST *putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
+	declare_entry(putFloat, 1);
+	EntryAST *putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
+	declare_entry(putString, 1);
+	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
+	declare_entry(putChar, 1);
 
 	intType = make_int_type();
 	charType = make_char_type();
@@ -169,18 +124,10 @@ void clear_symbol_table() {
 	free_type(boolType);
 }
 
-// Scope *new_scope(Scope *outerScope, EntryAST *parent) {
-// 	Scope *scope = (Scope* ) malloc(sizeof(Scope));
-// 	scope->entryList = NULL;
-// 	scope->outerScope = outerScope;
-// 	scope->parent = parent;
-// 	return scope;
-// }
-
 Scope *new_scope() {
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
-	scope->outerScope = currentScope;
+	scope->outerScope = symbolTable->currentScope;
 	return scope;
 }
 

@@ -14,7 +14,7 @@ parent: the Entry that upon creating it we also need to create a new scope
 */
 typedef struct Scope {
 	EntryNodeAST* entryList;
-	// struct EntryAST *parent;
+	// struct EntryAST *currentBlock; // the block that started this scope
 	struct Scope *outerScope;
 } Scope;
 
@@ -24,8 +24,9 @@ typedef struct SymbolTable {
 	struct EntryNodeAST* globalEntryList;
 } SymbolTable;
 
+EntryAST *lookup(char *name);
 void declare_entry(EntryAST *entry);
-EntryAST *find_entryAST(char *name);
+EntryAST *find_entry(char *name);
 void add_entryAST(EntryNodeAST **list, EntryAST *entry);
 
 void init_symbol_table();

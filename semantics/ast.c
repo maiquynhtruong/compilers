@@ -41,6 +41,37 @@ TypeAST *make_array_type(int size, TypeAST *elementType) {
 	return type;
 }
 
+/*
+The language has the following built I/O functions:
+getBool(bool val out)
+getInteger(integer val out)
+getFloat(float val out)
+getString(string val out)
+getChar(char val out)
+putBool(bool val in)
+putInteger(integer val in)
+putFloat(float val in)
+putString(string val in)
+putChar(char val in)
+The put operations do not return a value.
+These functions read/write input/output to standard in and standard out.
+If you prefer, these routines can read/write to named files such as “input” and “output”.
+*/
+EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
+	EntryAST *type = create_type(varType);
+	EntryAST *value = create_constant(varType, NULL);
+	EntryAST *var = create_variable("val", type, value);
+
+	EntryAST *param = create_parameter(paramType, "val", type);
+	EntryNodeAST *params = create_entry_node(param, NULL);
+	EntryNodeAST *decls = create_entry_node(var, NULL);
+
+	EntryAST *body = create_body_block(decls, NULL);
+	EntryAST *func; = create_procedure(name, params, body);
+
+	return func;
+}
+
 int compare_type(TypeAST *type1, TypeAST *type2) {
 	if (type1->typeClass == type2->typeClass) {
 		if (type1->typeClass == TC_ARRAY) {
@@ -55,9 +86,19 @@ void free_type(TypeAST *type) {
 	free(type);
 }
 
-Type *create_type() {
-    Type *type = (Type *) malloc(sizeof(Type *));
-    return type;
+TypeAST *create_type(TypeClass typeClass) {
+    EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	TypeAST *type = NULL;
+	switch (typeClass) {
+		case TC_INT: type = make_int_type(); break;
+		case TC_FLOAT: type = make_float_type(); break;
+		case TC_STRING: type = make_string_type(); break;
+		case TC_BOOL: type = make_bool_type(); break;
+		case TC_CHAR: type = make_char_type(); break;
+		case TC_ARRAY: type = make_array_type(); break;
+	}
+	entryAST->typeAST = type;
+	return entryAST;
 }
 
 EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
