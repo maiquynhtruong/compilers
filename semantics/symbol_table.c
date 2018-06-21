@@ -11,17 +11,6 @@ TypeAST *floatType;
 TypeAST *stringType;
 TypeAST *boolType;
 
-
-EntryAST *getInteger;
-EntryAST *getFloat;
-EntryAST *getString;
-EntryAST *getChar;
-EntryAST *putBool;
-EntryAST *putInteger;
-EntryAST *putFloat;
-EntryAST *putString;
-EntryAST *putChar;
-
 /******************************* Symbol table functions ********************************/
 
 void declare_entry(EntryAST *entryAST, int isGlobal) {
@@ -147,49 +136,27 @@ void free_scope(Scope *scope) {
 	}
 }
 
-/******************************* Create Constants ********************************/
-
-ConstantValue *make_string_constant(char *str) {
-	ConstantValue *value = (ConstantValue *) malloc(sizeof(ConstantValue));
-	value->typeClass = TC_STRING;
-	strcpy(value->stringVal, str);
-	return value;
-}
-
-//TODO: Fix this one
 void free_entry(EntryAST *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
 			case ET_CONSTANT:
-				if (entry->constAttrs->constantValue != NULL) {
-					free(entry->constAttrs->constantValue);
-					entry->constAttrs->constantValue = NULL;
-				} break;
+				if (entry->constAST != NULL) free(entry->constAST);
+				break;
 			case ET_VARIABLE:
-				if (entry->varAttrs->type != NULL) {
-					free(entry->varAttrs->type);
-					entry->varAttrs->type = NULL;
-				} break;
+				if (entry->varAST != NULL) free(entry->varAST);
+				break;
 			case ET_TYPE_MARK:
-				if (entry->typeAttrs->type != NULL) {
-					free(entry->typeAttrs->type);
-					entry->typeAttrs->type = NULL;
-				} break;
+				if (entry->typeAST != NULL) free(entry->typeAST);
+				break;
 			case ET_PROCEDURE:
-				if (entry->procAttrs->scope != NULL) {
-					free_scope(entry->procAttrs->scope);
-					entry->procAttrs->scope = NULL;
-				} break;
+				if (entry->procAST != NULL) free(entry->procAST);
+				break;
 			case ET_PARAMTER:
-				if (entry->paramAttrs->type != NULL) {
-					free(entry->paramAttrs->type);
-					entry->paramAttrs->type = NULL;
-				} break;
+				if (entry->paramAST != NULL) free(entry->paramAST);
+				break;
 			case ET_PROGRAM:
-				if (entry->progAttrs->scope != NULL) {
-					free_scope(entry->progAttrs->scope);
-					entry->progAttrs->scope = NULL;
-				} break;
+				if (entry->progAST != NULL) free(entry->progAST);
+				break;
 			default: break;
 		}
 		free(entry);
@@ -197,10 +164,9 @@ void free_entry(EntryAST *entry) {
 	}
 }
 
-void free_entry_list(EntryNode *node) {
-	if (node != NULL) {
-		free_entry(node->entry);
-		free_entry_list(node->next);
-		node = NULL;
+void free_entry_list(EntryNodeAST *node) {
+	while (node != NULL) {
+		free_entry(node->entryAST);
+		node = node->next;
 	}
 }
