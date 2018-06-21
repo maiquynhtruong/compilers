@@ -1,7 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "symbol_table.h"
+#include <stdbool.h>
 
 /*
 There are two main types of entry:
@@ -57,10 +57,10 @@ typedef enum BinaryOpType {
 	BO_OR
 } BinaryOpType;
 
-typedef enum UnaryOpAST {
+typedef enum UnaryOpType {
 	UN_PLUS,
 	UN_MINUS
-} UnaryOpAST;
+} UnaryOpType;
 
 /* LinkedList of EntryAST to store variable number of statements and declarations in program and procedure. Also list of entries in a scope */
 typedef struct EntryNodeAST {
@@ -75,9 +75,9 @@ typedef struct TypeAST {
 } TypeAST;
 
 typedef struct UnaryOpAST {
-	UnaryOpAST unaOp;
+	UnaryOpType unaOp;
 	struct EntryAST *factor;
-};
+} UnaryOpAST;
 
 typedef struct ConstantAST {
 	TypeClass typeClass;
@@ -133,7 +133,7 @@ typedef struct IfAST {
     struct EntryAST *condition;
     struct EntryAST *trueBlock;
     struct EntryAST *falseBlock;
-} IfStatementAST;
+} IfAST;
 
 typedef struct AssignmentAST {
 	struct EntryAST *destAST;
@@ -141,10 +141,10 @@ typedef struct AssignmentAST {
 } AssignmentAST;
 
 typedef struct LoopAST {
-
+	// TODO: Write something here. Just something!
 } LoopAST;
 
-typedef struct ReturnAST {} ReturnAST;
+typedef struct ReturnAST {} ReturnAST; // TODO: what to fill in?
 
 typedef struct ProcedureCallAST {
     char *name;
@@ -157,10 +157,10 @@ typedef struct StatementAST {
 	union {
 		AssignmentAST *assignment;
 		IfAST *ifAST;
-		LoopAST *loop;
+		LoopAST *loopAST;
 		ReturnAST *returnAST;
 		ProcedureCallAST *procCall;
-	}
+	};
 } StatementAST;
 
 typedef struct EntryAST {
@@ -171,9 +171,8 @@ typedef struct EntryAST {
 		BodyAST *bodyAST;
 		ProgramAST *progAST;
 		TypeAST *typeAST;
-		VariableAST *’’;
+		VariableAST *varAST;
         BinaryOpAST *binOpAST;
-		PrototypeAST *protoAST;
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
 		StatementAST *statementAST;
@@ -200,7 +199,7 @@ EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
-EntryAST *create_param(ParamType type, EntryAST *var, EntryAST *type);
+EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
 EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
 

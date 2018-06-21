@@ -5,13 +5,6 @@
 #include "error.h"
 
 SymbolTable *symbolTable;
-TypeAST *intType;
-TypeAST *charType;
-TypeAST *floatType;
-TypeAST *stringType;
-TypeAST *boolType;
-
-/******************************* Symbol table functions ********************************/
 
 void declare_entry(EntryAST *entryAST, int isGlobal) {
 	assert("Declaring an entry");
@@ -23,11 +16,11 @@ void declare_entry(EntryAST *entryAST, int isGlobal) {
 	if (symbolTable->currentScope == NULL || isGlobal) curList = symbolTable->globalEntryList;
 	else curList = symbolTable->currentScope->entryList;
 
-	add_entry(&curList, entry);
+	add_entry(&curList, entryAST);
 }
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
-	EntryNodeAST *entryNode = (EntryNode *) malloc(sizeof(EntryNodeAST));
+	EntryNodeAST *entryNode = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	entryNode->entryAST = entry;
 	entryNode->next = NULL;
 
@@ -41,9 +34,9 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 
 EntryAST *lookup(char *name) {
 	EntryAST *entry = NULL;
-	Scope *current_scope = symbol_table->currentScope;
+	Scope *current_scope = symbolTable->currentScope;
 
-	while (current_token != NULL) {
+	while (current_scope != NULL) {
 		entry = find_entry(current_scope->entryList, name);
 		if (entry != NULL) return entry;
 		current_scope = current_scope->outerScope;
@@ -56,10 +49,25 @@ EntryAST *lookup(char *name) {
 
 // find entry by name in a EntryNodeAST list
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
-	EntryNode *curNode = list;
+	EntryNodeAST *curNode = list;
 	while (curNode != NULL) {
-		if (strcmp(curNode->entry->name, name) == 0)
-			return curNode->entry;
+		EntryAST *entryAST = curNode->entryAST;
+		char *entryName;
+		switch (entryAST->entryType) {
+			case ET_PROGRAM: entryName = entryAST->progAST->name; break;
+			case ET_VARIABLE: entryName = entryAST->varAST->name; break;
+			case ET_PROCEDURE: entryName = entryAST->procAST->name; break;
+			case ET_STATEMENT:
+				switch (entryAST->statementAST->statementType) {
+					case ST_CALL: entryName = entryAST->statementAST->procCall->name; break;
+					default: break;
+				}
+				break;
+			case ET_PARAMTER: entryName = entryAST->paramAST->var->name; break;
+			default: brea;
+		}
+		if (strcmp(entryName, name) == 0)
+			return entryAST;
 		else curNode = curNode->next;
 	}
 	return NULL;
@@ -94,11 +102,11 @@ void init_symbol_table() {
 	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
 	declare_entry(putChar, 1);
 
-	intType = make_int_type();
-	charType = make_char_type();
-	floatType = make_float_type();
-	stringType = make_string_type();
-	boolType = make_bool_type();
+	TypeAST *intType = make_int_type();
+	TypeAST *charType = make_char_type();
+	TypeAST *floatType = make_float_type();
+	TypeAST *stringType = make_string_type();
+	TypeAST *boolType = make_bool_type();
 }
 
 void clear_symbol_table() {

@@ -25,9 +25,9 @@ typedef struct SymbolTable {
 } SymbolTable;
 
 EntryAST *lookup(char *name);
-void declare_entry(EntryAST *entry);
-EntryAST *find_entry(char *name);
-void add_entryAST(EntryNodeAST **list, EntryAST *entry);
+EntryAST *find_entry(EntryNodeAST *list, char *name);
+void declare_entry(EntryAST *entryAST, int isGlobal);
+void add_entry(EntryNodeAST **list, EntryAST *entry);
 
 void init_symbol_table();
 void clear_symbol_table();
@@ -37,6 +37,6 @@ void enter_scope(Scope *scope);
 void exit_scope();
 void free_scope(Scope *scope);
 
-void free_entryAST(EntryAST *entry);
-void free_entryAST_list(EntryNodeAST *node);
+void free_entry(EntryAST *entry);
+void free_entry_list(EntryNodeAST *node);
 #endif
