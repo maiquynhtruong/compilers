@@ -63,8 +63,8 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 					default: break;
 				}
 				break;
-			case ET_PARAMTER: entryName = entryAST->paramAST->var->name; break;
-			default: brea;
+			case ET_PARAMTER: entryName = entryAST->paramAST->var->varAST->name; break;
+			default: break;
 		}
 		if (strcmp(entryName, name) == 0)
 			return entryAST;
@@ -102,23 +102,25 @@ void init_symbol_table() {
 	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
 	declare_entry(putChar, 1);
 
-	TypeAST *intType = make_int_type();
-	TypeAST *charType = make_char_type();
-	TypeAST *floatType = make_float_type();
-	TypeAST *stringType = make_string_type();
-	TypeAST *boolType = make_bool_type();
+	// TODO: Are these needed?
+	// TypeAST *intType = make_int_type();
+	// TypeAST *charType = make_char_type();
+	// TypeAST *floatType = make_float_type();
+	// TypeAST *stringType = make_string_type();
+	// TypeAST *boolType = make_bool_type();
 }
 
 void clear_symbol_table() {
-	free_entry(symbolTable->program);
+	free_entry(symbolTable->root);
 	free_entry_list(symbolTable->globalEntryList);
 	// free_scope(symbolTable->currentScope);
 	free(symbolTable);
-	free_type(intType);
-	free_type(charType);
-	free_type(floatType);
-	free_type(stringType);
-	free_type(boolType);
+	//TODO: Are these needed?
+	// free_type(intType);
+	// free_type(charType);
+	// free_type(floatType);
+	// free_type(stringType);
+	// free_type(boolType);
 }
 
 Scope *new_scope() {
