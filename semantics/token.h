@@ -62,7 +62,7 @@ typedef enum {
     K_WHILE,
 } TokenType;
 
-typedef struct {
+typedef struct Token {
     TokenType type;
     int lineNo, columnNo;
     union {

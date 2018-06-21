@@ -15,15 +15,15 @@ Token* current_token;
 extern SymbolTable *symbol_table;
 
 void match_token(TokenType type) {
-    printf("In match_token. Expected type: ");
-    printf("%s\n", print_token_type(type));
+    // printf("In match_token. Expected type: ");
+    // printf("%s\n", print_token_type(type));
 
     if (look_ahead->type != type) {
-        printf("Not Matched. look_ahead is: ");
+        // printf("Not Matched. look_ahead is: ");
         print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
-        printf("Matched. look_ahead is: ");
+        // printf("Matched. look_ahead is: ");
         print_token(look_ahead);
 
         Token *temp = current_token;
@@ -32,9 +32,8 @@ void match_token(TokenType type) {
 
         free(temp);
 
-        printf("Next parsed token : ");
+        // printf("Next parsed token : ");
         print_token(look_ahead);
-        printf("\n");
     }
 }
 
@@ -72,7 +71,7 @@ EntryAST *parse_body_block() {
 }
 
 EntryAST *parse_program() {
-    assert("Parsing the program");
+    assert_parser("Parsing the program");
 
     EntryAST *programAST = NULL, *bodyAST; // create, enter and exit a program scope
 
@@ -89,12 +88,12 @@ EntryAST *parse_program() {
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
     exit_scope();
 
-    assert("Done parsing the program");
+    assert_parser("Done parsing the program");
     return programAST;
 }
 
 EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
-    assert("Parsing declarations");
+    assert_parser("Parsing declarations");
     int isGlobal = 0;
 
     if (look_ahead->type == K_GLOBAL) {
@@ -122,12 +121,12 @@ EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
             node = node->next;
             break;
     }
-    assert("Done parsing declarations");
+    assert_parser("Done parsing declarations");
     return node;
 }
 
 EntryAST *parse_proc_declaration(int isGlobal) {
-    assert("Parsing a procedure declaration");
+    assert_parser("Parsing a procedure declaration");
     EntryAST *procAST = NULL, *bodyAST = NULL;
     // procedure header
     match_token(K_PROCEDURE);
@@ -145,12 +144,12 @@ EntryAST *parse_proc_declaration(int isGlobal) {
 
     exit_scope();
 
-    assert("Done parsing a procedure declaration");
+    assert_parser("Done parsing a procedure declaration");
     return procAST;
 }
 
 EntryAST *parse_var_declaration() {
-    assert("Parsing a variable declaration");
+    assert_parser("Parsing a variable declaration");
 
     EntryAST *typeMark = parse_type_mark();
     check_builtin_type(typeMark->typeAST);
@@ -176,12 +175,12 @@ EntryAST *parse_var_declaration() {
     }
 
     // declare_entry(varAST); // in parse_declaration_list() and parse_param()
-    assert("Done parsing a variable declaration");
+    assert_parser("Done parsing a variable declaration");
     return varAST;
 }
 
 EntryAST* parse_type_mark() {
-    assert("Parsing a type mark");
+    assert_parser("Parsing a type mark");
 
     TypeAST *typeMark = (TypeAST *) malloc(sizeof(Type));
     switch(look_ahead->type) {
@@ -204,7 +203,7 @@ EntryAST* parse_type_mark() {
             throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
 
-    assert("Done parsing a type mark");
+    assert_parser("Done parsing a type mark");
     return typeMark;
 }
 
@@ -225,7 +224,7 @@ EntryNodeAST *parse_statement_list(EntryNodeAST *node) {
 }
 
 EntryAST *parse_statement() {
-    assert("Parsing a statement");
+    assert_parser("Parsing a statement");
     EntryAST *statementAST = NULL;
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
@@ -240,7 +239,7 @@ EntryAST *parse_statement() {
             break;
         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    assert("Done parsing a statement");
+    assert_parser("Done parsing a statement");
     return statementAST;
 }
 
@@ -264,18 +263,18 @@ EntryAST *parse_indexes(TypeAST *arrayType) {
 }
 
 EntryAST *parse_destination() {
-    assert("Parsing a destination");
+    assert_parser("Parsing a destination");
     Entry *entry;
     TypeAST *entryType;
     entry = check_declared_destination(current_token->val.stringVal);
 
     if (entry->entryType == ET_VARIABLE) entryType = parse_indexes();
-    assert("Done parsing a destination");
+    assert_parser("Done parsing a destination");
     return entryType;
 }
 
 EntryAST *parse_assignment_statement() {
-    assert("Parsing an assignment statement");
+    assert_parser("Parsing an assignment statement");
 
     EntryAST *destAST = NULL, *expAST = NULL;
     destAST = parse_destination();
@@ -296,12 +295,12 @@ EntryAST *parse_assignment_statement() {
 
     EntryAST *assigmentAST = create_binary_op(BO_EQ, destAST, expAST);
 
-    assert("Done parsing an assignment statement");
+    assert_parser("Done parsing an assignment statement");
     return assigmentAST;
 }
 
 void parse_if_statement() {
-    assert("Parsing an if statement");
+    assert_parser("Parsing an if statement");
     match_token(K_IF);
     match_token(T_LPAREN);
 
@@ -319,11 +318,11 @@ void parse_if_statement() {
     }
     match_token(K_END);
     match_token(K_IF);
-    assert("Done parsing an if statement");
+    assert_parser("Done parsing an if statement");
 }
 
 void parse_loop_statement() {
-    assert("Parsing a for loop");
+    assert_parser("Parsing a for loop");
     match_token(K_FOR);
     match_token(T_LPAREN);
     parse_assignment_statement();
@@ -339,7 +338,7 @@ void parse_loop_statement() {
     }
     match_token(K_END);
     match_token(K_FOR);
-    assert("Done parsing a for loop");
+    assert_parser("Done parsing a for loop");
 }
 
 void parse_return_statement() {
@@ -347,12 +346,12 @@ void parse_return_statement() {
 }
 
 void parse_procedure_call() {
-    assert("Parsing a procedure call");
+    assert_parser("Parsing a procedure call");
     Entry *entry = check_declared_procedure(current_token->val.stringVal);
     match_token(T_LPAREN);
     parse_argument_list(entry->procAttrs->paramList);
     match_token(T_RPAREN);
-    assert("Done parsing a procedure call");
+    assert_parser("Done parsing a procedure call");
 }
 
 EntryNodeAST *parse_param_list() {
@@ -373,7 +372,7 @@ EntryNodeAST *parse_param_list() {
 }
 
 EntryAST *parse_param() {
-    assert("Parsing a parameter");
+    assert_parser("Parsing a parameter");
     EntryAST *paramAST = NULL;
     EntryAST *varAST = parse_var_declaration(&entry, 0);
     // TODO: delete the declaration of the variable in the outerscope
@@ -392,12 +391,12 @@ EntryAST *parse_param() {
     }
     declare_entry(paramAST);
 
-    assert("Done parsing a parameter");
+    assert_parser("Done parsing a parameter");
     return paramAST;
 }
 
 void parse_argument_list(EntryNode *paramList) {
-    assert("Parsing an argument list");
+    assert_parser("Parsing an argument list");
 
     EntryNode *node = paramList;
     if (node != NULL) parse_argument(node->entry->type);
@@ -416,7 +415,7 @@ void parse_argument_list(EntryNode *paramList) {
     // -> number of args doesn't match number of params
     if (node != NULL)
         throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
-    assert("Done parsing an argument list");
+    assert_parser("Done parsing an argument list");
 }
 
 void parse_argument(TypeAST *paramType) {
@@ -425,11 +424,11 @@ void parse_argument(TypeAST *paramType) {
 }
 
 EntryAST *parse_expression() {
-    assert("Parsing an expression");
+    assert_parser("Parsing an expression");
     if (look_ahead->type == K_NOT) match_token(K_NOT);
     EntryAST *expAST = parse_arith_op();
     expAST = parse_expression_arith_op(expAST);
-    assert("Done parsing an expression");
+    assert_parser("Done parsing an expression");
     return expAST;
 }
 
@@ -462,11 +461,11 @@ EntryAST *parse_expression_arith_op(EntryAST *expAST) {
 }
 
 EntryAST *parse_arith_op() {
-    assert("Parsing an arithmetic operation");
+    assert_parser("Parsing an arithmetic operation");
     EntryAST *arithOpAST = parse_relation();
     check_int_float_type(arithOpAST);
     arithOpAST = parse_arith_op_relation(arithOpAST);
-    assert("Done parsing an arithmetic operation");
+    assert_parser("Done parsing an arithmetic operation");
     return arithOpAST;
 }
 
@@ -499,11 +498,11 @@ EntryAST *parse_arith_op_relation(EntryAST *arithOpAST) {
 }
 
 EntryAST *parse_relation() {
-    assert("Parsing a relation");
+    assert_parser("Parsing a relation");
     EntryAST *relationAST = parse_term();
     check_basic_type(relationAST);
     relationAST = parse_relation_term(relationAST);
-    assert("Done parsing a relation");
+    assert_parser("Done parsing a relation");
     return relationAST;
 }
 
@@ -571,11 +570,11 @@ EntryAST *parse_relation_term(EntryAST *relationAST) {
 }
 
 EntryAST *parse_term() {
-    assert("Parsing a term");
+    assert_parser("Parsing a term");
     EntryAST* termAST = parse_factor();
     check_int_float_type(termAST);
     termAST = parse_term_factor(termAST);
-    assert("Done parsing a term");
+    assert_parser("Done parsing a term");
     return termAST;
 }
 
@@ -611,7 +610,7 @@ EntryAST *parse_term_factor(EntryAST *termAST) {
 }
 
 EntryAST *parse_factor() {
-    assert("Parsing a factor");
+    assert_parser("Parsing a factor");
     EntryAST *factorAST = NULL;
     TypeAST *factorType = create_type();
     switch (look_ahead->type) {
@@ -644,7 +643,7 @@ EntryAST *parse_factor() {
             break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
-            assert("A negative number of a negative name");
+            assert_parser("A negative number of a negative name");
             factorAST = parse_factor();
             factorAST = create_unary_op(UN_MINUS, factorAST);
             break;
@@ -671,7 +670,7 @@ EntryAST *parse_factor() {
             break;
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    assert("Done parsing a factor");
+    assert_parser("Done parsing a factor");
     return factorAST;
 }
 

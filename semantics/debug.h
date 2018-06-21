@@ -3,10 +3,9 @@
 
 #include "symbol_table.h"
 
-void print_type_class(Type *type);
-void print_constant_value(ConstantValue *value);
-void print_entry(Entry *entry);
-void print_entry_list(EntryNode *entryList);
+void print_type(TypeAST *type);
+void print_entry(EntryAST *entry);
+void print_entry_list(EntryNodeAST *entryList);
 void print_scope(Scope *scope);
 
 #endif

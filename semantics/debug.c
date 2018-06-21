@@ -2,76 +2,98 @@
 #include "debug.h"
 
 void print_type(TypeAST *type) {
+    printf("A type\n");
+    printf("TypeClass: ");
     switch (type->typeClass) {
         case TC_INT:
-            printf("TypeClass: Int\n"); break;
+            printf("Int"); break;
     	case TC_FLOAT:
-            printf("TypeClass: Float\n"); break;
+            printf("Float"); break;
     	case TC_STRING:
-            printf("TypeClass: String\n"); break;
+            printf("String"); break;
     	case TC_BOOL:
-            printf("TypeClass: Bool\n"); break;
+            printf("Bool"); break;
     	case TC_CHAR:
-            printf("TypeClass: Char\n"); break;
+            printf("Char"); break;
     	case TC_ARRAY:
-            printf("TypeClass: Array. Size: %d. ", type->arraySize);
-            print_type_class(type->elementType);
+            printf("Array. Size: %d. ", type->arraySize);
+            print_type(type->elementType->typeAST);
             break;
         default:
-            printf("TypeClass: Unknown\n");break;
+            printf("Unknown");break;
     }
+    printf("\n");
 }
 
 void print_variable(VariableAST *varAST) {
+    printf("A variable\n");
     printf("Name: %s\n", varAST->name);
-    print_type(varAST->typeAST);
-    switch (varAST->value->typeClass) {
+
+    print_type(varAST->varType->typeAST);
+
+    printf("Value: ");
+    Token *value = varAST->value;
+    switch (varAST->varType->typeAST->typeClass) {
         case TC_INT:
-            printf("Value: %d\n", value->val.intVal); break;
+            printf("%d", value->val.intVal); break;
     	case TC_FLOAT:
-            printf("Value: %f\n", value->val.floatVal); break;
+            printf("%f", value->val.floatVal); break;
     	case TC_STRING:
-            printf("Value: \"%s\"\n", value->val.stringVal); break;
+            printf("\"%s\"", value->val.stringVal); break;
     	case TC_BOOL:
-            printf("Value: %d\n", value->val.boolVal); break;
+            printf("%d", value->val.boolVal); break;
     	case TC_CHAR:
-            printf("Value: '%c'\n", value->val.charVal); break;
+            printf("'%c'", value->val.charVal); break;
         default:
-            printf("Unknown value\n"); break;
+            printf("Unknown value"); break;
     }
+    printf("\n");
+}
+
+void print_program(ProgramAST *progAST) {
+    printf("A program\n");
+}
+
+void print_procedure(ProcedureAST *procAST) {
+    printf("A procedure\n");
+}
+
+void print_bin_op(BinaryOpAST *binOpAST) {
+    printf("A Binary Operation\n");
+}
+
+void print_statement(StatementAST *statAST) {
+    printf("A statment\n");
+}
+
+void print_param(ParamAST *paramAST) {
+    printf("A parameter\n");
 }
 
 void print_entry(EntryAST *entry) {
     switch (entry->entryType) {
     	case ET_VARIABLE:
-            printf("Variable: %s\n", entry->name);
-            print_type_class(entry->varAttrs->type);
-            break;
+            print_variable(entry->varAST); break;
     	case ET_TYPE_MARK:
-            printf("Type Mark: %s\n", entry->name);
-            print_type_class(entry->typeAttrs->type);
-            break;
+            print_type(entry->typeAST); break;
         case ET_PARAMTER:
-            printf("Parameter: %s\n", entry->name);
-            print_type_class(entry->paramAttrs->type);
-            break;
+            print_param(entry->paramAST); break;
     	case ET_PROCEDURE:
-            printf("Procedure: %s\n", entry->name);
-            print_scope(entry->procAttrs->scope);
-            break;
+            print_procedure(entry->procAST); break;
     	case ET_PROGRAM:
-            printf("Program: %s\n", entry->name);
-            print_scope(entry->progAttrs->scope);
-            break;
+            print_program(entry->progAST); break;
+        case ET_BIN_OP:
+            print_bin_op(entry->binOpAST); break;
+        case ET_STATEMENT:
+            print_statement(entry->statementAST); break;
         default: break;
     }
 }
 
-void print_entry_list(EntryNode *entryList) {
-    EntryNode *node = entryList;
+void print_entry_list(EntryNodeAST *entryList) {
+    EntryNodeAST *node = entryList;
     while (node != NULL) {
-        print_entry(node->entry);
-        printf("\n");
+        print_entry(node->entryAST);
         node = node->next;
     }
 }

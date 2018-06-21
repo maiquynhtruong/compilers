@@ -72,5 +72,9 @@ void missing_token(TokenType type, int lineNo, int columnNo) {
 }
 
 void assert(char *mesg) {
+    // printf("%s\n", mesg);
+}
+
+void assert_symbol_table(char *mesg) {
     printf("%s\n", mesg);
 }

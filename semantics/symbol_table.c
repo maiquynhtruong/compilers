@@ -7,7 +7,7 @@
 SymbolTable *symbolTable;
 
 void declare_entry(EntryAST *entryAST, int isGlobal) {
-	assert("Declaring an entry");
+	assert_symbol_table("Declaring an entry");
 
 	if (entryAST == NULL) return;
 
@@ -20,6 +20,9 @@ void declare_entry(EntryAST *entryAST, int isGlobal) {
 }
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
+	assert_symbol_table("Insert an entry");
+	print_entry(entryAST);
+
 	EntryNodeAST *entryNode = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	entryNode->entryAST = entry;
 	entryNode->next = NULL;
@@ -49,6 +52,9 @@ EntryAST *lookup(char *name) {
 
 // find entry by name in a EntryNodeAST list
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
+	assert_symbol_table("Finding entry: ");
+	assert_symbol_table(name);
+	
 	EntryNodeAST *curNode = list;
 	while (curNode != NULL) {
 		EntryAST *entryAST = curNode->entryAST;
@@ -74,6 +80,8 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 }
 
 void init_symbol_table() {
+	assert_symbol_table("Initialize a symbol table");
+
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
 	symbolTable->currentScope = NULL;
 	symbolTable->root = NULL;
@@ -124,6 +132,8 @@ void clear_symbol_table() {
 }
 
 Scope *new_scope() {
+	assert_symbol_table("New scope");
+
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
 	scope->outerScope = symbolTable->currentScope;
@@ -131,10 +141,14 @@ Scope *new_scope() {
 }
 
 void enter_scope(Scope *scope) {
+	assert_symbol_table("Enter a scope");
+
 	symbolTable->currentScope = scope;
 }
 
 void exit_scope() {
+	assert_symbol_table("Exit a scope");
+
 	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }
 

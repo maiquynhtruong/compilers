@@ -130,8 +130,6 @@ EntryAST *create_variable(char *name, EntryAST *type, Token *value) {
     return varAST;
 }
 
-
-// EntryAST *create_constant(TypeClass typeClass, Token *value); // TODO: Not sure about this
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
