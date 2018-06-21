@@ -10,20 +10,20 @@ extern Token *current_token;
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
-	Entry *entry = find_entry(symbol_table->currentScope->entryList, name);
+	EntryAST *entry = find_entry(symbol_table->currentScope->entryList, name);
 
 	if (entry != NULL) throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
 }
 
-Entry *check_declared_identifier(char *name) {
-	Entry *entry = lookup(name);
+EntryAST *check_declared_identifier(char *name) {
+	EntryAST *entry = lookup(name);
 
 	if (entry == NULL) throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 	return entry;
 }
 
-Entry *check_declared_variable(char *name) {
-	Entry *entry = lookup(name);
+EntryAST *check_declared_variable(char *name) {
+	EntryAST *entry = lookup(name);
 
 	if (entry == NULL) throw_error(E_UNDECLARED_VARIABLE, current_token->lineNo, current_token->columnNo);
 	if (entry->entryType != ET_VARIABLE)
@@ -32,8 +32,8 @@ Entry *check_declared_variable(char *name) {
 	return entry;
 }
 
-Entry *check_declared_procedure(char *name) {
-	Entry *entry = lookup(name);
+EntryAST *check_declared_procedure(char *name) {
+	EntryAST *entry = lookup(name);
 
 	if (entry == NULL) throw_error(E_UNDECLARED_PROCEDURE, current_token->lineNo, current_token->columnNo);
 	if (entry->entryType != ET_PROCEDURE)
@@ -42,8 +42,8 @@ Entry *check_declared_procedure(char *name) {
 	return entry;
 }
 
-Entry *check_declared_destination(char *name) {
-	Entry *entry = lookup(name);
+EntryAST *check_declared_destination(char *name) {
+	EntryAST *entry = lookup(name);
 
 	if (entry == NULL) throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 
@@ -58,54 +58,54 @@ Entry *check_declared_destination(char *name) {
 	return entry;
 }
 
-void check_int_float_type(Type *type) {
+void check_int_float_type(TypeAST *type) {
 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_basic_type(Type *type) {
+void check_basic_type(TypeAST *type) {
 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR)) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_builtin_type(Type *type1) {
+void check_builtin_type(TypeAST *type1) {
 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_int_type(Type *type) {
+void check_int_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_INT) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_char_type(Type *type) {
+void check_char_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_CHAR) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_string_type(Type *type) {
+void check_string_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_STRING) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_float_type(Type *type) {
+void check_float_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_FLOAT) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_bool_type(Type *type) {
+void check_bool_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_BOOL) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_array_type(Type *type) {
+void check_array_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_ARRAY) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_type_equality(Type *type1, Type *type2) {
+void check_type_equality(TypeAST *type1, TypeAST *type2) {
 	if (compare_type(type1, type2) == 0)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }

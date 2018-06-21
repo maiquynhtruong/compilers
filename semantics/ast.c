@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include "ast.h"
 
+// from symbol_table.c
+extern SymbolTable *symbol_table;
+extern Token *current_token;
+
 /******************************* Make Types ********************************/
 TypeAST *make_int_type() {
 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
@@ -59,8 +63,7 @@ If you prefer, these routines can read/write to named files such as “input” 
 */
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
 	EntryAST *type = create_type(varType);
-	EntryAST *value = create_constant(varType, NULL);
-	EntryAST *var = create_variable("val", type, value);
+	EntryAST *var = create_variable("val", type, current_token);
 
 	EntryAST *param = create_parameter(paramType, "val", type);
 	EntryNodeAST *params = create_entry_node(param, NULL);
@@ -101,7 +104,9 @@ TypeAST *create_type(TypeClass typeClass) {
 	return entryAST;
 }
 
-EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
+EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor) {
+
+}
 
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
@@ -114,20 +119,28 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     return entryAST;
 }
 
-EntryAST *create_variable(char *name, Type *type, ConstantAST *value) {
+EntryAST *create_variable(char *name, EntryAST *type, Token *value) {
     EntryAST *varAST = (EntryAST *) malloc(sizeof(EntryAST));
     if (type->typeClass != TC_ARRAY) {
         if (value != NULL) {
 
+			}
         } // else throw some error
     } // else do something for variable AST
     return varAST;
 }
 
-EntryAST *create_constant(char *name, TypeAST *type);
-EntryAST *create_body_block(EntryAST *decls, EntryAST *statements);
+
+// EntryAST *create_constant(TypeClass typeClass, Token *value); // TODO: Not sure about this
+EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
-EntryAST *create_param(char *name, EntryAST *procedure);
-EntryAST *create_procedure(char *name, EntryAST *body);
-EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
+EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
+EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
+EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock) {
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *ifAST = entryAST->statementAST->ifAST;
+	ifAST->condition = condition;
+	ifAST->trueBlock = trueBlock;
+	ifAST->falseBlock = falseBlock;
+}

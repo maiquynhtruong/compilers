@@ -79,16 +79,17 @@ typedef struct UnaryOpAST {
 	struct EntryAST *factor;
 } UnaryOpAST;
 
-typedef struct ConstantAST {
-	TypeClass typeClass;
-	union {
-		char stringVal[MAX_STRING_LENGTH+1];
-        int intVal;
-        float floatVal;
-        bool boolVal;
-        char charVal;
-	};
-} ConstantAST;
+// Replaced by a struct Token from token.h
+// typedef struct ConstantAST {
+// 	TypeClass typeClass;
+// 	union {
+// 		char stringVal[MAX_STRING_LENGTH+1];
+//         int intVal;
+//         float floatVal;
+//         bool boolVal;
+//         char charVal;
+// 	};
+// } ConstantAST;
 
 typedef struct BodyAST {
 	struct EntryNodeAST *declList;
@@ -104,8 +105,8 @@ typedef struct ProgramAST {
 typedef struct VariableAST {
 	struct EntryAST *varType;
     char *name;
-	// Scope *scope;
-	struct EntryAST *value;
+	// struct EntryAST *value; // replaced by a Token
+	Token *token; // for value
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -167,7 +168,6 @@ typedef struct EntryAST {
 	EntryType entryType; // type
 	union {
 		UnaryOpAST *unaOpAST;
-		ConstantAST *constAST;
 		BodyAST *bodyAST;
 		ProgramAST *progAST;
 		TypeAST *typeAST;
@@ -193,10 +193,10 @@ EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next);
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_type(TypeClass typeClass);
 EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
-EntryAST *create_constant(TypeClass typeClass, Token *value); // TODO: Not sure about this
+// EntryAST *create_constant(TypeClass typeClass, Token *value); // TODO: Not sure about this
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
-EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
+EntryAST *create_variable(char *name, EntryAST *type, Token *value);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);

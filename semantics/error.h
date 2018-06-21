@@ -3,6 +3,9 @@
 
 #include "token.h"
 
+// TODO: Like GCC, the compiler will report error and move on. But the max errors is 20
+#define MAX_ERRORS 20
+
 typedef enum {
     E_END_OF_COMMENT,
     E_IDENT_TOO_LONG,
