@@ -100,12 +100,13 @@ EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
         match_token(K_GLOBAL);
         isGlobal = 1;
     }
+    EntryAST *declAST; // https://stackoverflow.com/questions/22419790/c-error-expected-expression-before-int
 
     switch (look_ahead->type) {
         case K_PROCEDURE:
-            EntryAST *procAST = parse_proc_declaration(isGlobal);
+            declAST = parse_proc_declaration(isGlobal);
             match_token(T_SEMI_COLON);
-            node = create_entryAST_node(procAST, NULL);
+            node = create_entry_node(declAST, NULL);
             node->next = parse_declaration_list(node);
             node = node->next;
             break;
@@ -113,10 +114,10 @@ EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
         case K_BEGIN: // from program_body, procedure_body
             break;
         default:
-            EntryAST *varAST = parse_var_declaration();
+            declAST = parse_var_declaration(isGlobal);
             match_token(T_SEMI_COLON);
-            declare_entry(varAST, isGlobal);
-            node = create_entryAST_node(varAST, NULL);
+            // declare_entry(declAST, isGlobal);
+            node = create_entry_node(declAST, NULL);
             node->next = parse_declaration_list(node);
             node = node->next;
             break;
@@ -127,19 +128,19 @@ EntryNodeAST *parse_declaration_list(EntryNodeAST *node) {
 
 EntryAST *parse_proc_declaration(int isGlobal) {
     assert_parser("Parsing a procedure declaration");
-    EntryAST *procAST = NULL, *bodyAST = NULL;
+    EntryAST *procAST = NULL;
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
-    *procAST = create_procedure(current_token->val.stringVal, NULL);
+    *procAST = create_procedure(current_token->val.stringVal, NULL, NULL);
     declare_entry(procAST, isGlobal);
 
     enter_scope(new_scope());
 
-    (*procAST)->params = parse_param_list();
-    bodyAST = parse_body_block(); // procedure body
+    procAST->params = parse_param_list();
+    procAST->body = parse_body_block(); // procedure body
     match_token(K_PROCEDURE);
 
     exit_scope();
@@ -148,7 +149,7 @@ EntryAST *parse_proc_declaration(int isGlobal) {
     return procAST;
 }
 
-EntryAST *parse_var_declaration() {
+EntryAST *parse_var_declaration(int isGlobal) {
     assert_parser("Parsing a variable declaration");
 
     EntryAST *typeMark = parse_type_mark();
@@ -174,7 +175,7 @@ EntryAST *parse_var_declaration() {
         match_token(T_RBRACKET);
     }
 
-    // declare_entry(varAST); // in parse_declaration_list() and parse_param()
+    declare_entry(varAST, isGlobal); // in parse_declaration_list() and parse_param()
     assert_parser("Done parsing a variable declaration");
     return varAST;
 }
@@ -212,7 +213,7 @@ EntryNodeAST *parse_statement_list(EntryNodeAST *node) {
 
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
-        node = create_entryAST_node(statementAST, NULL);
+        node = create_entry_node(statementAST, NULL);
         node->next = parse_statement_list(node);
         node = node->next;
 
@@ -299,53 +300,62 @@ EntryAST *parse_assignment_statement() {
     return assigmentAST;
 }
 
-void parse_if_statement() {
+EntryAST *parse_if_statement() {
     assert_parser("Parsing an if statement");
+    EntryAST *ifAST, *condition;
+    EntryNodeAST *trueBlock = NULL, *falseBlock = NULL;
+
     match_token(K_IF);
     match_token(T_LPAREN);
 
-    TypeAST *expType = parse_expression();
+    condition = parse_expression();
     check_bool_type(expType);
     if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
     else check_bool_type(expType)
 
     match_token(T_RPAREN);
     match_token(K_THEN);
-    parse_statement_list();
+    trueBlock = parse_statement_list();
     if (look_ahead->type == K_ELSE) {
         match_token(K_ELSE);
-        parse_statement_list();
+        falseBlock = parse_statement_list();
     }
     match_token(K_END);
     match_token(K_IF);
+
+    ifAST = create_if_statement(condition, trueBlock, falseBlock);
     assert_parser("Done parsing an if statement");
+    return ifAST;
 }
 
-void parse_loop_statement() {
+EntryAST *parse_loop_statement() {
     assert_parser("Parsing a for loop");
+    EntryAST *loop;
+
     match_token(K_FOR);
     match_token(T_LPAREN);
-    parse_assignment_statement();
+    parse_assignment_statement(); // TODO: What to do with this?
     match_token(T_SEMI_COLON);
 
-    TypeAST *expType = parse_expression();
-    if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
-    check_bool_type(expType);
+    loop->statementAST->loopAST->expr = parse_expression();
+    // if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
+    // check_bool_type(expType);
 
     match_token(T_RPAREN);
     if (look_ahead->type != K_END) {
-        parse_statement_list();
+        loop->statementAST->loopAST->statements = parse_statement_list();
     }
+
     match_token(K_END);
     match_token(K_FOR);
     assert_parser("Done parsing a for loop");
 }
 
-void parse_return_statement() {
+EntryAST *parse_return_statement() {
     match_token(K_RETURN);
 }
 
-void parse_procedure_call() {
+EntryAST *parse_procedure_call() {
     assert_parser("Parsing a procedure call");
     Entry *entry = check_declared_procedure(current_token->val.stringVal);
     match_token(T_LPAREN);
@@ -362,7 +372,7 @@ EntryNodeAST *parse_param_list() {
         param = parse_param();
         while (look_ahead->type == T_COMMA) {
             match_token(T_COMMA);
-            node = create_entryAST_node(param, NULL);
+            node = create_entry_node(param, NULL);
             node->next = parse_param();
             node = node->next;
         }
@@ -374,8 +384,8 @@ EntryNodeAST *parse_param_list() {
 EntryAST *parse_param() {
     assert_parser("Parsing a parameter");
     EntryAST *paramAST = NULL;
-    EntryAST *varAST = parse_var_declaration(&entry, 0);
-    // TODO: delete the declaration of the variable in the outerscope
+    EntryAST *varAST = parse_var_declaration(0);
+
     switch (look_ahead->type) {
         case K_IN:
             paramAST = create_parameter(varAST, PT_IN);
@@ -389,7 +399,7 @@ EntryAST *parse_param() {
         default:
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    declare_entry(paramAST);
+    // declare_entry(paramAST, 0);
 
     assert_parser("Done parsing a parameter");
     return paramAST;

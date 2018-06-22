@@ -9,8 +9,8 @@ int parse(char *file_name);
 EntryAST *parse_body_block();
 EntryAST *parse_program();
 EntryNodeAST *parse_declaration_list();
-EntryAST *parse_proc_declaration(Entry **entry, int global);
-EntryAST *parse_var_declaration(Entry **entry, int global);
+EntryAST *parse_proc_declaration(int isGlobal);
+EntryAST *parse_var_declaration(int isGlobal);
 EntryAST *parse_type_mark();
 EntryNodeAST *parse_statement_list();
 EntryAST *parse_statement();
@@ -34,7 +34,8 @@ EntryAST *parse_term();
 EntryAST *parse_term_factor(EntryAST *termAST);
 EntryAST *parse_factor();
 EntryAST *parse_indexes();
-Type *int_to_bool(Type *intType);
-Type *bool_to_int(Type *boolType);
+// TODO: To be implemented later
+// Type *int_to_bool(Type *intType);
+// Type *bool_to_int(Type *boolType);
 
 #endif
