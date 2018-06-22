@@ -1,6 +1,5 @@
 #include "error.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 void throw_error(ErrorCode code, int lineNo, int columnNo) {
     switch(code) {
@@ -71,6 +70,10 @@ void missing_token(TokenType type, int lineNo, int columnNo) {
     exit(0);
 }
 
+/** Assert functions:
+Comment the function body to print logging info
+Uncomment to silence
+**/
 void assert(char *mesg) {
     // printf("%s\n", mesg);
 }

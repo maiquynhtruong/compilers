@@ -132,8 +132,8 @@ typedef struct ProcedureAST {
 
 typedef struct IfAST {
     struct EntryAST *condition;
-    struct EntryAST *trueBlock;
-    struct EntryAST *falseBlock;
+    struct EntryNodeAST *trueBlock;
+    struct EntryNodeAST *falseBlock;
 } IfAST;
 
 typedef struct AssignmentAST {
@@ -142,7 +142,8 @@ typedef struct AssignmentAST {
 } AssignmentAST;
 
 typedef struct LoopAST {
-	// TODO: Write something here. Just something!
+	EntryAST *expr;
+	EntryNodeAST *statements;
 } LoopAST;
 
 typedef struct ReturnAST {} ReturnAST; // TODO: what to fill in?

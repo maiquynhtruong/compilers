@@ -9,7 +9,7 @@ void print_program(ProgramAST *progAST);
 void print_procedure(ProcedureAST *procAST);
 void print_bin_op(BinaryOpAST *binOpAST);
 void print_statement(StatementAST *statAST);
-void print_param(ParamAST *paramAST)
+void print_param(ParamAST *paramAST);
 void print_entry(EntryAST *entry);
 void print_entry_list(EntryNodeAST *entryList);
 void print_scope(Scope *scope);

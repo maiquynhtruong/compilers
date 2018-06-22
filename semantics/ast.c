@@ -103,10 +103,6 @@ EntryAST *create_type(TypeClass typeClass) {
 	return entryAST;
 }
 
-EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor) {
-
-}
-
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
     BinaryOpAST *binOpAST = (BinaryOpAST *) malloc(sizeof(BinaryOpAST));
@@ -140,4 +136,5 @@ EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST
 	ifAST->condition = condition;
 	ifAST->trueBlock = trueBlock;
 	ifAST->falseBlock = falseBlock;
+	return entryAST;
 }
