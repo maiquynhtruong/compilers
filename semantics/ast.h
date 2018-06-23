@@ -142,6 +142,7 @@ typedef struct AssignmentAST {
 } AssignmentAST;
 
 typedef struct LoopAST {
+	AssignmentAST *assignment;
 	EntryAST *expr;
 	EntryNodeAST *statements;
 } LoopAST;
@@ -149,7 +150,7 @@ typedef struct LoopAST {
 typedef struct ReturnAST {} ReturnAST; // TODO: what to fill in?
 
 typedef struct ProcedureCallAST {
-    char *name;
+    char *callee;
     struct EntryNodeAST *args;
     unsigned int argc;
 } ProcedureCallAST;
@@ -193,15 +194,15 @@ EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next);
 
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_type(TypeClass typeClass);
-EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
-// EntryAST *create_constant(TypeClass typeClass, Token *value); // TODO: Not sure about this
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_variable(char *name, EntryAST *type, Token *value);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
-EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
+EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
+EntryAST *create_procedure_call(char *callee, EntryAST **args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
-EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
+EntryAST *create_if(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
+EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements);
 
 #endif
