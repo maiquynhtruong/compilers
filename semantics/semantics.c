@@ -109,3 +109,10 @@ void check_type_equality(TypeAST *type1, TypeAST *type2) {
 	if (compare_type(type1, type2) == 0)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
+
+void convert_to_bool(TypeAST *type) {
+	if (type->typeClass == TC_INT) type->typeClass = TC_BOOL;
+}
+void convert_to_int(TypeAST *type) {
+	if (type->typeClass == TC_BOOL) type->typeClass = TC_INT;
+}

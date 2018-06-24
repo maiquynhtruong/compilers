@@ -19,4 +19,7 @@ void check_builtin_type(TypeAST *type);
 void check_bool_type(TypeAST *type);
 void check_type_equality(TypeAST *type1, TypeAST *type2);
 
+void convert_to_bool(TypeAST *type);
+void convert_to_int(TypeAST *type);
+
 #endif

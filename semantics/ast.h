@@ -143,26 +143,26 @@ typedef struct AssignmentAST {
 
 typedef struct LoopAST {
 	AssignmentAST *assignment;
-	EntryAST *expr;
+	struct EntryAST *expr;
 	EntryNodeAST *statements;
 } LoopAST;
 
 typedef struct ReturnAST {} ReturnAST; // TODO: what to fill in?
 
-typedef struct ProcedureCallAST {
+typedef struct ProcCallAST {
     char *callee;
     struct EntryNodeAST *args;
     unsigned int argc;
-} ProcedureCallAST;
+} ProcCallAST;
 
 typedef struct StatementAST {
 	StatementType statementType;
 	union {
-		AssignmentAST *assignment;
+		AssignmentAST *asgmtAST;
 		IfAST *ifAST;
 		LoopAST *loopAST;
 		ReturnAST *returnAST;
-		ProcedureCallAST *procCall;
+		ProcCallAST *procCallAST;
 	};
 } StatementAST;
 
@@ -177,7 +177,7 @@ typedef struct EntryAST {
         BinaryOpAST *binOpAST;
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
-		StatementAST *statementAST;
+		StatementAST *stmtAST;
 	}; // value
 } EntryAST;
 
@@ -199,10 +199,11 @@ EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_variable(char *name, EntryAST *type, Token *value);
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
-EntryAST *create_procedure_call(char *callee, EntryAST **args, int argc);
+EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
-EntryAST *create_if(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock);
+EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock);
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements);
+EntryAST *create_return();
 
 #endif

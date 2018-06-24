@@ -130,7 +130,7 @@ EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
 
-EntryAST *create_if_statement(EntryAST *condition, EntryAST *trueBlock, EntryAST *falseBlock) {
+EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock) {
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	IfAST *ifAST = entryAST->statementAST->ifAST;
 	ifAST->condition = condition;
