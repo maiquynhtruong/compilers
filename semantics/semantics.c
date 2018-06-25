@@ -5,12 +5,12 @@
 #include "error.h"
 
 // from symbol_table.c
-extern SymbolTable *symbol_table;
+extern SymbolTable *symbolTable;
 extern Token *current_token;
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
-	EntryAST *entry = find_entry(symbol_table->currentScope->entryList, name);
+	EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
 
 	if (entry != NULL) throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
 }
@@ -69,7 +69,7 @@ void check_basic_type(TypeAST *type) {
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_builtin_type(TypeAST *type1) {
+void check_builtin_type(TypeAST *type) {
 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);

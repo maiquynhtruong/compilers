@@ -11,10 +11,10 @@ main.o: main.c
 		${CC} ${CFLAGS} main.c
 
 debug.o: debug.c
-		${CC} ${CFLAGS} debug.c
+		 ${CC} ${CFLAGS} debug.c
 
 error.o: error.c
-		${CC} ${CFLAGS} error.c
+		 ${CC} ${CFLAGS} error.c
 
 parser.o: parser.c
 			${CC} ${CFLAGS} parser.c
@@ -26,13 +26,13 @@ scanner.o: scanner.c
 			${CC} ${CFLAGS} scanner.c
 
 semantics.o: semantics.c
-			${CC} ${CFLAGS} semantics.c
+			 ${CC} ${CFLAGS} semantics.c
 
 symbol_table.o: symbol_table.c
 				${CC} ${CFLAGS} symbol_table.c
 
 token.o: token.c
-		${CC} ${CFLAGS} token.c
+		 ${CC} ${CFLAGS} token.c
 
 ast.o: ast.c
 		${CC} ${CFLAGS} ast.c

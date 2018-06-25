@@ -7,12 +7,13 @@
 #include "parser.h"
 #include "semantics.h"
 #include "scanner.h"
+#include "ast.h"
 
 Token* look_ahead;
 Token* current_token;
 
 // from symbol_table.c
-extern SymbolTable *symbol_table;
+extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
     // printf("In match_token. Expected type: ");
@@ -46,8 +47,8 @@ int parse(char *file_name) {
 
     init_symbol_table();
 
-    symbol_table->root = parse_program();
-    print_entry(symbol_table->root);
+    symbolTable->root = parse_program();
+    print_entry(symbolTable->root);
 
     clear_symbol_table();
 
@@ -185,7 +186,7 @@ EntryAST *parse_var_declaration(int isGlobal) {
 EntryAST* parse_type_mark() {
     assert_parser("Parsing a type mark");
 
-    EntryAST *typeMark;
+    EntryAST *typeMark = NULL;
     switch(look_ahead->type) {
         case K_INT:
             match_token(K_INT);
@@ -339,8 +340,8 @@ EntryAST *parse_if_statement() {
 
 EntryAST *parse_loop_statement() {
     assert_parser("Parsing a for loop");
-    EntryAST *loop = NULL, *assignment, *expr;
-    EntryNodeAST *statements;
+    EntryAST *loop = NULL, *assignment = NULL, *expr = NULL;
+    EntryNodeAST *statements = NULL;
 
     match_token(K_FOR);
     match_token(T_LPAREN);

@@ -88,6 +88,13 @@ void free_type(TypeAST *type) {
 	free(type);
 }
 
+EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next) {
+	EntryNodeAST *node = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
+	node->entryAST = entryAST;
+	node->next = next;
+	return node;
+}
+
 EntryAST *create_type(TypeClass typeClass) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	TypeAST *type = NULL;
@@ -97,7 +104,7 @@ EntryAST *create_type(TypeClass typeClass) {
 		case TC_STRING: type = make_string_type(); break;
 		case TC_BOOL: type = make_bool_type(); break;
 		case TC_CHAR: type = make_char_type(); break;
-		// case TC_ARRAY: type = make_array_type(); break;
+		// case TC_ARRAY: type = make_array_type(); break; //TODO: Probably need to include elementType and size
 	}
 	entryAST->typeAST = type;
 	return entryAST;
@@ -115,24 +122,73 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 }
 
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
-    EntryAST *varAST = (EntryAST *) malloc(sizeof(EntryAST));
+    EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
     if (type->typeAST->typeClass != TC_ARRAY) {
         if (value != NULL) {
 
         } // else throw some error
     } // else do something for variable AST
-    return varAST;
+    return entryAST;
 }
 
-EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
-EntryAST *create_program(char *name, EntryAST *body);
-EntryAST *create_procedure_call(char *name, EntryAST **args, int argc);
-EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
-EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
+EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements) {
+	assert_ast("Create body block");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_program(char *name, EntryAST *body) {
+	assert_ast("Create program");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_procedure_call(char *name, EntryNodeAST *args, int argc) {
+	assert_ast("Create procedure call");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type) {
+	assert_ast("Create param");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body) {
+	assert_ast("Create procedure");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_factor(TypeClass typeClass, Token *value) {
+	assert_ast("Create factor");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements) {
+	assert_ast("Create loop");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_return() {
+	assert_ast("Create return");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
+
+EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor) {
+	assert_ast("Create unary operator");
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	return entryAST;
+}
 
 EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock) {
+	assert_ast("Create if");
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
-	IfAST *ifAST = entryAST->statementAST->ifAST;
+	IfAST *ifAST = entryAST->stmtAST->ifAST;
 	ifAST->condition = condition;
 	ifAST->trueBlock = trueBlock;
 	ifAST->falseBlock = falseBlock;

@@ -21,7 +21,7 @@ void declare_entry(EntryAST *entryAST, int isGlobal) {
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	assert_symbol_table("Insert an entry");
-	print_entry(entryAST);
+	print_entry(entry);
 
 	EntryNodeAST *entryNode = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	entryNode->entryAST = entry;
@@ -54,7 +54,7 @@ EntryAST *lookup(char *name) {
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table("Finding entry: ");
 	assert_symbol_table(name);
-	
+
 	EntryNodeAST *curNode = list;
 	while (curNode != NULL) {
 		EntryAST *entryAST = curNode->entryAST;
@@ -64,8 +64,8 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 			case ET_VARIABLE: entryName = entryAST->varAST->name; break;
 			case ET_PROCEDURE: entryName = entryAST->procAST->name; break;
 			case ET_STATEMENT:
-				switch (entryAST->statementAST->statementType) {
-					case ST_CALL: entryName = entryAST->statementAST->procCall->name; break;
+				switch (entryAST->stmtAST->statementType) {
+					case ST_CALL: entryName = entryAST->stmtAST->procCallAST->callee; break;
 					default: break;
 				}
 				break;

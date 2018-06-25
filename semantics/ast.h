@@ -2,7 +2,7 @@
 #define AST_H
 
 #include <stdbool.h>
-#include "token.h"
+#include "error.h"
 
 /*
 There are two main types of entry:
