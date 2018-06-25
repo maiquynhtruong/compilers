@@ -32,18 +32,18 @@ void print_variable(VariableAST *varAST) {
     print_type(varAST->varType->typeAST);
 
     printf("Value: ");
-    Token *value = varAST->value;
+    FactorAST *value = varAST->value->factorAST;
     switch (varAST->varType->typeAST->typeClass) {
         case TC_INT:
-            printf("%d", value->val.intVal); break;
+            printf("%d", value->intVal); break;
     	case TC_FLOAT:
-            printf("%f", value->val.floatVal); break;
+            printf("%f", value->floatVal); break;
     	case TC_STRING:
-            printf("\"%s\"", value->val.stringVal); break;
+            printf("\"%s\"", value->stringVal); break;
     	case TC_BOOL:
-            printf("%d", value->val.boolVal); break;
+            printf("%d", value->boolVal); break;
     	case TC_CHAR:
-            printf("'%c'", value->val.charVal); break;
+            printf("'%c'", value->charVal); break;
         default:
             printf("Unknown value"); break;
     }
@@ -85,7 +85,7 @@ void print_entry(EntryAST *entry) {
         case ET_BIN_OP:
             print_bin_op(entry->binOpAST); break;
         case ET_STATEMENT:
-            print_statement(entry->statementAST); break;
+            print_statement(entry->stmtAST); break;
         default: break;
     }
 }
@@ -103,5 +103,5 @@ void print_scope(Scope *scope) {
 }
 
 void print_symbol_table() {
-    
+
 }

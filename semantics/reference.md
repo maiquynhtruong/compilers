@@ -1,3 +1,9 @@
+https://github.com/cc65/cc65/blob/709ee6a28b1375222d44590a57e93d732966f8bf/src/ca65/symtab.h
+
+https://github.com/andrejnano/IFJ17/tree/master/src
+
+https://github.com/misspink1011/C--Compiler/tree/master/Code%20Generation
+
 https://github.com/keizo042/kcc/blob/master/ast.h
 
 https://github.com/mhbackes/compiladores/blob/master/etapa6/semantic.c

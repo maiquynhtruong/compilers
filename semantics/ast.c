@@ -62,7 +62,7 @@ If you prefer, these routines can read/write to named files such as “input” 
 */
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
 	EntryAST *type = create_type(varType);
-	EntryAST *var = create_variable("val", type, current_token);
+	EntryAST *var = create_variable("val", type, NULL);
 
 	EntryAST *param = create_param(paramType, var, type);
 	EntryNodeAST *params = create_entry_node(param, NULL);
@@ -114,7 +114,7 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     return entryAST;
 }
 
-EntryAST *create_variable(char *name, EntryAST *type, Token *value) {
+EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
     EntryAST *varAST = (EntryAST *) malloc(sizeof(EntryAST));
     if (type->typeAST->typeClass != TC_ARRAY) {
         if (value != NULL) {

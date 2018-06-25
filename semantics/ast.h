@@ -47,9 +47,9 @@ typedef enum BinaryOpType {
 	BO_MINUS,
 	BO_DIVIDE,
 	BO_MULTIPLY,
-	BO_LE,
+	BO_LT,
 	BO_LTEQ,
-	BO_GE,
+	BO_GT,
 	BO_GTEQ,
 	BO_EQ,
 	BO_NEQ,
@@ -79,17 +79,17 @@ typedef struct UnaryOpAST {
 	struct EntryAST *factor;
 } UnaryOpAST;
 
-// Replaced by a struct Token from token.h
-// typedef struct ConstantAST {
-// 	TypeClass typeClass;
-// 	union {
-// 		char stringVal[MAX_STRING_LENGTH+1];
-//         int intVal;
-//         float floatVal;
-//         bool boolVal;
-//         char charVal;
-// 	};
-// } ConstantAST;
+// Might be Replaced by a struct Token from token.h
+typedef struct FactorAST {
+	TypeClass typeClass;
+	union {
+		char stringVal[MAX_STRING_LENGTH+1];
+        int intVal;
+        float floatVal;
+        bool boolVal;
+        char charVal;
+	};
+} FactorAST;
 
 typedef struct BodyAST {
 	struct EntryNodeAST *declList;
@@ -105,8 +105,8 @@ typedef struct ProgramAST {
 typedef struct VariableAST {
 	struct EntryAST *varType;
     char *name;
-	// struct EntryAST *value; // replaced by a Token
-	Token *value; // for value
+	struct EntryAST *value; // should it be replaced by a token?
+	// Token *value; // for value
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -169,10 +169,11 @@ typedef struct StatementAST {
 typedef struct EntryAST {
 	EntryType entryType; // type
 	union {
-		UnaryOpAST *unaOpAST;
+		UnaryOpAST *unaOpAST; //TODO: this should belong to FactorAST
 		BodyAST *bodyAST;
 		ProgramAST *progAST;
 		TypeAST *typeAST;
+		FactorAST *factorAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
 		ProcedureAST *procAST;
@@ -196,9 +197,10 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 EntryAST *create_type(TypeClass typeClass);
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
-EntryAST *create_variable(char *name, EntryAST *type, Token *value);
-EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs);
-EntryAST *create_unary_op(UnaryOpAST unaOp, EntryAST *factor);
+EntryAST *create_factor(TypeClass typeClass, Token *value);
+EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
+EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
+EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type);
 EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);

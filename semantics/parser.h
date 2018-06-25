@@ -23,7 +23,7 @@ EntryAST *parse_return_statement();
 EntryAST *parse_procedure_call();
 EntryAST *parse_destination();
 EntryNodeAST *parse_argument_list();
-void parse_argument_list_expression();
+void parse_argument(EntryAST *paramType);
 EntryAST *parse_expression();
 EntryAST *parse_expression_arith_op(EntryAST *expAST);
 EntryAST *parse_arith_op();
