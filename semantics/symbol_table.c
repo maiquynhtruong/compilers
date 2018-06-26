@@ -191,3 +191,12 @@ void free_entry_list(EntryNodeAST *node) {
 		node = node->next;
 	}
 }
+
+
+void print_scope(Scope *scope) {
+    print_entry_list(scope->entryList);
+}
+
+void print_symbol_table() {
+
+}

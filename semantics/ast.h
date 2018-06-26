@@ -2,7 +2,7 @@
 #define AST_H
 
 #include <stdbool.h>
-#include "error.h"
+#include "token.h"
 
 /*
 There are two main types of entry:
@@ -207,5 +207,16 @@ EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body);
 EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock);
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements);
 EntryAST *create_return();
+
+/*********** Debug functions ****************/
+void print_type(TypeAST *type);
+void print_variable(VariableAST *varAST);
+void print_program(ProgramAST *progAST);
+void print_procedure(ProcedureAST *procAST);
+void print_bin_op(BinaryOpAST *binOpAST);
+void print_statement(StatementAST *statAST);
+void print_param(ParamAST *paramAST);
+void print_entry(EntryAST *entry);
+void print_entry_list(EntryNodeAST *entryList);
 
 #endif

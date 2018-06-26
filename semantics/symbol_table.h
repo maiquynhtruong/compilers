@@ -39,4 +39,7 @@ void free_scope(Scope *scope);
 
 void free_entry(EntryAST *entry);
 void free_entry_list(EntryNodeAST *node);
+
+void print_scope(Scope *scope);
+void print_symbol_table();
 #endif
