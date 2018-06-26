@@ -2,7 +2,7 @@
 #include "debug.h"
 
 void print_type(TypeAST *type) {
-    printf("A type\n");
+    assert_ast("A type");
     printf("TypeClass: ");
     switch (type->typeClass) {
         case TC_INT:
@@ -26,7 +26,7 @@ void print_type(TypeAST *type) {
 }
 
 void print_variable(VariableAST *varAST) {
-    printf("A variable\n");
+    assert_ast("A variable");
     printf("Name: %s\n", varAST->name);
 
     print_type(varAST->varType->typeAST);
@@ -51,23 +51,23 @@ void print_variable(VariableAST *varAST) {
 }
 
 void print_program(ProgramAST *progAST) {
-    printf("A program\n");
+    assert_ast("A program\n");
 }
 
 void print_procedure(ProcedureAST *procAST) {
-    printf("A procedure\n");
+    assert_ast("A procedure\n");
 }
 
 void print_bin_op(BinaryOpAST *binOpAST) {
-    printf("A Binary Operation\n");
+    assert_ast("A Binary Operation\n");
 }
 
 void print_statement(StatementAST *statAST) {
-    printf("A statment\n");
+    assert_ast("A statment\n");
 }
 
 void print_param(ParamAST *paramAST) {
-    printf("A parameter\n");
+    assert_ast("A parameter\n");
 }
 
 void print_entry(EntryAST *entry) {

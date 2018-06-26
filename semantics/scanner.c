@@ -55,7 +55,7 @@ Token *read_ident() {
   token->val.stringVal[i] = '\0';
 
   token->type = check_reserved_word(token->val.stringVal);
-  printf("in read_ident: stringVal = %s\n", token->val.stringVal);
+  // printf("in read_ident: stringVal = %s\n", token->val.stringVal);
   return token;
 }
 

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "ast.h"
+#include "debug.h"
 
 // from symbol_table.c
 extern Token *current_token;
@@ -61,6 +62,9 @@ These functions read/write input/output to standard in and standard out.
 If you prefer, these routines can read/write to named files such as “input” and “output”.
 */
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
+	assert_ast("Create builtin function");
+	assert_ast(name);
+
 	EntryAST *type = create_type(varType);
 	EntryAST *var = create_variable("val", type, NULL);
 
@@ -152,6 +156,7 @@ EntryAST *create_procedure_call(char *name, EntryNodeAST *args, int argc) {
 EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type) {
 	assert_ast("Create param");
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	entryAST->paramAST->var = var;
 	return entryAST;
 }
 
