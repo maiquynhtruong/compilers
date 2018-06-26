@@ -37,14 +37,6 @@ TypeAST *make_bool_type() {
 	return type;
 }
 
-TypeAST *make_array_type(int size, EntryAST *elementType) {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_ARRAY;
-	type->arraySize = size;
-	type->elementType = elementType;
-	return type;
-}
-
 /*
 The language has the following built I/O functions:
 getBool(bool val out)
@@ -79,13 +71,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 }
 
 int compare_type(TypeAST *type1, TypeAST *type2) {
-	if (type1->typeClass == type2->typeClass) {
-		if (type1->typeClass == TC_ARRAY) {
-			if (type1->arraySize == type2->arraySize) {
-				return compare_type(type1->elementType->typeAST, type2->elementType->typeAST);
-			} else return 0;
-		} else return 1;
-	} else return 0;
+	if (type1->typeClass == type2->typeClass) return 1; else return 0;
 }
 
 void free_type(TypeAST *type) {
@@ -108,7 +94,6 @@ EntryAST *create_type(TypeClass typeClass) {
 		case TC_STRING: type = make_string_type(); break;
 		case TC_BOOL: type = make_bool_type(); break;
 		case TC_CHAR: type = make_char_type(); break;
-		// case TC_ARRAY: type = make_array_type(); break; //TODO: Probably need to include elementType and size
 	}
 	entryAST->typeAST = type;
 	return entryAST;
@@ -127,12 +112,18 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
-    if (type->typeAST->typeClass != TC_ARRAY) {
-        if (value != NULL) {
-
-        } // else throw some error
-    } // else do something for variable AST
+	VariableAST *varAST = (VariableAST *) malloc(sizeof(VariableAST));
+	varAST->varType = type;
+	varAST->value = value;
+	varAST->size = 0;
+	entryAST->varAST = varAST;
     return entryAST;
+}
+
+EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size) {
+	EntryAST *entryAST = create_variable(name, type, value);
+	entryAST->varAST->size = (unsigned) size;
+	return entryAST;
 }
 
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements) {
