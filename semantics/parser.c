@@ -410,13 +410,13 @@ EntryAST *parse_param() {
 
     switch (look_ahead->type) {
         case K_IN:
-            paramAST = create_param(PT_IN, varAST, varAST->varAST->varType);
+            paramAST = create_param(PT_IN, varAST);
             match_token(K_IN); break;
         case K_OUT:
-            paramAST = create_param(PT_OUT, varAST, varAST->varAST->varType);
+            paramAST = create_param(PT_OUT, varAST);
             match_token(K_OUT); break;
         case K_INOUT:
-            paramAST = create_param(PT_INOUT, varAST, varAST->varAST->varType);
+            paramAST = create_param(PT_INOUT, varAST);
             match_token(K_INOUT); break;
         default:
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;

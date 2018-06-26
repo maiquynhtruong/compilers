@@ -68,7 +68,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	EntryAST *type = create_type(varType);
 	EntryAST *var = create_variable("val", type, NULL);
 
-	EntryAST *param = create_param(paramType, var, type);
+	EntryAST *param = create_param(paramType, var);
 	EntryNodeAST *params = create_entry_node(param, NULL);
 	// EntryNodeAST *decls = create_entry_node(var, NULL);
 
@@ -153,9 +153,11 @@ EntryAST *create_procedure_call(char *name, EntryNodeAST *args, int argc) {
 	return entryAST;
 }
 
-EntryAST *create_param(ParamType paramType, EntryAST *var, EntryAST *type) {
+EntryAST *create_param(ParamType paramType, EntryAST *var) {
 	assert_ast("Create param");
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	ParamAST *param = (ParamAST *) malloc(sizeof(ParamAST));
+	entryAST->paramAST = param;
 	entryAST->paramAST->var = var;
 	return entryAST;
 }
