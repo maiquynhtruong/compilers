@@ -5,7 +5,7 @@ LIBS=-lm
 all: type_checking
 
 type_checking: main.o debug.o error.o symbol_table.o parser.o reader.o scanner.o semantics.o token.o ast.o
-			${CC} main.o debug.o error.o symbol_table.o parser.o reader.o scanner.o semantics.o token.o ast.o -o type_checking
+			${CC} main.o debug.o error.o symbol_table.o parser.o reader.o scanner.o semantics.o token.o ast.o -o type_checking.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c

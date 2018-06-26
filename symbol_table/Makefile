@@ -5,7 +5,7 @@ LIBS=-lm
 all: symtab
 
 symtab: debug.o main.o symbol_table.o
-		${CC} debug.o main.o symbol_table.o -o symtab
+		${CC} debug.o main.o symbol_table.o -o symtab.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c

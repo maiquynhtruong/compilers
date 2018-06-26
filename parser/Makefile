@@ -5,7 +5,7 @@ LIBS=-lm
 all: parser
 
 parser: main.o parser.o scanner.o token.o error.o reader.o
-		${CC} main.o parser.o scanner.o token.o error.o reader.o -o parser
+		${CC} main.o parser.o scanner.o token.o error.o reader.o -o parser.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c

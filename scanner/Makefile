@@ -5,7 +5,7 @@ LIBS=-lm
 all: scanner
 
 scanner: main.o token.o error.o reader.o
-		${CC} main.o token.o error.o reader.o -o scanner
+		${CC} main.o token.o error.o reader.o -o scanner.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c
