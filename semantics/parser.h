@@ -2,6 +2,7 @@
 #define PARSER_H
 
 #include "token.h"
+#include "ast.h"
 
 void match_token(TokenType type);
 int parse(char *file_name);

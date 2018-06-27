@@ -38,8 +38,7 @@ typedef enum TypeClass {
 	TC_FLOAT,
 	TC_STRING,
 	TC_BOOL,
-	TC_CHAR,
-	TC_ARRAY
+	TC_CHAR
 } TypeClass;
 
 typedef enum BinaryOpType {
@@ -70,8 +69,8 @@ typedef struct EntryNodeAST {
 
 typedef struct TypeAST {
 	TypeClass typeClass;
-	int arraySize;
-	struct EntryAST *elementType;
+	// int arraySize;
+	// struct EntryAST *elementType;
 } TypeAST;
 
 typedef struct UnaryOpAST {
@@ -102,11 +101,18 @@ typedef struct ProgramAST {
 	struct EntryAST *body;
 } ProgramAST;
 
+/*
+size: 0 if variable, positive if array
+This is the same as removing arraySize and elementType out of Type. It makes sense to not have to
+a separate elementType to represent type of elements in the array (they should both be the same)
+It also makes more sense to let the variable holds the size info
+*/
 typedef struct VariableAST {
 	struct EntryAST *varType;
     char *name;
 	struct EntryAST *value; // should it be replaced by a token?
 	// Token *value; // for value
+	unsigned int size;
 } VariableAST;
 
 typedef struct BinaryOpAST {
@@ -199,6 +205,7 @@ EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_factor(TypeClass typeClass, Token *value);
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
+EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size);
 EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);

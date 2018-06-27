@@ -82,3 +82,5 @@ http://cs.swan.ac.uk/~csdavec/FOSDEM12/DSLsWithLLVM.pdf
 http://www.cs.tau.ac.il/~msagiv/courses/pa15-16/llvm.pdf
 
 https://blog.quarkslab.com/turning-regular-code-into-atrocities-with-llvm.html
+
+http://polaris.cs.uiuc.edu/~padua/cs426-03/cs-ast-bbopt.pdf
