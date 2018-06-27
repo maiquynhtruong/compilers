@@ -65,7 +65,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	// EntryNodeAST *decls = create_entry_node(var, NULL);
 
 	// EntryAST *body = create_body_block(decls, NULL);
-	EntryAST *func = create_procedure(name, params, NULL);
+	EntryAST *func = create_procedure(name, 1, params, NULL);
 
 	return func;
 }
@@ -86,6 +86,7 @@ EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next) {
 }
 
 EntryAST *create_type(TypeClass typeClass) {
+	assert_ast("Create a type");
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	TypeAST *type = NULL;
 	switch (typeClass) {
@@ -111,12 +112,13 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 }
 
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
+	assert_ast("Create variable");
     EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
-	VariableAST *varAST = (VariableAST *) malloc(sizeof(VariableAST));
-	varAST->varType = type;
-	varAST->value = value;
-	varAST->size = 0;
-	entryAST->varAST = varAST;
+	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
+	var->varType = type;
+	var->value = value;
+	var->size = 0;
+	entryAST->varAST = var;
     return entryAST;
 }
 
@@ -148,14 +150,19 @@ EntryAST *create_param(ParamType paramType, EntryAST *var) {
 	assert_ast("Create param");
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
 	ParamAST *param = (ParamAST *) malloc(sizeof(ParamAST));
+	param->var = var;
 	entryAST->paramAST = param;
-	entryAST->paramAST->var = var;
 	return entryAST;
 }
 
-EntryAST *create_procedure(char *name, EntryNodeAST *params, EntryAST *body) {
+EntryAST *create_procedure(char *name, int argc, EntryNodeAST *params, EntryAST *body) {
 	assert_ast("Create procedure");
 	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(EntryAST));
+	proc->name = name;
+	proc->params = params;
+	proc->argc = (unsigned) argc;
+	entryAST->procAST = proc;
 	return entryAST;
 }
 
@@ -194,7 +201,7 @@ EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *
 }
 
 void print_type(TypeAST *type) {
-    assert_ast("A type");
+    assert_ast("A type node");
     printf("TypeClass: ");
     switch (type->typeClass) {
         case TC_INT:
@@ -215,7 +222,7 @@ void print_type(TypeAST *type) {
 }
 
 void print_variable(VariableAST *varAST) {
-    assert_ast("A variable");
+    assert_ast("A variable node");
     printf("Name: %s\n", varAST->name);
 
     print_type(varAST->varType->typeAST);
@@ -240,23 +247,23 @@ void print_variable(VariableAST *varAST) {
 }
 
 void print_program(ProgramAST *progAST) {
-    assert_ast("A program\n");
+    assert_ast("A program node");
 }
 
 void print_procedure(ProcedureAST *procAST) {
-    assert_ast("A procedure\n");
+    assert_ast("A procedure node");
 }
 
 void print_bin_op(BinaryOpAST *binOpAST) {
-    assert_ast("A Binary Operation\n");
+    assert_ast("A Binary Operation node");
 }
 
 void print_statement(StatementAST *statAST) {
-    assert_ast("A statment\n");
+    assert_ast("A statment node");
 }
 
 void print_param(ParamAST *paramAST) {
-    assert_ast("A parameter\n");
+    assert_ast("A parameter node");
 }
 
 void print_entry(EntryAST *entry) {

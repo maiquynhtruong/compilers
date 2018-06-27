@@ -133,7 +133,7 @@ EntryAST *parse_proc_declaration(int isGlobal) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
-    procAST = create_procedure(current_token->val.stringVal, NULL, NULL);
+    procAST = create_procedure(current_token->val.stringVal, 0, NULL, NULL);
     declare_entry(procAST, isGlobal);
 
     enter_scope(new_scope());
