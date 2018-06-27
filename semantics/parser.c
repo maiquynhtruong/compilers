@@ -1,13 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "debug.h"
 #include "error.h"
 #include "reader.h"
 #include "parser.h"
 #include "semantics.h"
 #include "scanner.h"
-#include "ast.h"
 
 Token* look_ahead;
 Token* current_token;
@@ -171,10 +169,7 @@ EntryAST *parse_var_declaration(int isGlobal) {
         // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
         // match_token(T_NUMBER_INT); // uppper bound
 
-        TypeAST *type = varAST->varAST->varType->typeAST;
-        type->elementType = typeMark;
-        type->typeClass = TC_ARRAY;
-        type->arraySize = current_token->val.intVal;
+        varAST->varAST->size = current_token->val.intVal;
         match_token(T_RBRACKET);
     }
 
@@ -681,10 +676,10 @@ EntryAST *parse_factor() {
             match_token(T_IDENTIFIER);
             factorAST = check_declared_identifier(current_token->val.stringVal);
             TypeAST *varType = factorAST->varAST->varType->typeAST;
-            if (varType->typeClass == TC_ARRAY) {
-                EntryAST *arrType = parse_indexes();//factorAST->varAST->varType->typeAST);
-                factorAST = create_factor(arrType->typeAST->typeClass, current_token);
-            } else factorAST = create_factor(varType->typeClass, current_token);
+            if (factorAST->varAST->size > 0) { // an array
+                EntryAST *indexExpr = parse_indexes(); // TODO: How do I even represent an array in factor?
+            }
+            factorAST = create_factor(varType->typeClass, current_token);
             break;
         case K_TRUE:
             match_token(K_TRUE);

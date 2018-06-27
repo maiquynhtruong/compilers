@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "semantics.h"
-#include "debug.h"
 #include "error.h"
 
 // from symbol_table.c
@@ -97,11 +96,6 @@ void check_float_type(TypeAST *type) {
 
 void check_bool_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_BOOL) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_array_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_ARRAY) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 

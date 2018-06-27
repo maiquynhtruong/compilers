@@ -205,7 +205,7 @@ EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_factor(TypeClass typeClass, Token *value);
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
-EntryAST *create_array(char *name, EntryAST *type, int size);
+EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size);
 EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);

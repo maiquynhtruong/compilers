@@ -207,9 +207,6 @@ void print_type(TypeAST *type) {
             printf("Bool"); break;
     	case TC_CHAR:
             printf("Char"); break;
-    	case TC_ARRAY:
-            printf("Array. Size: %d. ", type->arraySize);
-            print_type(type->elementType->typeAST);
             break;
         default:
             printf("Unknown");break;
