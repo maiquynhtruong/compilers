@@ -65,6 +65,11 @@ typedef struct EntryNodeAST {
 	struct EntryNodeAST *next;
 } EntryNodeAST;
 
+typedef struct EntryListAST {
+	EntryNodeAST *head;
+	EntryNodeAST *tail;
+} EntryListAST;
+
 typedef struct TypeAST {
 	TypeClass typeClass;
 	// int arraySize;
