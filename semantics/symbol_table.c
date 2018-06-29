@@ -116,6 +116,8 @@ void init_symbol_table() {
 	// TypeAST *floatType = make_float_type();
 	// TypeAST *stringType = make_string_type();
 	// TypeAST *boolType = make_bool_type();
+
+	assert_symbol_table("Finish initializing a symbol table");
 }
 
 void clear_symbol_table() {

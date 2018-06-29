@@ -130,7 +130,8 @@ EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
 	assert_ast("Create variable");
 	EntryAST *entryAST = create_entry(ET_VARIABLE);
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
-	strcpy(var->name, name);
+	
+	var->name = name;
 	var->varType = type;
 	var->value = value;
 	var->size = 0;
