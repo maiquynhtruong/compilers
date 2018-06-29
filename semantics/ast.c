@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "ast.h"
 #include "error.h"
 
@@ -65,7 +66,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	// EntryNodeAST *decls = create_entry_node(var, NULL);
 
 	// EntryAST *body = create_body_block(decls, NULL);
-	EntryAST *func = create_procedure(name, 1, params, NULL);
+	EntryAST *func = create_procedure(name, 1, 1, params, NULL);
 
 	return func;
 }
@@ -91,9 +92,16 @@ EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next) {
 	return node;
 }
 
+EntryListAST *create_list() {
+	EntryListAST *list = (EntryListAST *) malloc(sizeof(EntryListAST));
+	list->head = NULL;
+	list->tail = NULL;
+	return list;
+}
+
 EntryAST *create_type(TypeClass typeClass) {
 	assert_ast("Create a type");
-    EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+    EntryAST *entryAST = create_entry(ET_TYPE_MARK);
 	TypeAST *type = NULL;
 	switch (typeClass) {
 		case TC_INT: type = make_int_type(); break;
@@ -109,10 +117,11 @@ EntryAST *create_type(TypeClass typeClass) {
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 	assert_ast("Create binary operation");
 	EntryAST *entryAST = create_entry(ET_BIN_OP);
-    entryAST->entryType = ET_BIN_OP;
+	BinaryOpAST *binOpAST = (BinaryOpAST *) malloc(sizeof(BinaryOpAST));
     binOpAST->binOpType = type;
     binOpAST->lhs = lhs;
     binOpAST->rhs = rhs;
+
     entryAST->binOpAST = binOpAST;
     return entryAST;
 }
@@ -121,10 +130,11 @@ EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
 	assert_ast("Create variable");
 	EntryAST *entryAST = create_entry(ET_VARIABLE);
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
-	strcpy(entry->name, name);
+	strcpy(var->name, name);
 	var->varType = type;
 	var->value = value;
 	var->size = 0;
+
 	entryAST->varAST = var;
     return entryAST;
 }
@@ -164,32 +174,32 @@ EntryAST *create_param(ParamType paramType, EntryAST *var) {
 
 EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryAST *body) {
 	assert_ast("Create procedure");
-	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_PROCEDURE);
+	EntryAST *entryAST = create_entry(ET_PROCEDURE);
 	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(EntryAST));
 
 	proc->name = name;
 	proc->params = params;
 	proc->argc = (unsigned) argc;
-	entryAST->procAST = proc;
 
+	entryAST->procAST = proc;
 	return entryAST;
 }
 
 EntryAST *create_factor(TypeClass typeClass, Token *value) {
 	assert_ast("Create factor");
-	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_FACTOR);
+	EntryAST *entryAST = create_entry(ET_FACTOR);
 	return entryAST;
 }
 
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements) {
 	assert_ast("Create loop");
-	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_STATEMENT);
+	EntryAST *entryAST = create_entry(ET_STATEMENT);
 	return entryAST;
 }
 
 EntryAST *create_return() {
 	assert_ast("Create return");
-	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_STATEMENT);
+	EntryAST *entryAST = create_entry(ET_STATEMENT);
 	return entryAST;
 }
 

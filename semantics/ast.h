@@ -24,10 +24,10 @@ typedef enum ParamType {
 } ParamType;
 
 typedef enum EntryType {
-	ET_VARIABLE, ET_TYPE_MARK, ET_PROCEDURE, ET_PARAMTER, ET_PROGRAM, ET_BODY,
+	ET_VARIABLE, ET_PROCEDURE, ET_PARAMTER, ET_PROGRAM, ET_BODY,
 	ET_BIN_OP, ET_PLUS, ET_MINUS, ET_DIVIDE, ET_MULTIPLY, ET_LT, ET_LTEQ, ET_GT, ET_GTEQ, ET_EQ, ET_NEQ, ET_AND, ET_OR,
 	ET_UNA_OP, ET_POSITIVE, ET_NEGATIVE, // for UN_PLUS and UN_MINUS
-	ET_FACTOR, ET_INT, ET_FLOAT, ET_STRING, ET_BOOL, ET_CHAR,
+	ET_FACTOR, ET_TYPE_MARK, ET_INT, ET_FLOAT, ET_STRING, ET_BOOL, ET_CHAR,
 	ET_STATEMENT, ET_ASSIGNMENT, ET_IF, ET_LOOP, ET_RETURN, ET_CALL,
 } EntryType;
 
@@ -201,6 +201,7 @@ int compare_type(TypeAST *type1, TypeAST *type2);
 void free_type(TypeAST *type);
 
 EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next);
+EntryListAST *create_list();
 
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_type(TypeClass typeClass);
