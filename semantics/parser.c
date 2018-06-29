@@ -133,16 +133,11 @@ EntryAST *parse_proc_declaration(int isGlobal) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
-    procAST = create_procedure(current_token->val.stringVal, 0, NULL, NULL);
-    declare_entry(procAST, isGlobal);
-
-    enter_scope(new_scope());
-
-    procAST->procAST->params = parse_param_list();
-    procAST->procAST->body = parse_body_block(); // procedure body
+    EntryNodeAST *params = parse_param_list();
+    EntryNodeAST *stmts = parse_body_block(); // procedure body
     match_token(K_PROCEDURE);
 
-    exit_scope();
+    procAST = create_procedure(current_token->val.stringVal, isGlobal, 0, params, stmts);
 
     assert_parser("Done parsing a procedure declaration");
     return procAST;

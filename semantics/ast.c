@@ -78,6 +78,12 @@ void free_type(TypeAST *type) {
 	free(type);
 }
 
+EntryAST *create_entry(EntryType entryType) {
+	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	entryAST->entryType = entryType;
+	return entryAST;
+}
+
 EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next) {
 	EntryNodeAST *node = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	node->entryAST = entryAST;
@@ -101,8 +107,8 @@ EntryAST *create_type(TypeClass typeClass) {
 }
 
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
-    EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
-    BinaryOpAST *binOpAST = (BinaryOpAST *) malloc(sizeof(BinaryOpAST));
+	assert_ast("Create binary operation");
+	EntryAST *entryAST = create_entry(ET_BIN_OP);
     entryAST->entryType = ET_BIN_OP;
     binOpAST->binOpType = type;
     binOpAST->lhs = lhs;
@@ -113,8 +119,9 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 
 EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
 	assert_ast("Create variable");
-    EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_VARIABLE);
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
+	strcpy(entry->name, name);
 	var->varType = type;
 	var->value = value;
 	var->size = 0;
@@ -130,69 +137,71 @@ EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size) {
 
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements) {
 	assert_ast("Create body block");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_BODY);
 	return entryAST;
 }
 
 EntryAST *create_program(char *name, EntryAST *body) {
 	assert_ast("Create program");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_PROGRAM);
 	return entryAST;
 }
 
 EntryAST *create_procedure_call(char *name, EntryNodeAST *args, int argc) {
 	assert_ast("Create procedure call");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_STATEMENT);
 	return entryAST;
 }
 
 EntryAST *create_param(ParamType paramType, EntryAST *var) {
 	assert_ast("Create param");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_PARAMTER);
 	ParamAST *param = (ParamAST *) malloc(sizeof(ParamAST));
 	param->var = var;
 	entryAST->paramAST = param;
 	return entryAST;
 }
 
-EntryAST *create_procedure(char *name, int argc, EntryNodeAST *params, EntryAST *body) {
+EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryAST *body) {
 	assert_ast("Create procedure");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_PROCEDURE);
 	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(EntryAST));
+
 	proc->name = name;
 	proc->params = params;
 	proc->argc = (unsigned) argc;
 	entryAST->procAST = proc;
+
 	return entryAST;
 }
 
 EntryAST *create_factor(TypeClass typeClass, Token *value) {
 	assert_ast("Create factor");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_FACTOR);
 	return entryAST;
 }
 
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements) {
 	assert_ast("Create loop");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_STATEMENT);
 	return entryAST;
 }
 
 EntryAST *create_return() {
 	assert_ast("Create return");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = EntryAST *entryAST = create_entry(ET_STATEMENT);
 	return entryAST;
 }
 
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor) {
 	assert_ast("Create unary operator");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_UNA_OP);
 	return entryAST;
 }
 
 EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock) {
 	assert_ast("Create if");
-	EntryAST *entryAST = (EntryAST *) malloc(sizeof(EntryAST));
+	EntryAST *entryAST = create_entry(ET_STATEMENT);
 	IfAST *ifAST = entryAST->stmtAST->ifAST;
 	ifAST->condition = condition;
 	ifAST->trueBlock = trueBlock;
