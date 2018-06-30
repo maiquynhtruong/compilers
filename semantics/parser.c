@@ -277,7 +277,7 @@ EntryAST *parse_indexes() {
         match_token(T_LBRACKET);
 
         elemType = parse_expression();
-        check_int_type(elemType->typeAST); // Array indexes must be of type integer.
+        check_int_type(elemType->factorAST->typeClass); // Array indexes must be of type integer.
         // TODO: Bounds checking to insure that the index is within the upper and lower bound is required for all indexed array references
         // check_array_type(arrayType->typeAST); // if current element is not of array type, then the access to the next dimension is invalid
         // arrayType = arrayType->elementType;
@@ -351,8 +351,8 @@ EntryAST *parse_if_statement() {
     match_token(T_LPAREN);
 
     condition = parse_expression();
-    convert_to_bool(condition->typeAST);
-    check_bool_type(condition->typeAST);
+    convert_to_bool(condition->factorAST->typeClass);
+    check_bool_type(condition->factorAST->typeClass);
 
     match_token(T_RPAREN);
     match_token(K_THEN);
@@ -488,7 +488,7 @@ EntryNodeAST *parse_argument_list(EntryNodeAST *paramList) {
 
 void parse_argument(EntryAST *paramType) {
     EntryAST *argType = parse_expression();
-    check_type_equality(paramType->typeAST, argType->typeAST);
+    check_type_equality(paramType->varAST->varType, argType->factorAST->typeClass);
 }
 
 EntryAST *parse_expression() {
@@ -506,14 +506,14 @@ EntryAST *parse_expression_arith_op(EntryAST *expAST) {
         case T_AND:
             match_token(T_AND);
             arithOpAST = parse_arith_op();
-            check_int_type(arithOpAST->typeAST);
+            check_int_type(arithOpAST->factorAST->typeClass);
             expAST = create_binary_op(BO_AND, expAST, arithOpAST);
             expAST = parse_expression_arith_op(expAST);
             break;
         case T_OR:
             match_token(T_OR);
             arithOpAST = parse_arith_op();
-            check_int_type(arithOpAST->typeAST);
+            check_int_type(arithOpAST->factorAST->typeClass);
             expAST = create_binary_op(BO_OR, expAST, arithOpAST);
             expAST = parse_expression_arith_op(expAST);
             break;
@@ -531,7 +531,7 @@ EntryAST *parse_expression_arith_op(EntryAST *expAST) {
 EntryAST *parse_arith_op() {
     assert_parser("Parsing an arithmetic operation");
     EntryAST *arithOpAST = parse_relation();
-    check_int_float_type(arithOpAST->typeAST);
+    // check_int_float_type(arithOpAST->typeAST);
     arithOpAST = parse_arith_op_relation(arithOpAST);
     assert_parser("Done parsing an arithmetic operation");
     return arithOpAST;
@@ -543,14 +543,14 @@ EntryAST *parse_arith_op_relation(EntryAST *arithOpAST) {
         case T_PLUS:
             match_token(T_PLUS);
             relationAST = parse_relation();
-            check_int_float_type(relationAST->typeAST);
+            // check_int_float_type(relationAST->typeAST);
             arithOpAST = create_binary_op(BO_PLUS, arithOpAST, relationAST);
             arithOpAST = parse_arith_op_relation(arithOpAST);
             break;
         case T_MINUS:
             match_token(T_MINUS);
             relationAST = parse_relation();
-            check_int_float_type(relationAST->typeAST);
+            // check_int_float_type(relationAST->typeAST);
             arithOpAST = create_binary_op(BO_MINUS, arithOpAST, relationAST);
             arithOpAST = parse_arith_op_relation(arithOpAST);
             break;
@@ -568,7 +568,7 @@ EntryAST *parse_arith_op_relation(EntryAST *arithOpAST) {
 EntryAST *parse_relation() {
     assert_parser("Parsing a relation");
     EntryAST *relationAST = parse_term();
-    check_basic_type(relationAST->typeAST);
+    // check_basic_type(relationAST->typeAST);
     relationAST = parse_relation_term(relationAST);
     assert_parser("Done parsing a relation");
     return relationAST;
@@ -580,48 +580,48 @@ EntryAST *parse_relation_term(EntryAST *relationAST) {
         case T_LT:
             match_token(T_LT);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_LT, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
         case T_LTEQ:
             match_token(T_LTEQ);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_LTEQ, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
         case T_GT:
             match_token(T_GT);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_GT, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
         case T_GTEQ:
             match_token(T_GTEQ);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_GTEQ, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
         case T_EQ:
             match_token(T_EQ);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_EQ, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
         case T_NEQ:
             match_token(T_NEQ);
             termAST = parse_term();
-            check_basic_type(termAST->typeAST);
-            check_type_equality(relationAST->typeAST, termAST->typeAST);
+            // check_basic_type(termAST->typeAST);
+            // check_type_equality(relationAST->typeAST, termAST->typeAST);
             relationAST = create_binary_op(BO_NEQ, relationAST, termAST);
             relationAST = parse_relation_term(relationAST);
             break;
@@ -640,7 +640,7 @@ EntryAST *parse_relation_term(EntryAST *relationAST) {
 EntryAST *parse_term() {
     assert_parser("Parsing a term");
     EntryAST* termAST = parse_factor();
-    check_int_float_type(termAST->typeAST);
+    // check_int_float_type(termAST->typeAST);
     termAST = parse_term_factor(termAST);
     assert_parser("Done parsing a term");
     return termAST;
@@ -652,14 +652,14 @@ EntryAST *parse_term_factor(EntryAST *termAST) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
             factorAST = parse_factor();
-            check_int_float_type(factorAST->typeAST);
+            // check_int_float_type(factorAST->typeAST);
             termAST = create_binary_op(BO_MULTIPLY, termAST, factorAST);
             termAST = parse_term_factor(termAST);
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
             factorAST = parse_factor();
-            check_int_float_type(factorAST->typeAST);
+            // check_int_float_type(factorAST->typeAST);
             termAST = create_binary_op(BO_DIVIDE, termAST, factorAST);
             termAST = parse_term_factor(termAST);
             break;

@@ -8,35 +8,35 @@
 extern Token *current_token;
 
 /******************************* Make Types ********************************/
-TypeAST *make_int_type() {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_INT;
-	return type;
-}
-
-TypeAST *make_char_type() {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_CHAR;
-	return type;
-}
-
-TypeAST *make_float_type() {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_FLOAT;
-	return type;
-}
-
-TypeAST *make_string_type() {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_STRING;
-	return type;
-}
-
-TypeAST *make_bool_type() {
-	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
-	type->typeClass = TC_BOOL;
-	return type;
-}
+// TypeAST *make_int_type() {
+// 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+// 	type->typeClass = TC_INT;
+// 	return type;
+// }
+//
+// TypeAST *make_char_type() {
+// 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+// 	type->typeClass = TC_CHAR;
+// 	return type;
+// }
+//
+// TypeAST *make_float_type() {
+// 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+// 	type->typeClass = TC_FLOAT;
+// 	return type;
+// }
+//
+// TypeAST *make_string_type() {
+// 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+// 	type->typeClass = TC_STRING;
+// 	return type;
+// }
+//
+// TypeAST *make_bool_type() {
+	// TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+	// type->typeClass = TC_BOOL;
+	// return type;
+// }
 
 /*
 The language has the following built I/O functions:
@@ -58,8 +58,8 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	assert_ast("Create builtin function");
 	assert_ast(name);
 
-	EntryAST *type = create_type(varType);
-	EntryAST *var = create_variable("val", 1, type, 0, NULL);
+	// EntryAST *type = create_type(varType);
+	EntryAST *var = create_variable("val", 1, varType, 0, NULL);
 
 	EntryAST *param = create_param(paramType, var);
 	EntryNodeAST *params = create_entry_node(param, NULL);
@@ -71,8 +71,12 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	return func;
 }
 
-int compare_type(TypeAST *type1, TypeAST *type2) {
-	if (type1->typeClass == type2->typeClass) return 1; else return 0;
+// int compare_type(TypeAST *type1, TypeAST *type2) {
+// 	if (type1->typeClass == type2->typeClass) return 1; else return 0;
+// }
+
+int compare_type(TypeClass type1, TypeClass type2) {
+	if (type1 == type2) return 1; else return 0;
 }
 
 void free_type(TypeAST *type) {
@@ -99,20 +103,20 @@ EntryListAST *create_list() {
 	return list;
 }
 
-EntryAST *create_type(TypeClass typeClass) {
-	assert_ast("Create a type");
-    EntryAST *entryAST = create_entry(ET_TYPE_MARK);
-	TypeAST *type = NULL;
-	switch (typeClass) {
-		case TC_INT: type = make_int_type(); break;
-		case TC_FLOAT: type = make_float_type(); break;
-		case TC_STRING: type = make_string_type(); break;
-		case TC_BOOL: type = make_bool_type(); break;
-		case TC_CHAR: type = make_char_type(); break;
-	}
-	entryAST->typeAST = type;
-	return entryAST;
-}
+// EntryAST *create_type(TypeClass typeClass) {
+// 	assert_ast("Create a type");
+//     EntryAST *entryAST = create_entry(ET_TYPE_MARK);
+// 	TypeAST *type = NULL;
+// 	switch (typeClass) {
+// 		case TC_INT: type = make_int_type(); break;
+// 		case TC_FLOAT: type = make_float_type(); break;
+// 		case TC_STRING: type = make_string_type(); break;
+// 		case TC_BOOL: type = make_bool_type(); break;
+// 		case TC_CHAR: type = make_char_type(); break;
+// 	}
+// 	entryAST->typeAST = type;
+// 	return entryAST;
+// }
 
 EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
 	assert_ast("Create binary operation");
@@ -140,7 +144,7 @@ EntryAST *create_variable(char *name, int isGlobal, TypeClass type, int size, En
     return entryAST;
 }
 
-EntryAST *create_array(char *name, int isGlobal, EntryAST *type, EntryAST *value, int size) {
+EntryAST *create_array(char *name, int isGlobal, TypeClass type, int size, EntryAST *value) {
 	EntryAST *entryAST = create_variable(name, isGlobal, type, 0, value);
 	entryAST->varAST->size = (unsigned) size;
 	return entryAST;
@@ -290,8 +294,8 @@ void print_entry(EntryAST *entry) {
     switch (entry->entryType) {
     	case ET_VARIABLE:
             print_variable(entry->varAST); break;
-    	case ET_TYPE_MARK:
-            print_type(entry->typeAST); break;
+    	// case ET_TYPE_MARK:
+        //     print_type(entry->typeAST); break;
         case ET_PARAMTER:
             print_param(entry->paramAST); break;
     	case ET_PROCEDURE:

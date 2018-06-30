@@ -56,15 +56,68 @@ EntryAST *check_declared_destination(char *name) {
 
 	return entry;
 }
+//
+// void check_int_float_type(TypeAST *type) {
+// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_basic_type(TypeAST *type) {
+// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
+// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR)) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_builtin_type(TypeAST *type) {
+// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
+// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_int_type(TypeAST *type) {
+// 	if (type != NULL && type->typeClass == TC_INT) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_char_type(TypeAST *type) {
+// 	if (type != NULL && type->typeClass == TC_CHAR) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_string_type(TypeAST *type) {
+// 	if (type != NULL && type->typeClass == TC_STRING) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_float_type(TypeAST *type) {
+// 	if (type != NULL && type->typeClass == TC_FLOAT) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_bool_type(TypeAST *type) {
+// 	if (type != NULL && type->typeClass == TC_BOOL) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void check_type_equality(TypeAST *type1, TypeAST *type2) {
+// 	if (compare_type(type1, type2) == 0)
+// 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
+//
+// void convert_to_bool(TypeAST *type) {
+// 	if (type->typeClass == TC_INT) type->typeClass = TC_BOOL;
+// }
+// void convert_to_int(TypeAST *type) {
+// 	if (type->typeClass == TC_BOOL) type->typeClass = TC_INT;
+// }
 
-void check_int_float_type(TypeAST *type) {
-	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
+void check_int_float_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_basic_type(TypeAST *type) {
-	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
-		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR)) return;
+void check_basic_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_CHAR) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
@@ -73,45 +126,34 @@ void check_builtin_type(TypeClass type) {
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-// void check_builtin_type(TypeAST *type) {
-// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
-// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-
-void check_int_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_INT) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_int_type(TypeClass type) {
+	if (type == TC_INT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_char_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_CHAR) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_char_type(TypeClass type) {
+	if (type == TC_CHAR) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_string_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_STRING) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_string_type(TypeClass type) {
+	if (type == TC_STRING) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_float_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_FLOAT) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_float_type(TypeClass type) {
+	if (type == TC_FLOAT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_bool_type(TypeAST *type) {
-	if (type != NULL && type->typeClass == TC_BOOL) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+void check_bool_type(TypeClass type) {
+	if (type == TC_BOOL) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_type_equality(TypeAST *type1, TypeAST *type2) {
+void check_type_equality(TypeClass type1, TypeClass type2) {
 	if (compare_type(type1, type2) == 0)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void convert_to_bool(TypeAST *type) {
-	if (type->typeClass == TC_INT) type->typeClass = TC_BOOL;
+void convert_to_bool(TypeClass type) {
+	if (type == TC_INT) type = TC_BOOL;
 }
-void convert_to_int(TypeAST *type) {
-	if (type->typeClass == TC_BOOL) type->typeClass = TC_INT;
+void convert_to_int(TypeClass type) {
+	if (type == TC_BOOL) type = TC_INT;
 }
