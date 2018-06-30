@@ -77,8 +77,8 @@ LLVMTypeRef gen_param(ParamAST *paramAST) {
             return LLVMInt32Type();
         case TC_FLOAT:
             return LLVMFloatType();
-        case TC_ARRAY:
-            return LLVMArrayType(gen_param(type->elementType), (unsigned) type->arraySize);
+        // case TC_ARRAY: //TODO: Not sure how to generate an array in LLVM
+            // return LLVMArrayType(gen_param(type->elementType), (unsigned) type->arraySize);
         case TC_STRING: // string is array of char. MAX_STRING_LENGTH from symbol_table.h
             return LLVMArrayType(LLVMInt32Type(), MAX_STRING_LENGTH);
         default:

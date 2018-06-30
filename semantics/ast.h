@@ -24,13 +24,11 @@ typedef enum ParamType {
 } ParamType;
 
 typedef enum EntryType {
-	ET_VARIABLE,
-	ET_TYPE_MARK,
-	ET_PROCEDURE,
-	ET_PARAMTER,
-	ET_PROGRAM,
-	ET_BIN_OP,
-	ET_STATEMENT
+	ET_VARIABLE, ET_PROCEDURE, ET_PARAMTER, ET_PROGRAM, ET_BODY,
+	ET_BIN_OP, ET_PLUS, ET_MINUS, ET_DIVIDE, ET_MULTIPLY, ET_LT, ET_LTEQ, ET_GT, ET_GTEQ, ET_EQ, ET_NEQ, ET_AND, ET_OR,
+	ET_UNA_OP, ET_POSITIVE, ET_NEGATIVE, // for UN_PLUS and UN_MINUS
+	ET_FACTOR, ET_TYPE_MARK, ET_INT, ET_FLOAT, ET_STRING, ET_BOOL, ET_CHAR, ET_ARRAY,
+	ET_STATEMENT, ET_ASSIGNMENT, ET_IF, ET_LOOP, ET_RETURN, ET_CALL,
 } EntryType;
 
 typedef enum TypeClass {
@@ -63,14 +61,21 @@ typedef enum UnaryOpType {
 
 /* LinkedList of EntryAST to store variable number of statements and declarations in program and procedure. Also list of entries in a scope */
 typedef struct EntryNodeAST {
+	char *name;
 	struct EntryAST *entryAST;
 	struct EntryNodeAST *next;
+	struct EntryNodeAST *prev;
 } EntryNodeAST;
+
+typedef struct EntryListAST {
+	EntryNodeAST *head;
+	EntryNodeAST *tail;
+} EntryListAST;
 
 typedef struct TypeAST {
 	TypeClass typeClass;
-	// int arraySize;
-	// struct EntryAST *elementType;
+	int arraySize;
+	struct EntryAST *elementType;
 } TypeAST;
 
 typedef struct UnaryOpAST {
@@ -108,7 +113,7 @@ a separate elementType to represent type of elements in the array (they should b
 It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
-	struct EntryAST *varType;
+	TypeClass varType;
     char *name;
 	struct EntryAST *value; // should it be replaced by a token?
 	// Token *value; // for value
@@ -178,7 +183,7 @@ typedef struct EntryAST {
 		UnaryOpAST *unaOpAST; //TODO: this should belong to FactorAST
 		BodyAST *bodyAST;
 		ProgramAST *progAST;
-		TypeAST *typeAST;
+		// TypeAST *typeAST;
 		FactorAST *factorAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
@@ -188,35 +193,37 @@ typedef struct EntryAST {
 	}; // value
 } EntryAST;
 
-TypeAST *make_int_type();
-TypeAST *make_char_type();
-TypeAST *make_float_type();
-TypeAST *make_string_type();
-TypeAST *make_bool_type();
-TypeAST *make_array_type(int size, EntryAST *type);
-int compare_type(TypeAST *type1, TypeAST *type2);
+// TypeAST *make_int_type();
+// TypeAST *make_char_type();
+// TypeAST *make_float_type();
+// TypeAST *make_string_type();
+// TypeAST *make_bool_type();
+// TypeAST *make_array_type(int size, EntryAST *type);
+// int compare_type(TypeAST *type1, TypeAST *type2);
+int compare_type(TypeClass type1, TypeClass type2);
 void free_type(TypeAST *type);
 
 EntryNodeAST *create_entry_node(EntryAST *entryAST, EntryNodeAST *next);
+EntryListAST *create_list();
 
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
-EntryAST *create_type(TypeClass typeClass);
+// EntryAST *create_type(TypeClass typeClass);
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_factor(TypeClass typeClass, Token *value);
-EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
-EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size);
+EntryAST *create_variable(char *name, int isGlobal, TypeClass type, int size, EntryAST *value);
+EntryAST *create_array(char *name, int isGlobal, TypeClass type, int size, EntryAST *value);
 EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var);
-EntryAST *create_procedure(char *name, int argc, EntryNodeAST *params, EntryAST *body);
+EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryNodeAST *body);
 EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock);
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements);
 EntryAST *create_return();
 
 /*********** Debug functions ****************/
-void print_type(TypeAST *type);
+void print_type(TypeClass type);
 void print_variable(VariableAST *varAST);
 void print_program(ProgramAST *progAST);
 void print_procedure(ProcedureAST *procAST);

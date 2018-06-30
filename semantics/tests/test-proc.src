@@ -1,0 +1,8 @@
+program test_program is
+    procedure f (integer x in, integer y out)
+        integer b;
+    begin
+        b := 3;
+        y := b;
+    end procedure;
+end program .
