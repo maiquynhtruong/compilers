@@ -56,6 +56,7 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table(name);
 
 	EntryNodeAST *curNode = list;
+	
 	while (curNode != NULL) {
 		EntryAST *entryAST = curNode->entryAST;
 		char *entryName;
@@ -133,7 +134,7 @@ void clear_symbol_table() {
 	// free_type(boolType);
 }
 
-Scope *new_scope() {
+Scope *create_scope() {
 	assert_symbol_table("New scope");
 
 	Scope *scope = (Scope *) malloc(sizeof(Scope));

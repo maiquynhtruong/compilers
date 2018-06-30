@@ -59,7 +59,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	assert_ast(name);
 
 	EntryAST *type = create_type(varType);
-	EntryAST *var = create_variable("val", type, NULL);
+	EntryAST *var = create_variable("val", 1, type, 0, NULL);
 
 	EntryAST *param = create_param(paramType, var);
 	EntryNodeAST *params = create_entry_node(param, NULL);
@@ -126,22 +126,22 @@ EntryAST *create_binary_op(BinaryOpType type, EntryAST *lhs, EntryAST *rhs) {
     return entryAST;
 }
 
-EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value) {
+EntryAST *create_variable(char *name, int isGlobal, TypeClass type, int size, EntryAST *value) {
 	assert_ast("Create variable");
 	EntryAST *entryAST = create_entry(ET_VARIABLE);
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
-	
+
 	var->name = name;
 	var->varType = type;
 	var->value = value;
-	var->size = 0;
+	var->size = (unsigned) size;
 
 	entryAST->varAST = var;
     return entryAST;
 }
 
-EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size) {
-	EntryAST *entryAST = create_variable(name, type, value);
+EntryAST *create_array(char *name, int isGlobal, EntryAST *type, EntryAST *value, int size) {
+	EntryAST *entryAST = create_variable(name, isGlobal, type, 0, value);
 	entryAST->varAST->size = (unsigned) size;
 	return entryAST;
 }
@@ -220,10 +220,10 @@ EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *
 	return entryAST;
 }
 
-void print_type(TypeAST *type) {
+void print_type(TypeClass type) {
     assert_ast("A type node");
     printf("TypeClass: ");
-    switch (type->typeClass) {
+    switch (type) {
         case TC_INT:
             printf("Int"); break;
     	case TC_FLOAT:
@@ -245,11 +245,11 @@ void print_variable(VariableAST *varAST) {
     assert_ast("A variable node");
     printf("Name: %s\n", varAST->name);
 
-    print_type(varAST->varType->typeAST);
+    print_type(varAST->varType);
 
     printf("Value: ");
     FactorAST *value = varAST->value->factorAST;
-    switch (varAST->varType->typeAST->typeClass) {
+    switch (varAST->varType) {
         case TC_INT:
             printf("%d", value->intVal); break;
     	case TC_FLOAT:

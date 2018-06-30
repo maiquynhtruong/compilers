@@ -68,11 +68,16 @@ void check_basic_type(TypeAST *type) {
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_builtin_type(TypeAST *type) {
-	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
-		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
+void check_builtin_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_BOOL || type == TC_CHAR || type == TC_STRING) return;
 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
+
+// void check_builtin_type(TypeAST *type) {
+// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
+// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
+// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+// }
 
 void check_int_type(TypeAST *type) {
 	if (type != NULL && type->typeClass == TC_INT) return;

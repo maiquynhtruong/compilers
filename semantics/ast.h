@@ -27,7 +27,7 @@ typedef enum EntryType {
 	ET_VARIABLE, ET_PROCEDURE, ET_PARAMTER, ET_PROGRAM, ET_BODY,
 	ET_BIN_OP, ET_PLUS, ET_MINUS, ET_DIVIDE, ET_MULTIPLY, ET_LT, ET_LTEQ, ET_GT, ET_GTEQ, ET_EQ, ET_NEQ, ET_AND, ET_OR,
 	ET_UNA_OP, ET_POSITIVE, ET_NEGATIVE, // for UN_PLUS and UN_MINUS
-	ET_FACTOR, ET_TYPE_MARK, ET_INT, ET_FLOAT, ET_STRING, ET_BOOL, ET_CHAR,
+	ET_FACTOR, ET_TYPE_MARK, ET_INT, ET_FLOAT, ET_STRING, ET_BOOL, ET_CHAR, ET_ARRAY,
 	ET_STATEMENT, ET_ASSIGNMENT, ET_IF, ET_LOOP, ET_RETURN, ET_CALL,
 } EntryType;
 
@@ -72,8 +72,8 @@ typedef struct EntryListAST {
 
 typedef struct TypeAST {
 	TypeClass typeClass;
-	// int arraySize;
-	// struct EntryAST *elementType;
+	int arraySize;
+	struct EntryAST *elementType;
 } TypeAST;
 
 typedef struct UnaryOpAST {
@@ -111,7 +111,7 @@ a separate elementType to represent type of elements in the array (they should b
 It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
-	struct EntryAST *varType;
+	TypeClass varType;
     char *name;
 	struct EntryAST *value; // should it be replaced by a token?
 	// Token *value; // for value
@@ -181,7 +181,7 @@ typedef struct EntryAST {
 		UnaryOpAST *unaOpAST; //TODO: this should belong to FactorAST
 		BodyAST *bodyAST;
 		ProgramAST *progAST;
-		TypeAST *typeAST;
+		// TypeAST *typeAST;
 		FactorAST *factorAST;
 		VariableAST *varAST;
         BinaryOpAST *binOpAST;
@@ -208,8 +208,8 @@ EntryAST *create_type(TypeClass typeClass);
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
 EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_factor(TypeClass typeClass, Token *value);
-EntryAST *create_variable(char *name, EntryAST *type, EntryAST *value);
-EntryAST *create_array(char *name, EntryAST *type, EntryAST *value, int size);
+EntryAST *create_variable(char *name, int isGlobal, TypeClass type, int size, EntryAST *value);
+EntryAST *create_array(char *name, int isGlobal, EntryAST *type, EntryAST *value, int size);
 EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);
@@ -220,7 +220,7 @@ EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statem
 EntryAST *create_return();
 
 /*********** Debug functions ****************/
-void print_type(TypeAST *type);
+void print_type(TypeClass type);
 void print_variable(VariableAST *varAST);
 void print_program(ProgramAST *progAST);
 void print_procedure(ProcedureAST *procAST);

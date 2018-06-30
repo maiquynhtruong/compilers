@@ -12,7 +12,7 @@ EntryAST *parse_program();
 EntryNodeAST *parse_declaration_list();
 EntryAST *parse_proc_declaration(int isGlobal);
 EntryAST *parse_var_declaration(int isGlobal);
-EntryAST *parse_type_mark();
+TypeClass parse_type_mark();
 EntryNodeAST *parse_statement_list();
 EntryAST *parse_statement();
 EntryAST *parse_param();

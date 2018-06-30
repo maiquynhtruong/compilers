@@ -15,7 +15,7 @@ void check_string_type(TypeAST *type);
 void check_float_type(TypeAST *type);
 void check_int_float_type(TypeAST *type);
 void check_basic_type(TypeAST *type);
-void check_builtin_type(TypeAST *type);
+void check_builtin_type(TypeClass type);
 void check_bool_type(TypeAST *type);
 void check_type_equality(TypeAST *type1, TypeAST *type2);
 

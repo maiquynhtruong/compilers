@@ -31,8 +31,8 @@ void add_entry(EntryNodeAST **list, EntryAST *entry);
 
 void init_symbol_table();
 void clear_symbol_table();
-// Scope *new_scope(Scope *outerScope, Entry *parent);
-Scope *new_scope();
+// Scope *create_scope(Scope *outerScope, Entry *parent);
+Scope *create_scope();
 void enter_scope(Scope *scope);
 void exit_scope();
 void free_scope(Scope *scope);
