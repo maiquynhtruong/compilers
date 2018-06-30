@@ -61,8 +61,10 @@ typedef enum UnaryOpType {
 
 /* LinkedList of EntryAST to store variable number of statements and declarations in program and procedure. Also list of entries in a scope */
 typedef struct EntryNodeAST {
+	char *name;
 	struct EntryAST *entryAST;
 	struct EntryNodeAST *next;
+	struct EntryNodeAST *prev;
 } EntryNodeAST;
 
 typedef struct EntryListAST {
@@ -215,7 +217,7 @@ EntryAST *create_binary_op(BinaryOpType binOp, EntryAST *lhs, EntryAST *rhs);
 EntryAST *create_unary_op(UnaryOpType unaOp, EntryAST *factor);
 EntryAST *create_procedure_call(char *callee, EntryNodeAST *args, int argc);
 EntryAST *create_param(ParamType paramType, EntryAST *var);
-EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryAST *body);
+EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryNodeAST *body);
 EntryAST *create_if(EntryAST *condition, EntryNodeAST *trueBlock, EntryNodeAST *falseBlock);
 EntryAST *create_loop(EntryAST *assignment, EntryAST *expr, EntryNodeAST *statements);
 EntryAST *create_return();

@@ -131,7 +131,7 @@ EntryAST *parse_proc_declaration(int isGlobal) {
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
-    check_new_identifier(current_token->val.stringVal);
+    // check_new_identifier(current_token->val.stringVal);
 
     EntryNodeAST *params = parse_param_list();
     EntryNodeAST *stmts = parse_body_block(); // procedure body
@@ -148,10 +148,9 @@ EntryAST *parse_var_declaration(int isGlobal) {
 
     int size = 0;
     TypeClass typeMark = parse_type_mark();
-    check_builtin_type(typeMark);
+    // check_builtin_type(typeMark);
 
     match_token(T_IDENTIFIER);
-    check_new_identifier(current_token->val.stringVal);
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -277,7 +276,7 @@ EntryAST *parse_indexes() {
         match_token(T_LBRACKET);
 
         elemType = parse_expression();
-        check_int_type(elemType->factorAST->typeClass); // Array indexes must be of type integer.
+        // check_int_type(elemType->factorAST->typeClass); // Array indexes must be of type integer.
         // TODO: Bounds checking to insure that the index is within the upper and lower bound is required for all indexed array references
         // check_array_type(arrayType->typeAST); // if current element is not of array type, then the access to the next dimension is invalid
         // arrayType = arrayType->elementType;
@@ -292,7 +291,7 @@ EntryAST *parse_indexes() {
 EntryAST *parse_destination() {
     assert_parser("Parsing a destination");
     EntryAST *dest;
-    dest = check_declared_destination(current_token->val.stringVal);
+    // dest = check_declared_destination(current_token->val.stringVal);
 
     if (dest->entryType == ET_VARIABLE) dest = parse_indexes();
 
@@ -334,7 +333,7 @@ EntryAST *parse_assignment_statement() {
         expType = TC_INT;
         // TODO: call bool_to_int() here
     }
-    check_type_equality(destType, expType);
+    // check_type_equality(destType, expType);
 
     EntryAST *assigmentAST = create_binary_op(BO_EQ, destAST, expAST);
 
@@ -351,8 +350,8 @@ EntryAST *parse_if_statement() {
     match_token(T_LPAREN);
 
     condition = parse_expression();
-    convert_to_bool(condition->factorAST->typeClass);
-    check_bool_type(condition->factorAST->typeClass);
+    // convert_to_bool(condition->factorAST->typeClass);
+    // check_bool_type(condition->factorAST->typeClass);
 
     match_token(T_RPAREN);
     match_token(K_THEN);
@@ -404,7 +403,7 @@ EntryAST *parse_return_statement() {
 EntryAST *parse_procedure_call() {
     assert_parser("Parsing a procedure call");
     EntryAST *procCall = NULL;
-    EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
+    // EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
     unsigned int argc = callee->stmtAST->procCallAST->argc;
 
     match_token(T_LPAREN);
@@ -488,7 +487,7 @@ EntryNodeAST *parse_argument_list(EntryNodeAST *paramList) {
 
 void parse_argument(EntryAST *paramType) {
     EntryAST *argType = parse_expression();
-    check_type_equality(paramType->varAST->varType, argType->factorAST->typeClass);
+    // check_type_equality(paramType->varAST->varType, argType->factorAST->typeClass);
 }
 
 EntryAST *parse_expression() {
@@ -506,14 +505,14 @@ EntryAST *parse_expression_arith_op(EntryAST *expAST) {
         case T_AND:
             match_token(T_AND);
             arithOpAST = parse_arith_op();
-            check_int_type(arithOpAST->factorAST->typeClass);
+            // check_int_type(arithOpAST->factorAST->typeClass);
             expAST = create_binary_op(BO_AND, expAST, arithOpAST);
             expAST = parse_expression_arith_op(expAST);
             break;
         case T_OR:
             match_token(T_OR);
             arithOpAST = parse_arith_op();
-            check_int_type(arithOpAST->factorAST->typeClass);
+            // check_int_type(arithOpAST->factorAST->typeClass);
             expAST = create_binary_op(BO_OR, expAST, arithOpAST);
             expAST = parse_expression_arith_op(expAST);
             break;
@@ -710,7 +709,7 @@ EntryAST *parse_factor() {
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
-            factorAST = check_declared_identifier(current_token->val.stringVal);
+            // factorAST = check_declared_identifier(current_token->val.stringVal);
             // TypeAST *varType = factorAST->varAST->varType->typeAST;
             TypeClass varType = factorAST->varAST->varType;
             if (factorAST->varAST->size > 0) { // an array

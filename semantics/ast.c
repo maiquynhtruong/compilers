@@ -177,7 +177,7 @@ EntryAST *create_param(ParamType paramType, EntryAST *var) {
 	return entryAST;
 }
 
-EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryAST *body) {
+EntryAST *create_procedure(char *name, int isGlobal, int argc, EntryNodeAST *params, EntryNodeAST *body) {
 	assert_ast("Create procedure");
 	EntryAST *entryAST = create_entry(ET_PROCEDURE);
 	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(EntryAST));

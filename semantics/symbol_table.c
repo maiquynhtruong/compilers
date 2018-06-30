@@ -6,32 +6,25 @@
 
 SymbolTable *symbolTable;
 
-void declare_entry(EntryAST *entryAST, int isGlobal) {
+void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table("Declaring an entry");
+	print_entry(entry);
 
-	if (entryAST == NULL) return;
+	if (entry == NULL) return;
 
 	EntryNodeAST *curList = NULL;
 
 	if (symbolTable->currentScope == NULL || isGlobal) curList = symbolTable->globalEntryList;
 	else curList = symbolTable->currentScope->entryList;
 
-	add_entry(&curList, entryAST);
-}
-
-void add_entry(EntryNodeAST **list, EntryAST *entry) {
-	assert_symbol_table("Insert an entry");
-	print_entry(entry);
-
 	EntryNodeAST *entryNode = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	entryNode->entryAST = entry;
-	entryNode->next = NULL;
 
-	if ((*list) == NULL) *list = entryNode;
-	else {
-		EntryNodeAST *curNode = *list;
-		while (curNode->next != NULL) curNode = curNode->next;
-		curNode->next = entryNode;
+	if (curList == NULL) {
+		curList = entryNode;
+	} else {
+		while (curList->next != NULL) curList = curList->next;
+		curList->next = entryNode;
 	}
 }
 
@@ -42,6 +35,7 @@ EntryAST *lookup(char *name) {
 	while (current_scope != NULL) {
 		entry = find_entry(current_scope->entryList, name);
 		if (entry != NULL) return entry;
+
 		current_scope = current_scope->outerScope;
 	}
 
@@ -56,9 +50,10 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table(name);
 
 	EntryNodeAST *curNode = list;
-	
+	EntryAST *entryAST = NULL;
+
 	while (curNode != NULL) {
-		EntryAST *entryAST = curNode->entryAST;
+		entryAST = curNode->entryAST;
 		char *entryName;
 		switch (entryAST->entryType) {
 			case ET_PROGRAM: entryName = entryAST->progAST->name; break;
@@ -77,7 +72,8 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 			return entryAST;
 		else curNode = curNode->next;
 	}
-	return NULL;
+
+	return entryAST;
 }
 
 void init_symbol_table() {
@@ -87,6 +83,8 @@ void init_symbol_table() {
 	symbolTable->currentScope = NULL;
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
+
+	enter_scope(symbolTable->currentScope);
 
 	// built-in functions e.g. getInteger(integer val out)
 	EntryAST *getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
@@ -136,7 +134,6 @@ void clear_symbol_table() {
 
 Scope *create_scope() {
 	assert_symbol_table("New scope");
-
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
 	scope->outerScope = symbolTable->currentScope;
@@ -146,6 +143,7 @@ Scope *create_scope() {
 void enter_scope(Scope *scope) {
 	assert_symbol_table("Enter a scope");
 
+	if (scope == NULL) scope = create_scope();
 	symbolTable->currentScope = scope;
 }
 
@@ -168,9 +166,6 @@ void free_entry(EntryAST *entry) {
 		switch(entry->entryType) {
 			case ET_VARIABLE:
 				if (entry->varAST != NULL) free(entry->varAST);
-				break;
-			case ET_TYPE_MARK:
-				if (entry->typeAST != NULL) free(entry->typeAST);
 				break;
 			case ET_PROCEDURE:
 				if (entry->procAST != NULL) free(entry->procAST);

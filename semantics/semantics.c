@@ -9,8 +9,9 @@ extern Token *current_token;
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
-	EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
+	// EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
 
+	EntryAST *entry = lookup(name);
 	if (entry != NULL) throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
 }
 
@@ -56,6 +57,54 @@ EntryAST *check_declared_destination(char *name) {
 
 	return entry;
 }
+
+void check_int_float_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_basic_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_CHAR) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_builtin_type(TypeClass type) {
+	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_BOOL || type == TC_CHAR || type == TC_STRING) return;
+	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_int_type(TypeClass type) {
+	if (type == TC_INT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_char_type(TypeClass type) {
+	if (type == TC_CHAR) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_string_type(TypeClass type) {
+	if (type == TC_STRING) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_float_type(TypeClass type) {
+	if (type == TC_FLOAT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_bool_type(TypeClass type) {
+	if (type == TC_BOOL) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void check_type_equality(TypeClass type1, TypeClass type2) {
+	if (compare_type(type1, type2) == 0)
+		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+}
+
+void seman_var_decl(EntryAST *entry, int isGlobal) {
+	check_basic_type(entry->varAST->varType);
+	check_new_identifier(entry->varAST->name);
+
+	declare_entry(entry, isGlobal);
+}
+
 //
 // void check_int_float_type(TypeAST *type) {
 // 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
@@ -110,50 +159,10 @@ EntryAST *check_declared_destination(char *name) {
 // void convert_to_int(TypeAST *type) {
 // 	if (type->typeClass == TC_BOOL) type->typeClass = TC_INT;
 // }
-
-void check_int_float_type(TypeClass type) {
-	if (type == TC_INT || type == TC_FLOAT) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_basic_type(TypeClass type) {
-	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_CHAR) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_builtin_type(TypeClass type) {
-	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_BOOL || type == TC_CHAR || type == TC_STRING) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_int_type(TypeClass type) {
-	if (type == TC_INT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_char_type(TypeClass type) {
-	if (type == TC_CHAR) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_string_type(TypeClass type) {
-	if (type == TC_STRING) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_float_type(TypeClass type) {
-	if (type == TC_FLOAT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_bool_type(TypeClass type) {
-	if (type == TC_BOOL) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_type_equality(TypeClass type1, TypeClass type2) {
-	if (compare_type(type1, type2) == 0)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void convert_to_bool(TypeClass type) {
-	if (type == TC_INT) type = TC_BOOL;
-}
-void convert_to_int(TypeClass type) {
-	if (type == TC_BOOL) type = TC_INT;
-}
+//
+// void convert_to_bool(TypeClass type) {
+// 	if (type == TC_INT) type = TC_BOOL;
+// }
+// void convert_to_int(TypeClass type) {
+// 	if (type == TC_BOOL) type = TC_INT;
+// }
