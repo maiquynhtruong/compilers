@@ -17,6 +17,8 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	if (symbolTable->currentScope == NULL || isGlobal) curList = symbolTable->globalEntryList;
 	else curList = symbolTable->currentScope->entryList;
 
+	if (curList == symbolTable->globalEntryList) printf("global scope\n");
+
 	EntryNodeAST *entryNode = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
 	entryNode->entryAST = entry;
 
@@ -84,7 +86,7 @@ void init_symbol_table() {
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
 
-	enter_scope(symbolTable->currentScope);
+	// enter_scope(symbolTable->currentScope);
 
 	// built-in functions e.g. getInteger(integer val out)
 	EntryAST *getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
@@ -108,13 +110,6 @@ void init_symbol_table() {
 	declare_entry(putString, 1);
 	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
 	declare_entry(putChar, 1);
-
-	// TODO: Are these needed?
-	// TypeAST *intType = make_int_type();
-	// TypeAST *charType = make_char_type();
-	// TypeAST *floatType = make_float_type();
-	// TypeAST *stringType = make_string_type();
-	// TypeAST *boolType = make_bool_type();
 
 	assert_symbol_table("Finish initializing a symbol table");
 }

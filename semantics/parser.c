@@ -295,7 +295,7 @@ void parse_indexes() {
 TypeClass parse_destination() {
     assert_parser("Parsing a destination");
     EntryAST *dest;
-    dest = check_declared_destination(current_token->val.stringVal);
+    dest = check_declared_identifier(current_token->val.stringVal);
 
     parse_indexes();
     TypeClass destType = dest->varAST->varType;
@@ -560,6 +560,7 @@ TypeClass parse_arith_op_relation(TypeClass arithOpType) {
             match_token(T_PLUS);
             // relationAST = parse_relation();
             relationType = parse_relation();
+            check_int_float_type(relationType);
             // check_int_float_type(relationAST->typeAST);
             // arithOpAST = create_binary_op(BO_PLUS, arithOpAST, relationAST);
             arithOpType = parse_arith_op_relation(arithOpType);
@@ -567,6 +568,7 @@ TypeClass parse_arith_op_relation(TypeClass arithOpType) {
         case T_MINUS:
             match_token(T_MINUS);
             relationType = parse_relation();
+            check_int_float_type(relationType);
             // relationAST = parse_relation();
             // check_int_float_type(relationAST->typeAST);
             // arithOpAST = create_binary_op(BO_MINUS, arithOpAST, relationAST);
@@ -742,7 +744,7 @@ TypeClass parse_term() {
 
 // EntryAST *parse_term_factor(EntryAST *termAST) {
 TypeClass parse_term_factor(TypeClass factorType1) {
-    EntryAST *factorAST = NULL, *termAST = NULL;
+    // EntryAST *factorAST = NULL, *termAST = NULL;
     TypeClass termType = TC_INVALID, factorType2 = TC_INVALID;
     switch(look_ahead->type) {
         case T_MULTIPLY:
@@ -751,7 +753,7 @@ TypeClass parse_term_factor(TypeClass factorType1) {
             check_int_float_type(factorType1);
             factorType2 = parse_factor();
             check_int_float_type(factorType2);
-            termAST = create_binary_op(BO_MULTIPLY, termAST, factorAST);
+            // termAST = create_binary_op(BO_MULTIPLY, termAST, factorAST);
             termType = parse_term_factor(factorType1);
             break;
         case T_DIVIDE:
@@ -760,7 +762,7 @@ TypeClass parse_term_factor(TypeClass factorType1) {
             check_int_float_type(factorType1);
             factorType2 = parse_factor();
             check_int_float_type(factorType2);
-            termAST = create_binary_op(BO_DIVIDE, termAST, factorAST);
+            // termAST = create_binary_op(BO_DIVIDE, termAST, factorAST);
             termType = parse_term_factor(factorType1);
             break;
         // FOLLOW set
