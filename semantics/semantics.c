@@ -10,9 +10,14 @@ extern Token *current_token;
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
 	// EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
+	assert_semantics("Verify a new ident for "); assert_semantics(name); assert_semantics("\n");
 
 	EntryAST *entry = lookup(name);
-	if (entry != NULL) throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
+	if (entry == NULL) {
+		assert_semantics(name); assert_semantics(" is a new ident \n");
+	} else {
+		throw_error(E_DUPLICATE_IDENT, current_token->lineNo, current_token->columnNo);
+	}
 }
 
 EntryAST *check_declared_identifier(char *name) {
@@ -94,69 +99,6 @@ void check_bool_type(TypeClass type) {
 }
 
 void check_type_equality(TypeClass type1, TypeClass type2) {
-	if (compare_type(type1, type2) == 0)
+	if (type1 != type2)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
-
-
-//
-// void check_int_float_type(TypeAST *type) {
-// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT)) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_basic_type(TypeAST *type) {
-// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
-// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR)) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_builtin_type(TypeAST *type) {
-// 	if (type != NULL && (type->typeClass == TC_INT || type->typeClass == TC_FLOAT ||
-// 		 type->typeClass == TC_BOOL || type->typeClass == TC_CHAR || type->typeClass == TC_STRING)) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_int_type(TypeAST *type) {
-// 	if (type != NULL && type->typeClass == TC_INT) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_char_type(TypeAST *type) {
-// 	if (type != NULL && type->typeClass == TC_CHAR) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_string_type(TypeAST *type) {
-// 	if (type != NULL && type->typeClass == TC_STRING) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_float_type(TypeAST *type) {
-// 	if (type != NULL && type->typeClass == TC_FLOAT) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_bool_type(TypeAST *type) {
-// 	if (type != NULL && type->typeClass == TC_BOOL) return;
-// 	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void check_type_equality(TypeAST *type1, TypeAST *type2) {
-// 	if (compare_type(type1, type2) == 0)
-// 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-// }
-//
-// void convert_to_bool(TypeAST *type) {
-// 	if (type->typeClass == TC_INT) type->typeClass = TC_BOOL;
-// }
-// void convert_to_int(TypeAST *type) {
-// 	if (type->typeClass == TC_BOOL) type->typeClass = TC_INT;
-// }
-//
-// void convert_to_bool(TypeClass type) {
-// 	if (type == TC_INT) type = TC_BOOL;
-// }
-// void convert_to_int(TypeClass type) {
-// 	if (type == TC_BOOL) type = TC_INT;
-// }

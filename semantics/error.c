@@ -84,5 +84,9 @@ void assert_symbol_table(char *mesg) {
 }
 
 void assert_ast(char *mesg) {
-    printf("%s\n", mesg);
+    printf("%s", mesg);
+}
+
+void assert_semantics(char *mesg) {
+    printf("%s", mesg);
 }

@@ -47,7 +47,7 @@ int parse(char *file_name) {
 
     // symbolTable->root = parse_program();
     parse_program();
-    print_entry(symbolTable->root);
+    // print_entry(symbolTable->root);
 
     clear_symbol_table();
 
@@ -82,7 +82,7 @@ void parse_program() {
 
     program = create_program(current_token->val.stringVal);
 
-    enter_scope(create_scope(current_token->val.stringVal));
+    enter_scope(create_scope(program));
 
     match_token(K_IS);
     parse_body_block(); // program body
@@ -160,6 +160,8 @@ void parse_var_declaration(int isGlobal) {
 
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
+    EntryAST *entry = create_variable(current_token->val.stringVal);
+    entry->varAST->varType = varType;
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -177,7 +179,8 @@ void parse_var_declaration(int isGlobal) {
     }
 
     // EntryAST *varAST = create_variable(current_token->val.stringVal, isGlobal, varType, size, NULL);
-    // declare_entry(varAST, isGlobal); // in parse_declaration_list() and parse_param()
+    declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
+
     assert_parser("Done parsing a variable declaration");
     // return varAST;
 }
@@ -791,22 +794,22 @@ TypeClass parse_factor() {
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
-            factorAST = create_factor(TC_STRING, current_token);
+            // factorAST = create_factor(TC_STRING, current_token);
             factorType = TC_STRING;
             break;
         case T_CHAR:
             match_token(T_CHAR);
-            factorAST = create_factor(TC_CHAR, current_token);
+            // factorAST = create_factor(TC_CHAR, current_token);
             factorType = TC_CHAR;
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
-            factorAST = create_factor(TC_INT, current_token);
+            // factorAST = create_factor(TC_INT, current_token);
             factorType = TC_INT;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
-            factorAST = create_factor(TC_FLOAT, current_token);
+            // factorAST = create_factor(TC_FLOAT, current_token);
             factorType = TC_FLOAT;
             break;
         case T_LPAREN: // ( <expression> )
@@ -821,7 +824,7 @@ TypeClass parse_factor() {
             factorType = parse_factor();
             if (factorType == TC_INT) current_token->val.intVal = -look_ahead->val.intVal;
             else if (factorType == TC_FLOAT) current_token->val.floatVal = -look_ahead->val.floatVal;
-            factorAST = create_unary_op(UN_MINUS, factorAST);
+            // factorAST = create_unary_op(UN_MINUS, factorAST);
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
             match_token(T_IDENTIFIER);
@@ -831,16 +834,16 @@ TypeClass parse_factor() {
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
-            factorAST = create_factor(factorType, current_token);
+            // factorAST = create_factor(factorType, current_token);
             break;
         case K_TRUE:
             match_token(K_TRUE);
-            factorAST = create_factor(TC_BOOL, current_token);
+            // factorAST = create_factor(TC_BOOL, current_token);
             factorType = TC_BOOL;
             break;
         case K_FALSE:
             match_token(K_FALSE);
-            factorAST = create_factor(TC_BOOL, current_token);
+            // factorAST = create_factor(TC_BOOL, current_token);
             factorType = TC_BOOL;
             break;
         // FOLLOW set
