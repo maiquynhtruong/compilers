@@ -98,12 +98,6 @@ void check_type_equality(TypeClass type1, TypeClass type2) {
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void seman_var_decl(EntryAST *entry, int isGlobal) {
-	check_basic_type(entry->varAST->varType);
-	check_new_identifier(entry->varAST->name);
-
-	declare_entry(entry, isGlobal);
-}
 
 //
 // void check_int_float_type(TypeAST *type) {

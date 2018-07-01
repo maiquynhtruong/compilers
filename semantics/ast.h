@@ -36,7 +36,8 @@ typedef enum TypeClass {
 	TC_FLOAT,
 	TC_STRING,
 	TC_BOOL,
-	TC_CHAR
+	TC_CHAR,
+	TC_INVALID
 } TypeClass;
 
 typedef enum BinaryOpType {
@@ -130,6 +131,8 @@ typedef struct ParamAST {
     // TypeAST *type;
     ParamType paramType;
     struct EntryAST *var;
+	TypeClass type;
+	char *name;
     // struct ProcedureAST *procedure;
 } ParamAST;
 
