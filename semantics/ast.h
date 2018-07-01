@@ -182,6 +182,7 @@ typedef struct StatementAST {
 
 typedef struct EntryAST {
 	EntryType entryType; // type
+	char *name; // some struct might have its own name but it doesn't hurt ot have another one :)
 	union {
 		UnaryOpAST *unaOpAST; //TODO: this should belong to FactorAST
 		BodyAST *bodyAST;
@@ -196,13 +197,6 @@ typedef struct EntryAST {
 	}; // value
 } EntryAST;
 
-// TypeAST *make_int_type();
-// TypeAST *make_char_type();
-// TypeAST *make_float_type();
-// TypeAST *make_string_type();
-// TypeAST *make_bool_type();
-// TypeAST *make_array_type(int size, EntryAST *type);
-// int compare_type(TypeAST *type1, TypeAST *type2);
 int compare_type(TypeClass type1, TypeClass type2);
 void free_type(TypeAST *type);
 
@@ -212,7 +206,7 @@ EntryListAST *create_list();
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
 // EntryAST *create_type(TypeClass typeClass);
 EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements);
-EntryAST *create_program(char *name, EntryAST *body);
+// EntryAST *create_program(char *name, EntryAST *body);
 EntryAST *create_factor(TypeClass typeClass, Token *value);
 EntryAST *create_variable(char *name, int isGlobal, TypeClass type, int size, EntryAST *value);
 EntryAST *create_array(char *name, int isGlobal, TypeClass type, int size, EntryAST *value);

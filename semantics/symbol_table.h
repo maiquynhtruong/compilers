@@ -13,6 +13,7 @@ parent: the Entry that upon creating it we also need to create a new scope
 (e.g. procedure and program)
 */
 typedef struct Scope {
+	char *name; // for printing purposes
 	EntryNodeAST *entryList;
 	// EntryNodeAST *head;
 	// EntryNodeAST *tail;
@@ -33,7 +34,7 @@ void declare_entry(EntryAST *entryAST, int isGlobal);
 void init_symbol_table();
 void clear_symbol_table();
 // Scope *create_scope(Scope *outerScope, Entry *parent);
-Scope *create_scope();
+Scope *create_scope(char *name);
 void enter_scope(Scope *scope);
 void exit_scope();
 void free_scope(Scope *scope);
@@ -43,4 +44,6 @@ void free_entry_list(EntryNodeAST *node);
 
 void print_scope(Scope *scope);
 void print_symbol_table();
+
+EntryAST *create_program(char *name);
 #endif

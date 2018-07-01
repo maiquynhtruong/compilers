@@ -156,11 +156,11 @@ EntryAST *create_body_block(EntryNodeAST *decls, EntryNodeAST *statements) {
 	return entryAST;
 }
 
-EntryAST *create_program(char *name, EntryAST *body) {
-	assert_ast("Create program");
-	EntryAST *entryAST = create_entry(ET_PROGRAM);
-	return entryAST;
-}
+// EntryAST *create_program(char *name, EntryAST *body) {
+// 	assert_ast("Create program");
+// 	EntryAST *entryAST = create_entry(ET_PROGRAM);
+// 	return entryAST;
+// }
 
 EntryAST *create_procedure_call(char *name, EntryNodeAST *args, int argc) {
 	assert_ast("Create procedure call");

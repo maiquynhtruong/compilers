@@ -9,6 +9,7 @@ SymbolTable *symbolTable;
 void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table("Declaring an entry");
 	print_entry(entry);
+	assert_symbol_table("\n");
 
 	if (entry == NULL) return;
 
@@ -50,6 +51,7 @@ EntryAST *lookup(char *name) {
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table("Finding entry: ");
 	assert_symbol_table(name);
+	assert_symbol_table("\n");
 
 	EntryNodeAST *curNode = list;
 	EntryAST *entryAST = NULL;
@@ -75,11 +77,14 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 		else curNode = curNode->next;
 	}
 
+	if (entryAST == NULL) { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" not found\n"); }
+	else  { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" found\n"); }
+
 	return entryAST;
 }
 
 void init_symbol_table() {
-	assert_symbol_table("Initialize a symbol table");
+	assert_symbol_table("Initialize a symbol table"); assert_symbol_table("\n");
 
 	symbolTable = (SymbolTable *) malloc(sizeof(SymbolTable));
 	symbolTable->currentScope = NULL;
@@ -111,7 +116,7 @@ void init_symbol_table() {
 	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
 	declare_entry(putChar, 1);
 
-	assert_symbol_table("Finish initializing a symbol table");
+	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
 
 void clear_symbol_table() {
@@ -127,18 +132,23 @@ void clear_symbol_table() {
 	// free_type(boolType);
 }
 
-Scope *create_scope() {
-	assert_symbol_table("New scope");
+Scope *create_scope(char *name) {
+	assert_symbol_table("New scope: ");
+	assert_symbol_table(name);
+	assert_symbol_table("\n");
+
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
 	scope->outerScope = symbolTable->currentScope;
+	scope->name = name;
 	return scope;
 }
 
 void enter_scope(Scope *scope) {
-	assert_symbol_table("Enter a scope");
+	assert_symbol_table("Enter a scope: ");
+	assert_symbol_table(scope->name);
+	assert_symbol_table("\n");
 
-	if (scope == NULL) scope = create_scope();
 	symbolTable->currentScope = scope;
 }
 
@@ -192,4 +202,16 @@ void print_scope(Scope *scope) {
 
 void print_symbol_table() {
 
+}
+
+EntryAST *create_program(char *name) {
+	assert_symbol_table("Creating a program");
+
+	EntryAST *progEntry = (EntryAST *) malloc(sizeof(EntryAST));
+	progEntry->entryType = ET_PROGRAM;
+	ProgramAST *program = (ProgramAST *) malloc(sizeof(ProgramAST));
+	program->name = name;
+	progEntry->progAST = program;
+	symbolTable->root = progEntry;
+	return progEntry;
 }

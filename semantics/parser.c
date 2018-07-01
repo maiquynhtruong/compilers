@@ -74,19 +74,23 @@ void parse_program() {
     assert_parser("Parsing the program");
 
     // EntryAST *programAST = NULL, *bodyAST = NULL; // create, enter and exit a program scope
+    EntryAST *program;
 
     // program header
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
-    match_token(K_IS);
 
-    // enter_scope(create_scope());
+    program = create_program(current_token->val.stringVal);
+
+    enter_scope(create_scope(current_token->val.stringVal));
+
+    match_token(K_IS);
     parse_body_block(); // program body
     match_token(K_PROGRAM);
     // programAST = create_program(current_token->val.stringVal, bodyAST);
 
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
-    // exit_scope();
+    exit_scope();
 
     assert_parser("Done parsing the program");
     // return programAST;

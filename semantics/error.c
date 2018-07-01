@@ -1,5 +1,6 @@
 #include "error.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 void throw_error(ErrorCode code, int lineNo, int columnNo) {
     switch(code) {
@@ -79,7 +80,7 @@ void assert_parser(char *mesg) {
 }
 
 void assert_symbol_table(char *mesg) {
-    printf("%s\n", mesg);
+    printf("%s", mesg);
 }
 
 void assert_ast(char *mesg) {
