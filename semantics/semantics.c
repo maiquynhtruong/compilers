@@ -21,9 +21,14 @@ void check_new_identifier(char *name) {
 }
 
 EntryAST *check_declared_identifier(char *name) {
+	assert_semantics("Verify declared ident for "); assert_semantics(name); assert_semantics("\n");
 	EntryAST *entry = lookup(name);
 
-	if (entry == NULL) throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
+	if (entry == NULL) {
+		throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
+	} else {
+		assert_semantics(name); assert_semantics(" has type "); print_entry_type(entry); assert_semantics("\n");
+	}
 	return entry;
 }
 

@@ -146,6 +146,8 @@ void free_entry(EntryAST *entry);
 void free_entry_list(EntryNodeAST *node);
 
 void print_current_scope();
+void print_entry_type(EntryAST *entry);
+void print_type(TypeClass type);
 
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_program(char *name);

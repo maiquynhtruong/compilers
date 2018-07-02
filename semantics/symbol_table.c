@@ -6,14 +6,28 @@
 
 SymbolTable *symbolTable;
 
+EntryAST *getBool;
+EntryAST *getInteger;
+EntryAST *getFloat;
+EntryAST *getString;
+EntryAST *getChar;
+EntryAST *putBool;
+EntryAST *putInteger;
+EntryAST *putFloat;
+EntryAST *putString;
+EntryAST *putChar;
+
 void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table("Declaring an entry: ");
+	assert_symbol_table(entry->name);
 	EntryAST *parent = NULL;
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
 		add_entry(&(symbolTable->globalEntryList), entry);
 		assert_symbol_table(" in Global scope");
 	} else {
+		assert_symbol_table(" in Scope ");
+		assert_symbol_table(symbolTable->currentScope->parent->name);
 		switch (entry->entryType) {
 			case ET_VARIABLE:
 				entry->varAST->scope = symbolTable->currentScope;
@@ -31,8 +45,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 		}
 
 		add_entry(&(symbolTable->currentScope->entryList), entry);
-		assert_symbol_table(" in Scope ");
-		assert_symbol_table(symbolTable->currentScope->parent->name);
 	}
 	assert_symbol_table("\n");
 }
@@ -101,17 +113,17 @@ void init_symbol_table() {
 	// enter_scope(symbolTable->currentScope);
 
 	// built-in functions e.g. getInteger(integer val out)
-	EntryAST *getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
-	EntryAST *getInteger = create_builtin_function("getInteger", TC_INT, PT_OUT); // getInteger(integer val out)
-	EntryAST *getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
-	EntryAST *getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
-	EntryAST *getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
+	getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
+	getInteger = create_builtin_function("getInteger", TC_INT, PT_OUT); // getInteger(integer val out)
+	getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
+	getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
+	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
 
-	EntryAST *putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
-	EntryAST *putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
-	EntryAST *putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	EntryAST *putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
-	EntryAST *putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
+	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
+	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
+	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
+	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
+	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
@@ -198,6 +210,36 @@ void print_current_scope() {
 	assert_symbol_table("Current scope is ");
 	assert_symbol_table(symbolTable->currentScope->parent->name);
 	assert_symbol_table("\n");
+}
+
+void print_entry_type(EntryAST *entry) {
+	TypeClass type = TC_INVALID;
+	switch (entry->entryType) {
+		case ET_VARIABLE:
+			type = entry->varAST->varType; break;
+		case ET_FACTOR:
+			type = entry->factorAST->typeClass; break;
+		case ET_PARAMTER:
+			type = entry->paramAST->type; break;
+	}
+	print_type(type);
+}
+
+void print_type(TypeClass type) {
+    switch (type) {
+        case TC_INT:
+            printf("Integer"); break;
+    	case TC_FLOAT:
+            printf("Float"); break;
+    	case TC_STRING:
+            printf("String"); break;
+    	case TC_BOOL:
+            printf("Bool"); break;
+    	case TC_CHAR:
+            printf("Char"); break;
+        default:
+            printf("Unknown"); break;
+    }
 }
 
 EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
