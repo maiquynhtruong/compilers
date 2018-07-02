@@ -155,7 +155,7 @@ Scope *create_scope(EntryAST *parent) {
 
 void enter_scope(Scope *scope) {
 	assert_symbol_table("Enter a scope: ");
-	assert_symbol_table(scope->parent->name);printf("Here\n");
+	assert_symbol_table(scope->parent->name);
 	assert_symbol_table("\n");
 
 	symbolTable->currentScope = scope;
@@ -164,7 +164,7 @@ void enter_scope(Scope *scope) {
 }
 
 void exit_scope() {
-	assert_symbol_table("Exit a scope");
+	assert_symbol_table("Exit a scope\n");
 
 	symbolTable->currentScope = symbolTable->currentScope->outerScope;
 }
@@ -221,6 +221,8 @@ void print_entry_type(EntryAST *entry) {
 			type = entry->factorAST->typeClass; break;
 		case ET_PARAMTER:
 			type = entry->paramAST->type; break;
+		case ET_PROCEDURE:
+			type = TC_INVALID;
 	}
 	print_type(type);
 }
@@ -237,6 +239,8 @@ void print_type(TypeClass type) {
             printf("Bool"); break;
     	case TC_CHAR:
             printf("Char"); break;
+		case TC_INVALID:
+			printf("Invalid"); break;
         default:
             printf("Unknown"); break;
     }
