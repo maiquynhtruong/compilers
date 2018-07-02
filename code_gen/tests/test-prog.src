@@ -1,0 +1,7 @@
+program test_program is
+integer a;
+begin
+    a := 3;
+    //f(3, a);
+    putInteger(a);
+end program .
