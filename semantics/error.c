@@ -1,5 +1,6 @@
 #include "error.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 void throw_error(ErrorCode code, int lineNo, int columnNo) {
     switch(code) {
@@ -75,13 +76,17 @@ Comment the function body to print logging info
 Uncomment to silence
 **/
 void assert_parser(char *mesg) {
-    // printf("%s\n", mesg);
+    printf("%s", mesg);
 }
 
 void assert_symbol_table(char *mesg) {
-    printf("%s\n", mesg);
+    printf("%s", mesg);
 }
 
 void assert_ast(char *mesg) {
-    printf("%s\n", mesg);
+    printf("%s", mesg);
+}
+
+void assert_semantics(char *mesg) {
+    printf("%s", mesg);
 }
