@@ -4,8 +4,8 @@ LIBS=-lm
 
 all: semantics
 
-semantics: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o
-			${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o ast.o -o semantics.out
+semantics: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
+			${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o -o semantics.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c
@@ -30,9 +30,6 @@ symbol_table.o: symbol_table.c
 
 token.o: token.c
 		 ${CC} ${CFLAGS} token.c
-
-ast.o: ast.c
-		${CC} ${CFLAGS} ast.c
 
 .PHONY: clean
 
