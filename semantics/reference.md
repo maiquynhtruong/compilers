@@ -23,3 +23,7 @@ http://www.cs.toronto.edu/~chechik/courses97/csc488/ast.html
 http://www.cs.xu.edu/csci310/99s/ast.html
 
 http://www.eecg.toronto.edu/~csc467/project/ast.html
+
+https://cs.nyu.edu/~gottlieb/courses/2000s/2007-08-spring/compilers/lectures/lecture-09.html
+
+https://ruslanspivak.com/lsbasi-part13/
