@@ -107,22 +107,6 @@ void check_int_type(TypeClass type) {
 	if (type == TC_INT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void check_char_type(TypeClass type) {
-	if (type == TC_CHAR) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_string_type(TypeClass type) {
-	if (type == TC_STRING) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_float_type(TypeClass type) {
-	if (type == TC_FLOAT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
-void check_bool_type(TypeClass type) {
-	if (type == TC_BOOL) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
-}
-
 void check_type_equality(TypeClass type1, TypeClass type2) {
 	assert_semantics("Checking type equality: Type 1 is "); print_type(type1); assert_semantics(", type 2 is "); print_type(type2);
 	assert_semantics("\n");
