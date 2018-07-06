@@ -40,4 +40,4 @@ ast.o: ast.c
 .PHONY: clean
 
 clean:
-	rm -f *.o *.gch *~
+	rm -f *.o *.gch *.out *~

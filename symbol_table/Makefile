@@ -18,4 +18,4 @@ symbol_table.o: symbol_table.c
 .PHONY: clean
 
 clean:
-	rm -f *.o *.gch *~
+	rm -f *.o *.gch *.out *~
