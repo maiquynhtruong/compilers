@@ -5,4 +5,5 @@ program test_program is
         b := 3;
         y := b;
     end procedure;
+begin
 end program .
