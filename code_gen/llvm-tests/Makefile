@@ -1,8 +1,8 @@
-CC=clang
+CC=gcc
+LD=g++
 CFLAGS=-g `llvm-config --cflags`
 CPPFLAGS +=  -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/
 CXX=$(CC)++
-LD=clang++
 LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine mcjit interpreter analysis native bitwriter --system-libs`
 
 # Generating the object file is a no-brainer:
@@ -15,11 +15,11 @@ LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine mcjit inte
 
 all: sum
 
+sum: sum.o
+	$(LD) $< $(LDFLAGS) -o $@.out
+
 sum.o: sum.c
 	$(CC) $(CFLAGS) -c sum.c
-
-sum: sum.o
-	$(LD) $< $(LDFLAGS) -o $@
 
 sum.bc: sum
 	./sum 0 0
@@ -27,5 +27,6 @@ sum.bc: sum
 sum.ll: sum.bc
 	llvm-dis $<
 
+.PHONY: clean
 clean:
-	-rm -f sum.o sum sum.bc sum.ll
+	-rm -f *.bc *.ll *.o
