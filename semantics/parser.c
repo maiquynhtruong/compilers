@@ -82,7 +82,7 @@ void parse_program() {
 
     program = create_program(current_token->val.stringVal);
 
-    enter_scope(create_scope(program));
+    enter_scope(program->procAST->scope);
 
     match_token(K_IS);
     parse_body_block(); // program body
@@ -116,16 +116,12 @@ void parse_declaration_list() {
             // node = node->next;
             break;
         // FOLLOW set
-        case K_BEGIN: // from program_body, procedure_body
+        case K_BEGIN: case K_END: // from program_body, procedure_body
             break;
         default:
             parse_var_declaration(isGlobal);
             match_token(T_SEMI_COLON);
-            // declare_entry(declAST, isGlobal);
-            // node = create_entry_node(declAST, NULL);
-            // node->next = parse_declaration_list(node);
             parse_declaration_list();
-            // node = node->next;
             break;
     }
     assert_parser("Done parsing declaration list\n");
