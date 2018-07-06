@@ -8,7 +8,7 @@ gitbooks
 
 Read for fun: http://www.stephendiehl.com/llvm/#llvm-introduction
 
-kaleidoscope in C:
+Example in C
 https://github.com/benbjohnson/llvm-c-kaleidoscope
 https://github.com/paulsmith/kaleidoscope https://pauladamsmith.com/blog/2015/01/how-to-get-started-with-llvm-c-api.html
 https://github.com/wickedchicken/llvm-c-example
@@ -84,3 +84,5 @@ http://www.cs.tau.ac.il/~msagiv/courses/pa15-16/llvm.pdf
 https://blog.quarkslab.com/turning-regular-code-into-atrocities-with-llvm.html
 
 http://polaris.cs.uiuc.edu/~padua/cs426-03/cs-ast-bbopt.pdf
+
+https://github.com/andrejnano/IFJ17/tree/master/src
