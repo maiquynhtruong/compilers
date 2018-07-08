@@ -15,7 +15,10 @@ int main(int argc, char **argv) {
     LLVMExecutionEngineRef engine;
 
     LLVMInitializeNativeTarget();
-    LLVMLinkInJIT();
+    LLVMInitializeNativeAsmPrinter();
+    LLVMInitializeNativeAsmParser();
+
+    LLVMLinkInMCJIT();
 
     // Create execution engine.
     char *msg;
