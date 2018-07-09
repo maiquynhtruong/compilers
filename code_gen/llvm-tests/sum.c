@@ -51,14 +51,6 @@ int main(int argc, char const *argv[]) {
     int32_t x = strtoll(argv[1], NULL, 10);
     int32_t y = strtoll(argv[2], NULL, 10);
 
-    // LLVMGenericValueRef args[] = {
-        // LLVMCreateGenericValueOfInt(LLVMInt32Type(), x, 0),
-        // LLVMCreateGenericValueOfInt(LLVMInt32Type(), y, 0)
-    // };
-
-    // call our (JIT’d) function!
-    // LLVMGenericValueRef res = LLVMRunFunction(engine, sum, 2, args);
-    // printf("%d\n", (int)LLVMGenericValueToInt(res, 0));
     {
         funcPtr_t funcPtr = (funcPtr_t)LLVMGetPointerToGlobal(engine, sum);
         printf("%d\n", funcPtr(x,y));

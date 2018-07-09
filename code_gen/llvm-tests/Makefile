@@ -14,7 +14,7 @@ LDFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native
 # g++ `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native` fac.o -o fac
 # All set!
 
-all: sum
+# all: sum
 
 sum: sum.o
 	$(LD) $< $(LDFLAGS) -o $@.out
@@ -28,6 +28,18 @@ sum.bc: sum
 sum.ll: sum.bc
 	llvm-dis $<
 
+fac: fac.o
+	$(LD) fac.o $(LDFLAGS) -o fac.out
+
+fac.o: fac.c
+	$(CC) $(CFLAGS) -c fac.c
+
+fac.bc: fac
+	./fac.out 1
+
+fac.ll: fac.bc
+	llvm-dis fac.bc
+
 .PHONY: clean
 clean:
-	-rm -f *.bc *.ll *.o
+	-rm -f *.bc *.ll *.o *.out
