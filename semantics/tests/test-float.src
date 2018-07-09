@@ -1,0 +1,5 @@
+program test_program is
+    float a;
+begin
+    a := 2.3567;
+end program .
