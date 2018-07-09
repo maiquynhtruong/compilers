@@ -83,6 +83,7 @@ typedef struct ParamAST {
 typedef struct EntryAST {
 	EntryType entryType; // type
 	char name[MAX_IDENT_LENGTH];
+	LLVMValueRef value; // might not be here but in individual structs
 	union {
 		// UnaryOpAST *unaOpAST;
 		// BodyAST *bodyAST;

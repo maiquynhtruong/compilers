@@ -698,6 +698,7 @@ TypeClass parse_factor() {
     assert_parser("Parsing a factor\n");
     EntryAST *factorAST = NULL;
     TypeClass factorType = TC_INVALID;
+    LLVMValueRef value;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
@@ -708,15 +709,18 @@ TypeClass parse_factor() {
             match_token(T_CHAR);
             // factorAST = create_factor(TC_CHAR, current_token);
             factorType = TC_CHAR;
+            factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.charVal, 0);
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
             // factorAST = create_factor(TC_INT, current_token);
+            factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 0);
             factorType = TC_INT;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
             // factorAST = create_factor(TC_FLOAT, current_token);
+            factorAST->value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 0);
             factorType = TC_FLOAT;
             break;
         case T_LPAREN: // ( <expression> )
