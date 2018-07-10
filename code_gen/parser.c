@@ -158,13 +158,14 @@ void parse_var_declaration(int isGlobal) {
     assert_parser("Parsing a variable declaration\n");
 
     int size = 0;
-    TypeClass varType = parse_type_mark();
-    check_builtin_type(varType);
+    TypeAST *varType = parse_type_mark();
+    check_builtin_type(varType->typeClass);
 
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
     EntryAST *entry = create_variable(current_token->val.stringVal);
-    entry->varAST->varType = varType;
+    entry->varAST->varType = varType->typeClass;
+    entry->typeAST = varType;
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
@@ -188,34 +189,35 @@ void parse_var_declaration(int isGlobal) {
     // return varAST;
 }
 
-TypeClass parse_type_mark() {
+TypeAST *parse_type_mark() {
     assert_parser("Parsing a type mark\n");
 
     TypeClass typeMark = TC_INVALID;
-    LLVMTypeRef type = LLVMVoidType();
+    LLVMTypeRef typeRef = LLVMVoidType();
     switch(look_ahead->type) {
         case K_INT:
             match_token(K_INT);
-            type = LLVMInt32Type();
+            typeRef = LLVMInt32Type();
             typeMark = TC_INT;
             break;
         case K_FLOAT:
             match_token(K_FLOAT);
-            type = LLVMFloatType();
+            typeRef = LLVMFloatType();
             typeMark = TC_FLOAT;
             break;
         case K_BOOL:
             match_token(K_BOOL);
-            type = LLVMInt8Type();
+            typeRef = LLVMInt8Type();
             typeMark = TC_BOOL;
             break;
         case K_CHAR:
             match_token(K_CHAR);
-            type = LLVMInt8Type();
+            typeRef = LLVMInt8Type();
             typeMark = TC_CHAR;
             break;
         case K_STRING:
             match_token(K_STRING);
+            typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH);
             typeMark = TC_STRING;
             break;
         default:
@@ -224,7 +226,7 @@ TypeClass parse_type_mark() {
 
     assert_parser("Done parsing a type mark\n");
     assert_parser("TypeMark type is: "); print_type(typeMark); assert_parser("\n");
-    return typeMark;
+    return create_type(typeMark, typeRef);
 }
 
 // EntryAST* parse_type_mark() {

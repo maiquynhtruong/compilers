@@ -12,7 +12,7 @@ void parse_program();
 void parse_declaration_list();
 void parse_proc_declaration(int isGlobal);
 void parse_var_declaration(int isGlobal);
-TypeClass parse_type_mark();
+TypeAST *parse_type_mark();
 void parse_statement_list();
 void parse_statement();
 void parse_param();

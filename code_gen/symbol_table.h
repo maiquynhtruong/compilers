@@ -81,15 +81,20 @@ typedef struct ParamAST {
     // struct ProcedureAST *procedure;
 } ParamAST;
 
+typedef struct TypeAST {
+	TypeClass typeClass;
+	LLVMTypeRef typeRef;
+} TypeAST;
+
 typedef struct EntryAST {
-	EntryType entryType; // type
+	EntryType entryType;
 	char name[MAX_IDENT_LENGTH];
 	LLVMValueRef value; // might not be here but in individual structs
 	union {
 		// UnaryOpAST *unaOpAST;
 		// BodyAST *bodyAST;
 		ProgramAST *progAST;
-		// TypeAST *typeAST;
+		TypeAST *typeAST;
 		FactorAST *factorAST;
 		VariableAST *varAST;
         // BinaryOpAST *binOpAST;
@@ -147,9 +152,10 @@ void print_current_scope();
 void print_entry_type(EntryAST *entry);
 void print_type(TypeClass type);
 
-EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType);
-EntryAST *create_program(char *name);
-EntryAST *create_variable(char *name);
-EntryAST *create_param(char *name, ParamType paramType);
-EntryAST *create_procedure(char *name);
+TypeAST *create_type(TypeClass typeClass, LLVMTypeRef typeRef);
+EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType);
+EntryAST *create_program(const char *name);
+EntryAST *create_variable(const char *name);
+EntryAST *create_param(const char *name, ParamType paramType);
+EntryAST *create_procedure(const char *name);
 #endif

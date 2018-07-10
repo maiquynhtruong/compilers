@@ -5,11 +5,11 @@ CPPFLAGS +=  -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/
 CXX=$(CC)++
 LDFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native executionengine`
 
-all: code_gen
+all: codegen
 
-code_gen: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
+codegen: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o
 			# ${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
-			$(LD) main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o $(LDFLAGS) -o code_gen.out
+			$(LD) main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o $(LDFLAGS) -o codegen.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c
@@ -34,6 +34,9 @@ symbol_table.o: symbol_table.c
 
 token.o: token.c
 		 ${CC} ${CFLAGS} token.c
+
+code_gen.o: code_gen.c
+	 ${CC} ${CFLAGS} code_gen.c
 
 .PHONY: clean
 

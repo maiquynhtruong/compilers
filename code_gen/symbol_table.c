@@ -246,7 +246,16 @@ void print_type(TypeClass type) {
     }
 }
 
-EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType paramType) {
+TypeAST *create_type(TypeClass typeClass, LLVMTypeRef typeRef) {
+	assert_symbol_table("Create type "); print_type(typeClass);
+
+	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
+	type->typeClass = typeClass;
+	type->typeRef = typeRef;
+	return type;
+}
+
+EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType) {
 	assert_symbol_table("Create builtin function: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
@@ -261,7 +270,7 @@ EntryAST *create_builtin_function(char *name, TypeClass varType, ParamType param
 	return func;
 }
 
-EntryAST *create_program(char *name) {
+EntryAST *create_program(const char *name) {
 	assert_symbol_table("Creating a program entry\n");
 
 	EntryAST *progEntry = (EntryAST *) malloc(sizeof(EntryAST));
@@ -274,7 +283,7 @@ EntryAST *create_program(char *name) {
 	return progEntry;
 }
 
-EntryAST *create_variable(char *name) {
+EntryAST *create_variable(const char *name) {
 	assert_symbol_table("Creating a variable entry: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
@@ -290,7 +299,7 @@ EntryAST *create_variable(char *name) {
 	return varEntry;
 }
 
-EntryAST *create_param(char *name, ParamType paramType) {
+EntryAST *create_param(const char *name, ParamType paramType) {
 	assert_symbol_table("Creating a param entry: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
@@ -303,7 +312,7 @@ EntryAST *create_param(char *name, ParamType paramType) {
 	return paramEntry;
 }
 
-EntryAST *create_procedure(char *name) {
+EntryAST *create_procedure(const char *name) {
 	assert_symbol_table("Creating a procedure entry: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
