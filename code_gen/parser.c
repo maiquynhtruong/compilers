@@ -169,24 +169,16 @@ void parse_var_declaration(int isGlobal) {
 
     if (look_ahead->type == T_LBRACKET) { // an array
         match_token(T_LBRACKET);
-        //TODO: Is there upper and lower bound or just a number for array size?
-        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
+
         match_token(T_NUMBER_INT); // lower bound
 
-        // match_token(T_COLON);
-        // if (look_ahead->type == T_MINUS) match_token(T_MINUS);
-        // match_token(T_NUMBER_INT); // uppper bound
-
-        // varAST->varAST->size = current_token->val.intVal;
         size = current_token->val.intVal;
         match_token(T_RBRACKET);
     }
 
-    // EntryAST *varAST = create_variable(current_token->val.stringVal, isGlobal, varType, size, NULL);
     declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
 
     assert_parser("Done parsing a variable declaration\n");
-    // return varAST;
 }
 
 TypeAST *parse_type_mark() {
@@ -229,49 +221,13 @@ TypeAST *parse_type_mark() {
     return create_type(typeMark, typeRef);
 }
 
-// EntryAST* parse_type_mark() {
-//     assert_parser("Parsing a type mark");
-//
-//     EntryAST *typeMark = NULL;
-//     switch(look_ahead->type) {
-//         case K_INT:
-//             match_token(K_INT);
-//             typeMark = create_type(TC_INT); break;
-//         case K_FLOAT:
-//             match_token(K_FLOAT);
-//             typeMark = create_type(TC_FLOAT); break;
-//         case K_BOOL:
-//             match_token(K_BOOL);
-//             typeMark = create_type(TC_BOOL); break;
-//         case K_CHAR:
-//             match_token(K_CHAR);
-//             typeMark = create_type(TC_CHAR); break;
-//         case K_STRING:
-//             match_token(K_STRING);
-//             typeMark = create_type(TC_STRING); break;
-//         default:
-//             throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
-//     }
-//
-//     assert_parser("Done parsing a type mark");
-//     return typeMark;
-// }
-
 void parse_statement_list() {
     parse_statement();
-    // EntryNodeAST *node = NULL;
 
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
-        // node = create_entry_node(statementAST, NULL);
         parse_statement_list();
-        // node = node->next;
-
-        // statementAST = parse_statement();
     }
-    // if (current_token->type == T_IDENTIFIER)
-        // throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo);
-    // return node;
 }
 
 void parse_statement() {
@@ -294,10 +250,9 @@ void parse_statement() {
     // return statementAST;
 }
 
-// EntryAST *parse_indexes(TypeAST *arrayType) {
+
 void parse_indexes() {
     // parse a sequence of indexes, check the consistency to the arrayType, and return the element type
-    // EntryAST *elemType = NULL;
     TypeClass elemType = TC_INVALID;
 
     while (look_ahead->type == T_LBRACKET) {
