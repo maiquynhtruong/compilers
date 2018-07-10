@@ -5,6 +5,7 @@
 #define MAX_IDENT_LENGTH 15
 
 #include <stdbool.h>
+#include <llvm-c/Core.h>
 
 typedef enum ParamType {
 	PT_IN,

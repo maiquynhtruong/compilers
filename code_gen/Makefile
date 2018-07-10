@@ -1,11 +1,15 @@
-CFLAGS= -c -Wall
-CC=gcc
-LIBS=-lm
+CC=clang
+LD=clang++
+CFLAGS=-g `llvm-config --cflags` -c -Wall
+CPPFLAGS +=  -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/
+CXX=$(CC)++
+LDFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native executionengine`
 
 all: code_gen
 
 code_gen: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
-			${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o -o code_gen.out
+			# ${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
+			$(LD) main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o $(LDFLAGS) -o code_gen.out
 
 main.o: main.c
 		${CC} ${CFLAGS} main.c

@@ -23,6 +23,10 @@ http://www.duskborn.com/optimizing-llvm-ir-from-the-c-api/
 
 yuyuvn/ctd-bai2
 
+https://github.com/cc65/cc65
+
+https://github.com/akshayrajput/compiler/tree/master
+
 https://github.com/0vercl0k/stuffz/tree/master/llvm-funz
 
 https://harlanhaskins.com/2017/01/11/building-a-compiler-with-swift-in-llvm-part-3-code-generation-to-llvm-ir.html

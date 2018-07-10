@@ -75,18 +75,18 @@ void missing_token(TokenType type, int lineNo, int columnNo) {
 Comment the function body to print logging info
 Uncomment to silence
 **/
-void assert_parser(char *mesg) {
+void assert_parser(const char *mesg) {
     printf("%s", mesg);
 }
 
-void assert_symbol_table(char *mesg) {
+void assert_symbol_table(const char *mesg) {
     printf("%s", mesg);
 }
 
-void assert_ast(char *mesg) {
+void assert_ast(const char *mesg) {
     printf("%s", mesg);
 }
 
-void assert_semantics(char *mesg) {
+void assert_semantics(const char *mesg) {
     printf("%s", mesg);
 }

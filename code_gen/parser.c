@@ -1,5 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <inttypes.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Target.h>
+#include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c/Core.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/BitWriter.h>
 
 #include "error.h"
 #include "reader.h"
@@ -46,7 +54,7 @@ int parse(char *file_name) {
 
     init_symbol_table();
 
-    program = parse_program();
+    parse_program();
 
     clear_symbol_table();
 
@@ -184,22 +192,32 @@ TypeClass parse_type_mark() {
     assert_parser("Parsing a type mark\n");
 
     TypeClass typeMark = TC_INVALID;
+    LLVMTypeRef type = LLVMVoidType();
     switch(look_ahead->type) {
         case K_INT:
             match_token(K_INT);
-            typeMark = TC_INT; break;
+            type = LLVMInt32Type();
+            typeMark = TC_INT;
+            break;
         case K_FLOAT:
             match_token(K_FLOAT);
-            typeMark = TC_FLOAT; break;
+            type = LLVMFloatType();
+            typeMark = TC_FLOAT;
+            break;
         case K_BOOL:
             match_token(K_BOOL);
-            typeMark = TC_BOOL; break;
+            type = LLVMInt8Type();
+            typeMark = TC_BOOL;
+            break;
         case K_CHAR:
             match_token(K_CHAR);
-            typeMark = TC_CHAR; break;
+            type = LLVMInt8Type();
+            typeMark = TC_CHAR;
+            break;
         case K_STRING:
             match_token(K_STRING);
-            typeMark = TC_STRING; break;
+            typeMark = TC_STRING;
+            break;
         default:
             throw_error(E_INVALID_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
@@ -709,18 +727,18 @@ TypeClass parse_factor() {
             match_token(T_CHAR);
             // factorAST = create_factor(TC_CHAR, current_token);
             factorType = TC_CHAR;
-            factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.charVal, 0);
+            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.charVal, 0);
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
             // factorAST = create_factor(TC_INT, current_token);
-            factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 0);
+            // factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 0);
             factorType = TC_INT;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
             // factorAST = create_factor(TC_FLOAT, current_token);
-            factorAST->value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 0);
+            // factorAST->value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 0);
             factorType = TC_FLOAT;
             break;
         case T_LPAREN: // ( <expression> )
@@ -749,11 +767,13 @@ TypeClass parse_factor() {
         case K_TRUE:
             match_token(K_TRUE);
             // factorAST = create_factor(TC_BOOL, current_token);
+            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.intVal, 0); // a bool is an 8 byte integer?
             factorType = TC_BOOL;
             break;
         case K_FALSE:
             match_token(K_FALSE);
             // factorAST = create_factor(TC_BOOL, current_token);
+            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.intVal, 0);
             factorType = TC_BOOL;
             break;
         // FOLLOW set

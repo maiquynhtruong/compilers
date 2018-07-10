@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/Scalar.h>
+#include <llvm-c/Core.h>
+#include <llvm-c/Analysis.h>
+#include <llvm-c/BitWriter.h>
 
-#include "ast.h"
+#include "reader.h"
 #include "parser.h"
-#include "codegen.h"
 
 int main(int argc, char **argv) {
     LLVMModuleRef module = LLVMModuleCreateWithName("compiler");
@@ -22,7 +25,7 @@ int main(int argc, char **argv) {
 
     if (parse(argv[1]) == IO_ERROR) {
         printf("%s\n", "Can't read input file");
-        return 1
+        return 1;
     }
 
     LLVMLinkInMCJIT();

@@ -59,30 +59,30 @@ Token *read_ident() {
   return token;
 }
 
+Token *read_float(Token **passedToken) {
+    Token *token = *passedToken;
+    token->type = T_NUMBER_FLOAT;
+
+    read_char(); // skip the dot
+    int exponent = 1.0;
+    token->val.floatVal = token->val.intVal;
+    while (isdigit(cur_char = read_char())) {
+        exponent = exponent * 10;
+        token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
+    }
+    token->val.floatVal = token->val.floatVal / exponent;
+
+    return token;
+}
+
 Token *read_number() {
     Token *token = make_token(T_NUMBER_INT, lineNo, columnNo);
+    token->val.intVal = 0;
     token->val.intVal = cur_char - '0';
 
-    while (isdigit(cur_char = read_char())) { //|| cur_char == '.') {
-        if (cur_char == '.') {
-            token->val.floatVal = 1.0 * token->val.intVal;
-            break; // go to the loop that reads the decimal part
-        }
-        token->val.intVal = token->val.intVal*10 + cur_char - '0';
-    }
-    // TODO: Float number
-    // if (cur_char == '.') {
-    //     int exponent = 1;
-    //     while (isdigit(cur_char = read_char())) {
-    //         exponent = exponent*10;
-    //         token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
-    //     }
-    //     token->val.floatVal = token->val.floatVal / exponent;
-    //     ungetc(cur_char, inp);
-    //     return token->type = T_NUMBER_FLOAT; // assuming there is only one '.'
-    // }
-    // ungetc(cur_char, inp);
-    // token->type = T_NUMBER_INT;
+    while (isdigit(cur_char = read_char())) token->val.intVal = token->val.intVal*10 + cur_char - '0';
+
+    if (cur_char == '.') return read_float(&token);
     return token;
 }
 
