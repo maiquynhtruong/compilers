@@ -1,4 +1,5 @@
 program test_program is
-    integer a;
+    float a;
 begin
+    a := 2.3567;
 end program .

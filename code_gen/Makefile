@@ -1,31 +1,44 @@
 CC=clang
-CFLAGS=-g `llvm-config --cflags`
+LD=clang++
+CFLAGS=-g `llvm-config --cflags` -c -Wall
 CPPFLAGS +=  -I/usr/local/opt/llvm/include -I/usr/local/opt/llvm/include/c++/v1/
 CXX=$(CC)++
-LD=clang++
-LDFLAGS=`llvm-config --cxxflags --ldflags --libs core executionengine mcjit interpreter analysis native bitwriter --system-libs`
+LDFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native executionengine`
 
-# Generating the object file is a no-brainer:
+all: codegen
 
-# gcc `llvm-config --cflags` -c fac.c
-# Linking is a little trickier. Even though you are writing C code, you have to use a C++ linker.
-#
-# g++ `llvm-config --libs --cflags --ldflags core analysis executionengine jit interpreter native` fac.o -o fac
-# All set!
+codegen: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o
+			# ${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
+			$(LD) main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o $(LDFLAGS) -o codegen.out
 
-all: sum
+main.o: main.c
+		${CC} ${CFLAGS} main.c
 
-sum.o: sum.c
-	$(CC) $(CFLAGS) -c sum.c
+error.o: error.c
+		 ${CC} ${CFLAGS} error.c
 
-sum: sum.o
-	$(LD) $< $(LDFLAGS) -o $@
+parser.o: parser.c
+			${CC} ${CFLAGS} parser.c
 
-sum.bc: sum
-	./sum 0 0
+reader.o: reader.c
+			${CC} ${CFLAGS} reader.c
 
-sum.ll: sum.bc
-	llvm-dis $<
+scanner.o: scanner.c
+			${CC} ${CFLAGS} scanner.c
+
+semantics.o: semantics.c
+			 ${CC} ${CFLAGS} semantics.c
+
+symbol_table.o: symbol_table.c
+				${CC} ${CFLAGS} symbol_table.c
+
+token.o: token.c
+		 ${CC} ${CFLAGS} token.c
+
+code_gen.o: code_gen.c
+	 ${CC} ${CFLAGS} code_gen.c
+
+.PHONY: clean
 
 clean:
-	-rm -f sum.o sum sum.bc sum.ll
+	rm -f *.o *.gch *.out *~
