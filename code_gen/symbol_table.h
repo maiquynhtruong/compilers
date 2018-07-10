@@ -51,15 +51,11 @@ It also makes more sense to let the variable holds the size info
 typedef struct VariableAST {
 	struct Scope *scope;
 	TypeClass varType;
-	// char *name;
-	// struct EntryAST *value; // should it be replaced by a token?
-	// Token *value; // for value
 	unsigned int size;
 } VariableAST;
 
 typedef struct ProcedureAST {
 	struct Scope *scope;
-	// char *name;
 	struct EntryNodeAST *params;
 	unsigned int paramCnt;
 	struct EntryAST *body;
@@ -67,18 +63,13 @@ typedef struct ProcedureAST {
 
 typedef struct ProgramAST {
 	struct Scope *scope;
-	// char *name;
-	// struct EntryAST *body;
 } ProgramAST;
 
 typedef struct ParamAST {
 	struct Scope *scope;
-    // TypeAST *type;
     ParamType paramType;
     struct EntryAST *var;
 	TypeClass type;
-	// char *name;
-    // struct ProcedureAST *procedure;
 } ParamAST;
 
 typedef struct TypeAST {
@@ -91,16 +82,12 @@ typedef struct EntryAST {
 	char name[MAX_IDENT_LENGTH];
 	LLVMValueRef value; // might not be here but in individual structs
 	union {
-		// UnaryOpAST *unaOpAST;
-		// BodyAST *bodyAST;
 		ProgramAST *progAST;
 		TypeAST *typeAST;
 		FactorAST *factorAST;
 		VariableAST *varAST;
-        // BinaryOpAST *binOpAST;
 		ProcedureAST *procAST;
 		ParamAST *paramAST;
-		// StatementAST *stmtAST;
 	}; // value
 } EntryAST;
 
@@ -120,8 +107,6 @@ parent: the Entry that upon creating it we also need to create a new scope
 typedef struct Scope {
 	char name[MAX_IDENT_LENGTH]; // for printing purposes
 	EntryNodeAST *entryList;
-	// EntryNodeAST *head;
-	// EntryNodeAST *tail;
 	struct EntryAST *parent; // the block that started this scope
 	struct Scope *outerScope;
 } Scope;
