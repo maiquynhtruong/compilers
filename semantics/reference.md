@@ -1,5 +1,3 @@
-https://github.com/andrejnano/IFJ17/tree/master/src
-
 https://github.com/misspink1011/C--Compiler/tree/master/Code%20Generation
 
 https://github.com/keizo042/kcc/blob/master/ast.h
