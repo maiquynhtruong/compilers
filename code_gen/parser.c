@@ -164,7 +164,7 @@ void parse_var_declaration(int isGlobal) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
     EntryAST *entry = create_variable(current_token->val.stringVal);
-    entry->varAST->varType = varType->typeClass;
+    // entry->varAST->varType = varType->typeClass;
     entry->typeAST = varType;
 
     if (look_ahead->type == T_LBRACKET) { // an array
@@ -760,7 +760,7 @@ TypeClass parse_factor() {
             match_token(T_IDENTIFIER);
             factorAST = check_declared_identifier(current_token->val.stringVal);
             // TypeAST *varType = factorAST->varAST->varType->typeAST;
-            factorType = factorAST->varAST->varType;
+            factorType = factorAST->typeAST->typeClass;
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }

@@ -216,7 +216,7 @@ void print_entry_type(EntryAST *entry) {
 	TypeClass type = TC_INVALID;
 	switch (entry->entryType) {
 		case ET_VARIABLE:
-			type = entry->varAST->varType; break;
+			type = entry->typeAST->typeClass; break;
 		case ET_FACTOR:
 			type = entry->factorAST->typeClass; break;
 		case ET_PARAMTER:

@@ -1,3 +1,14 @@
+/*
+int factorial(int n) {
+    if (n == 0) {
+        return 1;
+    } else {
+        return n*factorial(n-1);
+    }
+}
+
+*/
+
 // Headers required by LLVM
 #include <llvm-c/Core.h>
 #include <llvm-c/Analysis.h>

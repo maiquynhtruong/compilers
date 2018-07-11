@@ -29,11 +29,11 @@ void print_variable(VariableAST *varAST) {
     assert_ast("A variable");
     printf("Name: %s\n", varAST->name);
 
-    print_type(varAST->varType->typeAST);
+    print_type(varAST->typeAST->typeClass);
 
     printf("Value: ");
     FactorAST *value = varAST->value->factorAST;
-    switch (varAST->varType->typeAST->typeClass) {
+    switch (varAST->typeAST->typeClass) {
         case TC_INT:
             printf("%d", value->intVal); break;
     	case TC_FLOAT:
