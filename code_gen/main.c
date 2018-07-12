@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (parse(argv[1]) == IO_ERROR) {
+    if (parse(argv[1], module, builder) == IO_ERROR) {
         printf("%s\n", "Can't read input file");
         return 1;
     }

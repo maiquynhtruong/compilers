@@ -118,6 +118,6 @@ const char *print_token_type(TokenType type) {
         case K_FALSE: return "keyword FALSE";
         case K_FOR: return "keyword FOR";
         case K_WHILE: return "keyword WHILE";
-        default: return "Unknown";
+        default: return "Unknown token";
     }
 }

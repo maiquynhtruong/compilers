@@ -27,7 +27,7 @@ EntryAST *check_declared_identifier(char *name) {
 	if (entry == NULL) {
 		throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 	} else {
-		assert_semantics(name); assert_semantics(" has type "); print_entry_type(entry); assert_semantics("\n");
+		assert_semantics(name); assert_semantics(" is"); print_entry_type_class(entry); assert_semantics("\n");
 	}
 	return entry;
 }

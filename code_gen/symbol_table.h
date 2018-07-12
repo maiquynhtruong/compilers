@@ -24,6 +24,7 @@ typedef enum TypeClass {
 	TC_STRING,
 	TC_BOOL,
 	TC_CHAR,
+	TC_VOID,
 	TC_INVALID
 } TypeClass;
 
@@ -81,9 +82,9 @@ typedef struct EntryAST {
 	EntryType entryType;
 	char name[MAX_IDENT_LENGTH];
 	LLVMValueRef value; // might not be here but in individual structs
+	TypeAST *typeAST; // https://overiq.com/c-programming/101/union-basics-in-c/
 	union {
 		ProgramAST *progAST;
-		TypeAST *typeAST;
 		FactorAST *factorAST;
 		VariableAST *varAST;
 		ProcedureAST *procAST;
@@ -135,9 +136,10 @@ void free_entry_list(EntryNodeAST *node);
 
 void print_current_scope();
 void print_entry_type(EntryAST *entry);
+void print_entry_type_class(EntryAST *entry);
 void print_type(TypeClass type);
 
-TypeAST *create_type(TypeClass typeClass, LLVMTypeRef typeRef);
+TypeAST *create_type(TypeClass typeClass);
 EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_program(const char *name);
 EntryAST *create_variable(const char *name);

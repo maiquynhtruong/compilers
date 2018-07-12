@@ -5,7 +5,7 @@
 #include "symbol_table.h"
 
 void match_token(TokenType type);
-int parse(char *file_name);
+int parse(char *file_name, LLVMModuleRef module, LLVMBuilderRef builder);
 
 void parse_body_block();
 void parse_program();
@@ -23,8 +23,8 @@ void parse_loop_statement();
 void parse_return_statement();
 void parse_procedure_call();
 TypeClass parse_destination();
-void parse_argument_list(EntryNodeAST *paramList);
-void parse_argument(EntryAST *param);
+LLVMValueRef *parse_argument_list(EntryAST *proc);
+LLVMValueRef parse_argument(EntryAST *param);
 TypeClass parse_expression();
 TypeClass parse_expression_arith_op(TypeClass expType);
 TypeClass parse_arith_op();
