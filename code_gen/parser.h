@@ -5,7 +5,7 @@
 #include "symbol_table.h"
 
 void match_token(TokenType type);
-int parse(char *file_name, LLVMModuleRef module, LLVMBuilderRef builder);
+int parse(char *file_name);
 
 void parse_body_block();
 void parse_program();

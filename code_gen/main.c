@@ -12,18 +12,20 @@
 #include "reader.h"
 #include "parser.h"
 
-int main(int argc, char **argv) {
-    LLVMModuleRef module = LLVMModuleCreateWithName("compiler");
+LLVMModuleRef module;
+LLVMBuilderRef builder;
+LLVMExecutionEngineRef engine; // Create execution engine, the thing that will run the code
 
-    LLVMBuilderRef builder = LLVMCreateBuilder();
-    LLVMExecutionEngineRef engine; // Create execution engine, the thing that will run the code
+int main(int argc, char **argv) {
+    module = LLVMModuleCreateWithName("compiler");
+    builder = LLVMCreateBuilder();
 
     if (argc < 2) {
         printf("%s\n", "Error! No input file...");
         return 1;
     }
 
-    if (parse(argv[1], module, builder) == IO_ERROR) {
+    if (parse(argv[1]) == IO_ERROR) {
         printf("%s\n", "Can't read input file");
         return 1;
     }

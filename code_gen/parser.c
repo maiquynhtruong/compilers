@@ -18,9 +18,9 @@
 Token* look_ahead;
 Token* current_token;
 LLVMValueRef program;
-LLVMModuleRef module;
-LLVMBuilderRef builder;
-LLVMExecutionEngineRef engine;
+extern LLVMModuleRef module;
+extern LLVMBuilderRef builder;
+extern LLVMExecutionEngineRef engine;
 
 // from symbol_table.c
 extern SymbolTable *symbolTable;
@@ -48,12 +48,9 @@ void match_token(TokenType type) {
     }
 }
 
-int parse(char *file_name, LLVMModuleRef m, LLVMBuilderRef b) {
+int parse(char *file_name) {
     if (open_input_stream(file_name) == IO_ERROR)
         return IO_ERROR;
-
-    module = m;
-    builder = b;
 
     current_token = NULL;
     look_ahead = next_token();
@@ -221,6 +218,54 @@ TypeAST *parse_type_mark() {
     assert_parser("Done parsing a type mark\n");
     assert_parser("TypeMark type is: "); print_type(typeMark); assert_parser("\n");
     return create_type(typeMark);
+}
+
+void parse_param_list() {
+    // EntryAST *param = NULL;
+    // EntryNodeAST *node = NULL;
+
+    if (look_ahead->type == T_LPAREN) {
+        match_token(T_LPAREN);
+        parse_param();
+        while (look_ahead->type == T_COMMA) {
+            match_token(T_COMMA);
+            // node = create_entry_node(param, NULL);
+            // node = node->next;
+            parse_param();
+        }
+        match_token(T_RPAREN);
+    }
+    // return node;
+}
+
+void parse_param() {
+    assert_parser("Parsing a parameter\n");
+    // EntryAST *paramAST = NULL;
+    parse_var_declaration(0);
+    ParamType paramType = PT_IN;
+    switch (look_ahead->type) {
+        case K_IN:
+            // paramAST = create_param(PT_IN, varAST);
+            match_token(K_IN);
+            paramType = PT_IN;
+            break;
+        case K_OUT:
+            // paramAST = create_param(PT_OUT, varAST);
+            match_token(K_OUT);
+            paramType = PT_OUT;
+            break;
+        case K_INOUT:
+            // paramAST = create_param(PT_INOUT, varAST);
+            match_token(K_INOUT);
+            paramType = PT_INOUT;
+            break;
+        default:
+            throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+    // declare_entry(paramAST, 0);
+
+    assert_parser("Done parsing a parameter\n");
+    // return paramAST;
 }
 
 void parse_statement_list() {
@@ -403,54 +448,6 @@ void parse_procedure_call() {
     assert_parser("Done parsing a procedure call\n");
     // return procCall;
     LLVMValueRef funcCall = LLVMBuildCall(builder, func, args, callee->procAST->paramCnt, name);
-}
-
-void parse_param_list() {
-    // EntryAST *param = NULL;
-    // EntryNodeAST *node = NULL;
-
-    if (look_ahead->type == T_LPAREN) {
-        match_token(T_LPAREN);
-        parse_param();
-        while (look_ahead->type == T_COMMA) {
-            match_token(T_COMMA);
-            // node = create_entry_node(param, NULL);
-            // node = node->next;
-            parse_param();
-        }
-        match_token(T_RPAREN);
-    }
-    // return node;
-}
-
-void parse_param() {
-    assert_parser("Parsing a parameter\n");
-    // EntryAST *paramAST = NULL;
-    parse_var_declaration(0);
-    ParamType paramType = PT_IN;
-    switch (look_ahead->type) {
-        case K_IN:
-            // paramAST = create_param(PT_IN, varAST);
-            match_token(K_IN);
-            paramType = PT_IN;
-            break;
-        case K_OUT:
-            // paramAST = create_param(PT_OUT, varAST);
-            match_token(K_OUT);
-            paramType = PT_OUT;
-            break;
-        case K_INOUT:
-            // paramAST = create_param(PT_INOUT, varAST);
-            match_token(K_INOUT);
-            paramType = PT_INOUT;
-            break;
-        default:
-            throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
-    }
-    // declare_entry(paramAST, 0);
-
-    assert_parser("Done parsing a parameter\n");
-    // return paramAST;
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
