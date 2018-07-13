@@ -17,7 +17,7 @@ EntryAST *putFloat;
 EntryAST *putString;
 EntryAST *putChar;
 
-LLVMValueRef llvm_printf;
+extern LLVMValueRef llvm_printf;
 
 extern LLVMModuleRef module;
 
@@ -131,10 +131,6 @@ void init_symbol_table() {
 	getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
 	getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
 	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
-
-	LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
-	LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
-	llvm_printf = LLVMAddFunction(mod, "printf", llvm_printf_type);
 
 	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
 	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
