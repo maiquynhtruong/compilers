@@ -27,20 +27,27 @@ LLVMValueRef LLMVCodeGenStringType(LLVMModuleRef module, const char *data, int l
   return ref;
 }
 
-LLVMValueRef codegen_proc(char *name, LLVMValueRef *params) {
+// LLVMValueRef codegen_builtin_proc(char *name, LLVMTypeRef proc_type, LLVMValueRef *params) {
+//     LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
+//     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, "entry");
+//     LLVMPositionBuilderAtEnd(builder, entry);
+//     LLVMBuildCall(builder, proc, args, 1, name);
+//     LLVMBuildRetVoid(builder);
+//     return proc;
+// }
+
+LLVMValueRef codegen_declare_proc(char *name, LLVMValueRef *params) {
     LLVMTypeRef proc_type = LLVMFunctionType(LLVMVoidType(), params, 0, false);
-    LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
+    LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
     LLVMBuildRetVoid(builder);
     return proc;
 }
 
-void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
-    LLVMTypeRef proc_type = LLVMFunctionType(LLVMVoidType(), args, 0, false);
-    LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, "entry");
-    LLVMPositionBuilderAtEnd(builder, entry);
-    LLVMBuildCall(builder, proc, args, argc, name);
-    LLVMBuildRetVoid(builder);
+LLVMValueRef codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
+    LLVMValueRef proc = LLVMGetNamedFunction(module, name);
+
+    LLVMValueRef caller = LLVMBuildCall(builder, proc, args, argc, name);
+    return caller;
 }

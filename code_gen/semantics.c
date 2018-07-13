@@ -2,10 +2,19 @@
 #include <string.h>
 #include "semantics.h"
 #include "error.h"
+#include "symbol_table.h"
 
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 extern Token *current_token;
+extern LLVMValueRef llvm_printf;
+
+LLVMValueRef check_builtin_proc(char *name) {
+	if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0 || strcmp(name, "putFloat") == 0 ||
+		strcmp(name, "putString") == 0 || strcmp(name, "putChar") == 0)
+		return llvm_printf;
+	return NULL;
+}
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {

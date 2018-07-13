@@ -17,6 +17,8 @@ EntryAST *putFloat;
 EntryAST *putString;
 EntryAST *putChar;
 
+LLVMValueRef llvm_printf;
+
 extern LLVMModuleRef module;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
@@ -119,7 +121,6 @@ void init_symbol_table() {
 	symbolTable->currentScope = NULL;
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
-	LLVMTypeRef func_args;
 
 	// enter_scope(symbolTable->currentScope);
 
@@ -130,34 +131,16 @@ void init_symbol_table() {
 	getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
 	getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
 	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
-	// func_args = { LLVMInt8Type() };
-	// LLVMAddFunction(module, "getchar", LLVMFunctionType(LLVMVoidType(), func_args, 1, 0));
 
+	LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
+	LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
+	llvm_printf = LLVMAddFunction(mod, "printf", llvm_printf_type);
 
 	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
-	LLVMTypeRef putBool_args[] = { LLVMInt8Type() };
-	LLVMTypeRef putBool_type = LLVMFunctionType(LLVMVoidType(), putBool_args, 1, false);
-	LLVMAddFunction(module, "printf", putBool_type);
-
 	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
-	LLVMTypeRef putInteger_args[] = { LLVMInt32Type() };
-	LLVMTypeRef putInteger_type = LLVMFunctionType(LLVMVoidType(), putInteger_args, 1, false);
-	LLVMAddFunction(module, "printf", putInteger_type);
-
 	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	LLVMTypeRef putFloat_args[] = { LLVMFloatType() };
-	LLVMTypeRef putFloat_type = LLVMFunctionType(LLVMVoidType(), putFloat_args, 1, false);
-	LLVMAddFunction(module, "printf", putFloat_type);
-
 	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
-	LLVMTypeRef putString_args[] = { LLVMPointerType(LLVMInt8Type(), 0) };
-	LLVMTypeRef putString_type = LLVMFunctionType(LLVMVoidType(), stringArgs, 1, false);
-	LLVMAddFunction(module, "printf", putString_type);
-
 	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
-	LLVMTypeRef putChar_args[] = { LLVMInt8Type() };
-	LLVMTypeRef putChar_type = LLVMFunctionType(LLVMVoidType(), charArgs, 1, false);
-	LLVMAddFunction(module, "putchar", putString_type);
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
@@ -313,6 +296,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *func = create_procedure(name);
+	func->procAST->paramCnt = 2;
 	declare_entry(func, 1);
 	enter_scope(func->procAST->scope);
 		EntryAST *paramEntry = create_param("val", paramType);

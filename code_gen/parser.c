@@ -21,7 +21,7 @@ Token* current_token;
 extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
 extern LLVMExecutionEngineRef engine;
-
+extern LLVMValueRef llvm_printf;
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 
@@ -437,7 +437,9 @@ void parse_procedure_call() {
     EntryAST *callee = check_declared_procedure(name);
 
     // unsigned int argc = callee->stmtAST->procCallAST->argc;
-    LLVMValueRef func = LLVMGetNamedFunction(module, name);
+    LLVMValueRef func = check_builtin_proc(name);
+    if (func == NULL) func = LLVMGetNamedFunction(module, name);
+
     callee->value = func;
 
     match_token(T_LPAREN);
@@ -446,7 +448,8 @@ void parse_procedure_call() {
     // procCall = create_procedure_call(current_token->val.stringVal, args, argc);
 
     assert_parser("Done parsing a procedure call\n");
-    LLVMValueRef funcCall = LLVMBuildCall(builder, func, args, callee->procAST->paramCnt, name);
+    LLVMBuildCall(builder, proc, args, callee->procAST->paramCnt, name);
+    // codegen_proc_call(name, args, callee->procAST->paramCnt);
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {

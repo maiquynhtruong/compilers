@@ -26,9 +26,9 @@ int main(int argc, char const *argv[]) {
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    LLVMValueRef str = LLVMBuildGlobalStringPtr(builder, "Hello World, %s!\n", "helloworld");
+    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %s!\n", "helloworld");
     LLVMValueRef name = LLVMBuildGlobalStringPtr(builder, "Mai", "mai");
-    LLVMValueRef args[] = { str, name };
+    LLVMValueRef args[] = { format, name };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 
     LLVMBuildRetVoid(builder);
