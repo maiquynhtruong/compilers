@@ -446,7 +446,6 @@ void parse_procedure_call() {
     // procCall = create_procedure_call(current_token->val.stringVal, args, argc);
 
     assert_parser("Done parsing a procedure call\n");
-    // return procCall;
     LLVMValueRef funcCall = LLVMBuildCall(builder, func, args, callee->procAST->paramCnt, name);
 }
 

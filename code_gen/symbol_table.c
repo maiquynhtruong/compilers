@@ -109,8 +109,6 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 			return curNode->entryAST;
 		} else curNode = curNode->next;
 	}
-
-	assert_symbol_table("Could not find "); assert_symbol_table(name); assert_symbol_table("\n");
 	return NULL;
 }
 
@@ -342,13 +340,7 @@ EntryAST *create_variable(const char *name) {
 	strcpy(varEntry->name, name);
 	var->scope = NULL;
 	var->size = 0;
-	// var->value = NULL;
-	printf("%p\n", (void *) var);
 	varEntry->varAST = var;
-	printf("%p\n", (void *) varEntry);
-	printf("%p\n", (void *) varEntry->varAST);
-	printf("%p\n", (void *) varEntry->typeAST);
-	printf("%p\n", (void *) varEntry->procAST);
 	return varEntry;
 }
 
