@@ -7,5 +7,5 @@ program test_program is
     char f;
 begin
     a := 1;
-    putInteger(a);
+    putInteger(1);
 end program .
