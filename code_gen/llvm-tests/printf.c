@@ -16,12 +16,12 @@ int main(int argc, char const *argv[]) {
     LLVMBuilderRef builder = LLVMCreateBuilder();
     LLVMExecutionEngineRef engine;
 
+    LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
+    LLVMValueRef main = LLVMAddFunction(mod, "main", main_type);
+
     LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
     LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
     LLVMValueRef llvm_printf = LLVMAddFunction(mod, "printf", llvm_printf_type);
-
-    LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
-    LLVMValueRef main = LLVMAddFunction(mod, "main", main_type);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);

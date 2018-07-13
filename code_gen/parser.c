@@ -17,7 +17,7 @@
 
 Token* look_ahead;
 Token* current_token;
-LLVMValueRef program;
+
 extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
 extern LLVMExecutionEngineRef engine;

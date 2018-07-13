@@ -41,4 +41,4 @@ code_gen.o: code_gen.c
 .PHONY: clean
 
 clean:
-	rm -f *.o *.gch *.out *~
+	rm -f *.gch *.bc *.ll *.o *.out *.s

@@ -54,4 +54,4 @@ printf.ll: printf.bc
 
 .PHONY: clean
 clean:
-	-rm -f *.bc *.ll *.o *.out
+	-rm -f *.bc *.ll *.o *.out *.s
