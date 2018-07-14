@@ -437,10 +437,8 @@ void parse_procedure_call() {
     EntryAST *callee = check_declared_procedure(name);
 
     // unsigned int argc = callee->stmtAST->procCallAST->argc;
-    LLVMValueRef func = check_builtin_proc(name);
-    if (func == NULL) func = LLVMGetNamedFunction(module, name);
-
-    callee->value = func;
+    LLVMValueRef proc = check_builtin_proc(name);
+    if (proc == NULL) proc = LLVMGetNamedFunction(module, name);
 
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(callee);
