@@ -40,6 +40,18 @@ fac.bc: fac
 fac.ll: fac.bc
 	llvm-dis fac.bc
 
+printf: printf.o
+	$(LD) printf.o $(LDFLAGS) -o printf.out
+
+printf.o: printf.c
+	$(CC) $(CFLAGS) -c printf.c
+
+printf.bc: printf
+	./printf.out
+
+printf.ll: printf.bc
+	llvm-dis printf.bc
+
 .PHONY: clean
 clean:
-	-rm -f *.bc *.ll *.o *.out
+	-rm -f *.bc *.ll *.o *.out *.s

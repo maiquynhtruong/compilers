@@ -77,6 +77,6 @@ typedef struct Token {
 int strcicmp(char const *a, char const *b);
 TokenType check_reserved_word(char *string);
 Token *make_token(TokenType type, int lineNo, int columnNo);
-char *print_token_type(TokenType type);
+const char *print_token_type(TokenType type);
 
 #endif

@@ -17,8 +17,11 @@
 
 Token* look_ahead;
 Token* current_token;
-LLVMValueRef program;
 
+extern LLVMModuleRef module;
+extern LLVMBuilderRef builder;
+extern LLVMExecutionEngineRef engine;
+extern LLVMValueRef llvm_printf;
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 
@@ -89,7 +92,7 @@ void parse_program() {
 
     program = create_program(current_token->val.stringVal);
 
-    enter_scope(create_scope(program));
+    enter_scope(program->progAST->scope);
 
     match_token(K_IS);
     parse_body_block(); // program body
@@ -164,7 +167,6 @@ void parse_var_declaration(int isGlobal) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
     EntryAST *entry = create_variable(current_token->val.stringVal);
-    entry->varAST->varType = varType->typeClass;
     entry->typeAST = varType;
 
     if (look_ahead->type == T_LBRACKET) { // an array
@@ -189,12 +191,10 @@ TypeAST *parse_type_mark() {
     switch(look_ahead->type) {
         case K_INT:
             match_token(K_INT);
-            typeRef = LLVMInt32Type();
             typeMark = TC_INT;
             break;
         case K_FLOAT:
             match_token(K_FLOAT);
-            typeRef = LLVMFloatType();
             typeMark = TC_FLOAT;
             break;
         case K_BOOL:
@@ -209,7 +209,6 @@ TypeAST *parse_type_mark() {
             break;
         case K_STRING:
             match_token(K_STRING);
-            typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH);
             typeMark = TC_STRING;
             break;
         default:
@@ -218,7 +217,55 @@ TypeAST *parse_type_mark() {
 
     assert_parser("Done parsing a type mark\n");
     assert_parser("TypeMark type is: "); print_type(typeMark); assert_parser("\n");
-    return create_type(typeMark, typeRef);
+    return create_type(typeMark);
+}
+
+void parse_param_list() {
+    // EntryAST *param = NULL;
+    // EntryNodeAST *node = NULL;
+
+    if (look_ahead->type == T_LPAREN) {
+        match_token(T_LPAREN);
+        parse_param();
+        while (look_ahead->type == T_COMMA) {
+            match_token(T_COMMA);
+            // node = create_entry_node(param, NULL);
+            // node = node->next;
+            parse_param();
+        }
+        match_token(T_RPAREN);
+    }
+    // return node;
+}
+
+void parse_param() {
+    assert_parser("Parsing a parameter\n");
+    // EntryAST *paramAST = NULL;
+    parse_var_declaration(0);
+    ParamType paramType = PT_IN;
+    switch (look_ahead->type) {
+        case K_IN:
+            // paramAST = create_param(PT_IN, varAST);
+            match_token(K_IN);
+            paramType = PT_IN;
+            break;
+        case K_OUT:
+            // paramAST = create_param(PT_OUT, varAST);
+            match_token(K_OUT);
+            paramType = PT_OUT;
+            break;
+        case K_INOUT:
+            // paramAST = create_param(PT_INOUT, varAST);
+            match_token(K_INOUT);
+            paramType = PT_INOUT;
+            break;
+        default:
+            throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
+    }
+    // declare_entry(paramAST, 0);
+
+    assert_parser("Done parsing a parameter\n");
+    // return paramAST;
 }
 
 void parse_statement_list() {
@@ -249,7 +296,6 @@ void parse_statement() {
     assert_parser("Done parsing a statement\n");
     // return statementAST;
 }
-
 
 void parse_indexes() {
     // parse a sequence of indexes, check the consistency to the arrayType, and return the element type
@@ -386,99 +432,60 @@ void parse_return_statement() {
 void parse_procedure_call() {
     assert_parser("Parsing a procedure call\n");
     // EntryAST *procCall = NULL;
-    EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
+    char *name = current_token->val.stringVal;
+    // EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
+    EntryAST *callee = check_declared_procedure(name);
+
     // unsigned int argc = callee->stmtAST->procCallAST->argc;
+    LLVMValueRef proc = check_builtin_proc(name);
+    if (proc == NULL) proc = LLVMGetNamedFunction(module, name);
 
     match_token(T_LPAREN);
-    parse_argument_list(callee->procAST->params);
+    LLVMValueRef *args = parse_argument_list(callee);
     match_token(T_RPAREN);
     // procCall = create_procedure_call(current_token->val.stringVal, args, argc);
 
     assert_parser("Done parsing a procedure call\n");
-    // return procCall;
+    LLVMBuildCall(builder, proc, args, callee->procAST->paramCnt, name);
+    // codegen_proc_call(name, args, callee->procAST->paramCnt);
 }
 
-void parse_param_list() {
-    // EntryAST *param = NULL;
-    // EntryNodeAST *node = NULL;
-
-    if (look_ahead->type == T_LPAREN) {
-        match_token(T_LPAREN);
-        parse_param();
-        while (look_ahead->type == T_COMMA) {
-            match_token(T_COMMA);
-            // node = create_entry_node(param, NULL);
-            // node = node->next;
-            parse_param();
-        }
-        match_token(T_RPAREN);
-    }
-    // return node;
-}
-
-void parse_param() {
-    assert_parser("Parsing a parameter\n");
-    // EntryAST *paramAST = NULL;
-    parse_var_declaration(0);
-    ParamType paramType = PT_IN;
-    switch (look_ahead->type) {
-        case K_IN:
-            // paramAST = create_param(PT_IN, varAST);
-            match_token(K_IN);
-            paramType = PT_IN;
-            break;
-        case K_OUT:
-            // paramAST = create_param(PT_OUT, varAST);
-            match_token(K_OUT);
-            paramType = PT_OUT;
-            break;
-        case K_INOUT:
-            // paramAST = create_param(PT_INOUT, varAST);
-            match_token(K_INOUT);
-            paramType = PT_INOUT;
-            break;
-        default:
-            throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
-    }
-    // declare_entry(paramAST, 0);
-
-    assert_parser("Done parsing a parameter\n");
-    // return paramAST;
-}
-
-void parse_argument_list(EntryNodeAST *paramList) {
+LLVMValueRef *parse_argument_list(EntryAST *proc) {
     assert_parser("Parsing an argument list\n");
 
-    // EntryNodeAST *argNode = NULL, *paramNode = paramList, *dummy = create_entry_node(NULL, NULL); // holds the head of argument list
-    // dummy->next = argNode;
-    EntryNodeAST *node = paramList;
+    EntryNodeAST *node = proc->procAST->params;
     if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
-    parse_argument(node->entryAST);
+    int argi = 0, argc = proc->procAST->paramCnt;
+    LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * argc);
+    args[argi++] = parse_argument(node->entryAST);
     node = node->next;
 
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
-        node = node->next;
         if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
-        parse_argument(node->entryAST);
+        LLVMValueRef arg = parse_argument(node->entryAST);
         node = node->next;
+
+        if (argi < argc) args[argi++] = arg;
+        else throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     }
 
     // paramList still has another argument but we've done parsing
-    // -> number of args doesn't match number of params
+    // or number of args doesn't match number of params
     if (node != NULL)
         throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+
     assert_parser("Done parsing an argument list\n");
 
-    // return dummy->next;
+    return args;
 }
 
-void parse_argument(EntryAST *param) {
+LLVMValueRef parse_argument(EntryAST *param) {
     TypeClass argType = parse_expression();
     check_type_equality(param->paramAST->type, argType);
-    // TODO: check paramType
+    return param->value;
 }
 
 TypeClass parse_expression() {
@@ -715,7 +722,7 @@ TypeClass parse_factor() {
             match_token(T_IDENTIFIER);
             factorAST = check_declared_identifier(current_token->val.stringVal);
             // TypeAST *varType = factorAST->varAST->varType->typeAST;
-            factorType = factorAST->varAST->varType;
+            factorType = factorAST->typeAST->typeClass;
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }

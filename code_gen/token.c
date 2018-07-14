@@ -62,7 +62,7 @@ Token *make_token(TokenType type, int lineNo, int columnNo) {
     return token;
 }
 
-char *print_token_type(TokenType type) {
+const char *print_token_type(TokenType type) {
     switch (type) {
         case T_UNKNOWN: return "";
         case T_ERROR: return "";
@@ -118,6 +118,6 @@ char *print_token_type(TokenType type) {
         case K_FALSE: return "keyword FALSE";
         case K_FOR: return "keyword FOR";
         case K_WHILE: return "keyword WHILE";
-        default: return "";
+        default: return "Unknown token";
     }
 }

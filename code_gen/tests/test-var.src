@@ -1,3 +1,11 @@
 program test_program is
     integer a;
+    float b;
+    string c;
+    bool d;
+    char e;
+    char f;
+begin
+    a := 1;
+    putInteger(1);
 end program .
