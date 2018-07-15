@@ -71,7 +71,7 @@ void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
     LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
     LLVMValueRef args[] = { format, value };
 
-    LLVMBuildCall(builder, llvm_printf, args, 2, func_name);
+    LLVMBuildCall(builder, llvm_printf, args, 2, name);
 }
 
 void codegen_extern_decl() {

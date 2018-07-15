@@ -133,15 +133,15 @@ void init_symbol_table() {
 	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
-    LLVMValueRef func = LLVMAddFunction(mod, "putBool", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
+    LLVMAddFunction(module, "putBool", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
-	LLVMValueRef func = LLVMAddFunction(mod, "putInteger", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
+	LLVMAddFunction(module, "putInteger", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	LLVMValueRef func = LLVMAddFunction(mod, "putFloat", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
+	LLVMAddFunction(module, "putFloat", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
-	LLVMValueRef func = LLVMAddFunction(mod, "putString", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
+	LLVMAddFunction(module, "putString", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
-	LLVMValueRef func = LLVMAddFunction(mod, "putChar", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
+	LLVMAddFunction(module, "putChar", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }

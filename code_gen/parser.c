@@ -161,8 +161,8 @@ void parse_var_declaration(int isGlobal) {
     assert_parser("Parsing a variable declaration\n");
 
     int size = 0;
-    TypeAST *varType = parse_type_mark();
-    check_builtin_type(varType->typeClass);
+    TypeClass varType = parse_type_mark();
+    check_builtin_type(varType);
 
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
@@ -183,7 +183,7 @@ void parse_var_declaration(int isGlobal) {
     assert_parser("Done parsing a variable declaration\n");
 }
 
-TypeAST *parse_type_mark() {
+TypeClass parse_type_mark() {
     assert_parser("Parsing a type mark\n");
 
     TypeClass typeMark = TC_INVALID;
@@ -217,7 +217,7 @@ TypeAST *parse_type_mark() {
 
     assert_parser("Done parsing a type mark\n");
     assert_parser("TypeMark type is: "); print_type(typeMark); assert_parser("\n");
-    return create_type(typeMark);
+    return typeMark;
 }
 
 void parse_param_list() {
@@ -480,7 +480,7 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
 }
 
 LLVMValueRef parse_argument(EntryAST *param) {
-    TypeClass argType = parse_expression();
+    TypeAST *argType = parse_expression();
     check_type_equality(param->paramAST->type, argType);
     return param->value;
 }
@@ -488,17 +488,16 @@ LLVMValueRef parse_argument(EntryAST *param) {
 TypeAST *parse_expression() {
     assert_parser("Parsing an expression\n");
     if (look_ahead->type == K_NOT) match_token(K_NOT);
-    // EntryAST *expAST = parse_arith_op();
-    TypeClass expType = parse_arith_op();
+
+    TypeAST *expType = parse_arith_op();
     expType = parse_expression_arith_op(expType);
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); print_type(expType); assert_parser("\n");
     return expType;
 }
 
-TypeAST *parse_expression_arith_op(TypeClass expType) {
-    // EntryAST *arithOpAST = NULL;
-    TypeClass arithOpType = TC_INVALID;
+TypeAST *parse_expression_arith_op(TypeAST *expType) {
+    TypeAST *arithOpType = NULL;
     switch(look_ahead->type) {
         case T_AND:
             match_token(T_AND);
@@ -528,7 +527,7 @@ TypeAST *parse_expression_arith_op(TypeClass expType) {
 TypeAST *parse_arith_op() {
     assert_parser("Parsing an arithmetic operation\n");
     // EntryAST *arithOpAST = parse_relation();
-    TypeClass arithOpType = parse_relation();
+    TypeAST *arithOpType = parse_relation();
     // check_int_float_type(arithOpAST->typeAST);
     arithOpType = parse_arith_op_relation(arithOpType);
     assert_parser("Done parsing an arithmetic operation\n");
@@ -536,10 +535,10 @@ TypeAST *parse_arith_op() {
     return arithOpType;
 }
 
-TypeAST *parse_arith_op_relation(TypeClass arithOpType) {
+TypeAST *parse_arith_op_relation(TypeAST *arithOpType) {
     // EntryAST *relationAST = NULL;
     check_int_float_type(arithOpType);
-    TypeClass relationType = TC_INVALID;
+    TypeAST *relationType = TC_INVALID;
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
@@ -567,7 +566,7 @@ TypeAST *parse_arith_op_relation(TypeClass arithOpType) {
 TypeAST *parse_relation() {
     assert_parser("Parsing a relation\n");
     // EntryAST *relationAST = parse_term();
-    TypeClass relationType = parse_term();
+    TypeAST *relationType = parse_term();
     // check_basic_type(relationAST->typeAST);
     // relationAST = parse_relation_term(relationAST);
     relationType = parse_relation_term(relationType);
@@ -579,7 +578,8 @@ TypeAST *parse_relation() {
 TypeAST *parse_relation_term(TypeAST *termType1) {
     check_int_float_type(termType1->typeClass);
     // TypeClass termType2 = TC_INVALID, relationType = TC_INVALID;
-    TypeAST *termType2 = NULL, relationType = NULL;
+    TypeAST *termType2 = NULL;
+    TypeAST *relationType = NULL;
     TokenType binOp = look_ahead->type;
     switch(binOp) {
         case T_LT:
@@ -643,7 +643,8 @@ TypeAST *parse_term() {
 TypeAST *parse_term_factor(TypeAST *factorType1) {
     // EntryAST *factorAST = NULL, *termAST = NULL;
     // TypeClass termType = TC_INVALID, factorType2 = TC_INVALID;
-    TypeAST *termType = NULL, factorType2 = NULL;
+    TypeAST *termType = NULL;
+    TypeAST *factorType2 = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
@@ -677,7 +678,7 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
 TypeAST *parse_factor() {
     assert_parser("Parsing a factor\n");
     EntryAST *factorAST = NULL;
-    TypeAST *typeAST = NULL
+    TypeAST *typeAST = NULL;
     TypeClass factorType = TC_INVALID;
     LLVMValueRef value;
     switch (look_ahead->type) {
@@ -693,18 +694,17 @@ TypeAST *parse_factor() {
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
-            factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 1);
-             TC_INT;
+            value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 1);
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
-            value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 1);
             factorType = TC_FLOAT;
+            value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal);
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
-            typeAST = parse_expression();
             factorType = factorAST->typeClass;
+            typeAST = parse_expression();
             match_token(T_RPAREN);
             break;
         case T_MINUS: // [-] <name> | [-] <number>
@@ -739,11 +739,12 @@ TypeAST *parse_factor() {
             break;
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    factorAST->value = value;
-    factorAST->typeClass = factorType;
     assert_parser("Done parsing a factor\n");
     assert_parser("Factor type is: "); print_type(factorType); assert_parser("\n");
-    return create_type(factorType, value);
+
+    typeAST = create_type(factorType);
+    typeAST->valueRef = value;
+    return typeAST;
 }
 
 int bool_to_int(bool boolean) {
