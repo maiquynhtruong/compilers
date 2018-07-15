@@ -29,12 +29,11 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	EntryAST *parent = NULL;
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
-		assert_symbol_table(" in Global scope\n");
+		assert_symbol_table(" in Global scope");
 		add_entry(&(symbolTable->globalEntryList), entry);
 	} else {
 		assert_symbol_table(" in Scope ");
 		assert_symbol_table(symbolTable->currentScope->name);
-		assert_symbol_table("\n");
 
 		switch (entry->entryType) {
 			case ET_VARIABLE:
@@ -62,13 +61,13 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	entryNode->next = NULL;
 
 	if ((*list) == NULL) {
-		assert_symbol_table("Current entry node is null");
+		// assert_symbol_table("Current entry node is null");
 		(*list) = entryNode;
 	} else {
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
-		assert_symbol_table("Current entry node is not null");
+		// assert_symbol_table("Current entry node is not null");
 	}
 }
 
@@ -133,15 +132,10 @@ void init_symbol_table() {
 	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
-    LLVMAddFunction(module, "putBool", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
-	LLVMAddFunction(module, "putInteger", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	LLVMAddFunction(module, "putFloat", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
-	LLVMAddFunction(module, "putString", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
-	LLVMAddFunction(module, "putChar", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
@@ -272,7 +266,7 @@ void print_type(TypeClass type) {
 }
 
 TypeAST *create_type(TypeClass typeClass) {
-	assert_symbol_table("Create type "); print_type(typeClass);
+	// assert_symbol_table("Create type "); print_type(typeClass);
 
 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
 	type->typeClass = typeClass;
@@ -282,7 +276,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_FLOAT:
 			type->typeRef = LLVMFloatType(); break;
 		case TC_STRING:
-			type->typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH); break;
+			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
 		case TC_BOOL:
 			type->typeRef = LLVMInt8Type(); break;
 		case TC_CHAR:
@@ -300,14 +294,17 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *func = create_procedure(name);
-	func->procAST->paramCnt = 1;
 	declare_entry(func, 1);
+
 	enter_scope(func->procAST->scope);
 		EntryAST *paramEntry = create_param("val", paramType);
 		paramEntry->typeAST = create_type(varType);
 		declare_entry(paramEntry, 0);
 	exit_scope();
 
+	LLVMTypeRef params[] = { paramEntry->typeAST->typeRef };
+	LLVMTypeRef type = LLVMFunctionType(LLVMVoidType(), params, 1, false);
+    LLVMAddFunction(module, name, type);
 	return func;
 }
 

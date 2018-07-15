@@ -40,7 +40,7 @@ int main(int argc, char const *argv[]) {
     // LLVMSetLinkage(format, LLVMInternalLinkage);
     // LLVMSetGlobalConstant(format, true);
     // LLVMSetInitializer(format, LLVMConstString(str, len, true));
-
+printf("Param count: %d\n", (int) LLVMCountParamTypes(llvm_printf_type));
     LLVMValueRef args[] = { format, value };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 

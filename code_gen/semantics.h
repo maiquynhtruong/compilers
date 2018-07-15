@@ -1,6 +1,7 @@
 #ifndef SEMANTICS_H
 #define SEMANTICS_H
 
+#include <llvm-c/Core.h>
 #include "symbol_table.h"
 
 LLVMValueRef check_builtin_proc(char *name);

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+
 #include "semantics.h"
 #include "error.h"
 #include "symbol_table.h"
@@ -11,8 +12,9 @@ extern LLVMValueRef llvm_printf;
 
 LLVMValueRef check_builtin_proc(char *name) {
 	if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0 || strcmp(name, "putFloat") == 0 ||
-		strcmp(name, "putString") == 0 || strcmp(name, "putChar") == 0)
-		return llvm_printf;
+		strcmp(name, "putString") == 0 || strcmp(name, "putChar") == 0) {
+			return llvm_printf;
+		}
 	return NULL;
 }
 

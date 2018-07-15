@@ -90,3 +90,7 @@ void assert_ast(const char *mesg) {
 void assert_semantics(const char *mesg) {
     printf("%s", mesg);
 }
+
+void assert_codegen(const char *mesg) {
+    printf("%s", mesg);
+}
