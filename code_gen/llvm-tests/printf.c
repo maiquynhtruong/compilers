@@ -32,15 +32,15 @@ int main(int argc, char const *argv[]) {
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %s!\n", "format");
-    LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, "there", "value");
+    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %d!\n", "format");
+    // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, 1, "value");
+    LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
     // char *str = "Hi therelakjgl;daj";
     // int len = strlen(str);
     // LLVMValueRef format = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt8Type(), len), "string");
     // LLVMSetLinkage(format, LLVMInternalLinkage);
     // LLVMSetGlobalConstant(format, true);
     // LLVMSetInitializer(format, LLVMConstString(str, len, true));
-printf("Param count: %d\n", (int) LLVMCountParamTypes(llvm_printf_type));
     LLVMValueRef args[] = { format, value };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 

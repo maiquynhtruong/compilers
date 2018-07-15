@@ -47,7 +47,8 @@ LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
 
 void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
     LLVMValueRef proc = check_builtin_proc(name);
-
+    // LLVMBasicBlockRef proc_block = LLVMAppendBasicBlock(MainFunction, "entry_point");
+    // LLVMPositionBuilderAtEnd(builder, proc_block);
     if (proc == NULL) {
         proc = LLVMGetNamedFunction(module, name);
         LLVMBuildCall(builder, proc, args, argc, name);
@@ -63,20 +64,17 @@ void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
     const char *format_str;
     if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0) {
         format_str = "%d";
-    } else if (strcmp(name, "putFloat") == 0)
+    } else if (strcmp(name, "putFloat") == 0) {
         format_str = "%f";
-    else if (strcmp(name, "putString") == 0)
+    } else if (strcmp(name, "putString") == 0) {
         format_str = "%s";
-    else if (strcmp(name, "putChar") == 0)
+    } else if (strcmp(name, "putChar") == 0) {
         format_str = "%c";
-    else
+    } else {
         format_str = "";
+    }
 
-    // LLVMBasicBlockRef proc_block = LLVMAppendBasicBlock(MainFunction, "entry_point");
-    // LLVMPositionBuilderAtEnd(builder, proc_block);
     LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
-    // LLVMValueRef anotherVal = LLVMBuildGlobalStringPtr(builder, "Hihihihihihi", "val_str");
-    // LLVMValueRef args[] = { format, anotherVal };
     LLVMValueRef args[] = { format, value };
 
     LLVMBuildCall(builder, llvm_printf, args, 2, name);

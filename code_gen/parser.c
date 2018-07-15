@@ -441,10 +441,8 @@ void parse_procedure_call() {
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(entry);
     match_token(T_RPAREN);
-    // procCall = create_procedure_call(current_token->val.stringVal, args, argc);
 
     assert_parser("Done parsing a procedure call\n");
-    printf("proc name= %s, param count= %d\n", entry->name, entry->procAST->paramCnt);
     codegen_proc_call(name, args, entry->procAST->paramCnt);
 }
 
@@ -455,15 +453,17 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
     if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
     int argi = 0, argc = proc->procAST->paramCnt;
-    LLVMValueRef *args = malloc(sizeof(LLVMValueRef) * argc);
-    args[argi++] = parse_argument(node->entryAST);
+    LLVMValueRef *args = (LLVMValueRef *) malloc(sizeof(LLVMValueRef) * argc);
+    // LLVMValueRef args[] = LLVMValueRef[argc];
+    LLVMValueRef arg = parse_argument(node->entryAST);
+    args[argi++] = arg;
     node = node->next;
 
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
         if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
-        LLVMValueRef arg = parse_argument(node->entryAST);
+        arg = parse_argument(node->entryAST);
         node = node->next;
 
         if (argi < argc) args[argi++] = arg;
@@ -483,7 +483,7 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
 LLVMValueRef parse_argument(EntryAST *param) {
     TypeAST *argType = parse_expression();
     check_type_equality(param->paramAST->type, argType->typeClass);
-    return param->value;
+    return argType->valueRef;
 }
 
 TypeAST *parse_expression() {
