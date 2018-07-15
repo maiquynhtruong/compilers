@@ -436,18 +436,15 @@ void parse_procedure_call() {
     // EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
     EntryAST *callee = check_declared_procedure(name);
 
-    // unsigned int argc = callee->stmtAST->procCallAST->argc;
-    LLVMValueRef proc = check_builtin_proc(name);
-    if (proc == NULL) proc = LLVMGetNamedFunction(module, name);
-
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(callee);
     match_token(T_RPAREN);
     // procCall = create_procedure_call(current_token->val.stringVal, args, argc);
 
     assert_parser("Done parsing a procedure call\n");
-    LLVMBuildCall(builder, proc, args, callee->procAST->paramCnt, name);
-    // codegen_proc_call(name, args, callee->procAST->paramCnt);
+    printf("proc name= %s, param count= %d\n", callee->name, callee->procAST->paramCnt);
+
+    codegen_proc_call(name, args, callee->procAST->paramCnt);
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
@@ -488,7 +485,7 @@ LLVMValueRef parse_argument(EntryAST *param) {
     return param->value;
 }
 
-TypeClass parse_expression() {
+TypeAST *parse_expression() {
     assert_parser("Parsing an expression\n");
     if (look_ahead->type == K_NOT) match_token(K_NOT);
     // EntryAST *expAST = parse_arith_op();
@@ -499,7 +496,7 @@ TypeClass parse_expression() {
     return expType;
 }
 
-TypeClass parse_expression_arith_op(TypeClass expType) {
+TypeAST *parse_expression_arith_op(TypeClass expType) {
     // EntryAST *arithOpAST = NULL;
     TypeClass arithOpType = TC_INVALID;
     switch(look_ahead->type) {
@@ -528,7 +525,7 @@ TypeClass parse_expression_arith_op(TypeClass expType) {
     return expType;
 }
 
-TypeClass parse_arith_op() {
+TypeAST *parse_arith_op() {
     assert_parser("Parsing an arithmetic operation\n");
     // EntryAST *arithOpAST = parse_relation();
     TypeClass arithOpType = parse_relation();
@@ -539,7 +536,7 @@ TypeClass parse_arith_op() {
     return arithOpType;
 }
 
-TypeClass parse_arith_op_relation(TypeClass arithOpType) {
+TypeAST *parse_arith_op_relation(TypeClass arithOpType) {
     // EntryAST *relationAST = NULL;
     check_int_float_type(arithOpType);
     TypeClass relationType = TC_INVALID;
@@ -567,7 +564,7 @@ TypeClass parse_arith_op_relation(TypeClass arithOpType) {
     return arithOpType;
 }
 
-TypeClass parse_relation() {
+TypeAST *parse_relation() {
     assert_parser("Parsing a relation\n");
     // EntryAST *relationAST = parse_term();
     TypeClass relationType = parse_term();
@@ -579,15 +576,16 @@ TypeClass parse_relation() {
     return relationType;
 }
 
-TypeClass parse_relation_term(TypeClass termType1) {
-    check_int_float_type(termType1);
-    TypeClass termType2 = TC_INVALID, relationType = TC_INVALID;
+TypeAST *parse_relation_term(TypeAST *termType1) {
+    check_int_float_type(termType1->typeClass);
+    // TypeClass termType2 = TC_INVALID, relationType = TC_INVALID;
+    TypeAST *termType2 = NULL, relationType = NULL;
     TokenType binOp = look_ahead->type;
     switch(binOp) {
         case T_LT:
             match_token(T_LT);
             termType2 = parse_term();
-            check_type_equality(termType1, termType2);
+            check_type_equality(termType1->typeClass, termType2->typeClass);
             relationType = parse_relation_term(termType1);
             break;
         case T_LTEQ:
@@ -632,9 +630,9 @@ TypeClass parse_relation_term(TypeClass termType1) {
     return termType1;
 }
 
-TypeClass parse_term() {
+TypeAST *parse_term() {
     assert_parser("Parsing a term\n");
-    TypeClass termType = parse_factor();
+    TypeAST *termType = parse_factor();
     // check_int_float_type(termAST->typeAST);
     termType = parse_term_factor(termType);
     assert_parser("Done parsing a term\n");
@@ -642,21 +640,21 @@ TypeClass parse_term() {
     return termType;
 }
 
-// EntryAST *parse_term_factor(EntryAST *termAST) {
-TypeClass parse_term_factor(TypeClass factorType1) {
+TypeAST *parse_term_factor(TypeAST *factorType1) {
     // EntryAST *factorAST = NULL, *termAST = NULL;
-    TypeClass termType = TC_INVALID, factorType2 = TC_INVALID;
+    // TypeClass termType = TC_INVALID, factorType2 = TC_INVALID;
+    TypeAST *termType = NULL, factorType2 = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
             check_int_float_type(factorType1);
             factorType2 = parse_factor();
-            check_int_float_type(factorType2);
+            check_int_float_type(factorType2->typeClass);
             termType = parse_term_factor(factorType1);
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
-            check_int_float_type(factorType1);
+            check_int_float_type(factorType1->typeClass);
             factorType2 = parse_factor();
             check_int_float_type(factorType2);
             termType = parse_term_factor(factorType1);
@@ -676,68 +674,61 @@ TypeClass parse_term_factor(TypeClass factorType1) {
     return termType;
 }
 
-TypeClass parse_factor() {
+TypeAST *parse_factor() {
     assert_parser("Parsing a factor\n");
     EntryAST *factorAST = NULL;
+    TypeAST *typeAST = NULL
     TypeClass factorType = TC_INVALID;
     LLVMValueRef value;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
-            // factorAST = create_factor(TC_STRING, current_token);
             factorType = TC_STRING;
+            value = LLVMBuildGlobalStringPtr(builder, current_token->val.stringVal, "string");
             break;
         case T_CHAR:
             match_token(T_CHAR);
-            // factorAST = create_factor(TC_CHAR, current_token);
             factorType = TC_CHAR;
-            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.charVal, 0);
+            value = LLVMConstInt(LLVMInt8Type(), current_token->val.charVal, 1);
             break;
         case T_NUMBER_INT:
             match_token(T_NUMBER_INT);
-            // factorAST = create_factor(TC_INT, current_token);
-            // factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 0);
-            factorType = TC_INT;
+            factorAST->value = LLVMConstInt(LLVMInt32Type(), current_token->val.intVal, 1);
+             TC_INT;
             break;
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
-            // factorAST = create_factor(TC_FLOAT, current_token);
-            // factorAST->value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 0);
+            value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal, 1);
             factorType = TC_FLOAT;
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
-            // factorAST = parse_expression();
-            factorType = parse_expression();
+            typeAST = parse_expression();
+            factorType = factorAST->typeClass;
             match_token(T_RPAREN);
             break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
-            factorType = parse_factor();
-            if (factorType == TC_INT) current_token->val.intVal = -look_ahead->val.intVal;
-            else if (factorType == TC_FLOAT) current_token->val.floatVal = -look_ahead->val.floatVal;
-            // factorAST = create_unary_op(UN_MINUS, factorAST);
+            // factorAST = parse_factor();
+            // if (factorType == TC_INT) current_token->val.intVal = -look_ahead->val.intVal;
+            // else if (factorType == TC_FLOAT) current_token->val.floatVal = -look_ahead->val.floatVal;
             break;
-        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]. Same as <destination> ::= <identifier> [ [ <expression> ] ]?
+        case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
             factorAST = check_declared_identifier(current_token->val.stringVal);
-            // TypeAST *varType = factorAST->varAST->varType->typeAST;
             factorType = factorAST->typeAST->typeClass;
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
-            // factorAST = create_factor(factorType, current_token);
             break;
         case K_TRUE:
             match_token(K_TRUE);
-            // factorAST = create_factor(TC_BOOL, current_token);
-            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.intVal, 0); // a bool is an 8 byte integer?
+            value = LLVMConstInt(LLVMInt8Type(), 1, 1); // a bool is an 8 byte integer?
             factorType = TC_BOOL;
             break;
         case K_FALSE:
             match_token(K_FALSE);
-            // factorAST = create_factor(TC_BOOL, current_token);
-            // factorAST->value = LLVMConstInt(LLVMInt8Type(), current_token->val.intVal, 0);
+            value = LLVMConstInt(LLVMInt8Type(), 0, 1);
             factorType = TC_BOOL;
             break;
         // FOLLOW set
@@ -748,9 +739,11 @@ TypeClass parse_factor() {
             break;
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+    factorAST->value = value;
+    factorAST->typeClass = factorType;
     assert_parser("Done parsing a factor\n");
     assert_parser("Factor type is: "); print_type(factorType); assert_parser("\n");
-    return factorType;
+    return create_type(factorType, value);
 }
 
 int bool_to_int(bool boolean) {

@@ -41,11 +41,37 @@ LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
     return proc;
 }
 
-LLVMValueRef codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
-    LLVMValueRef proc = LLVMGetNamedFunction(module, name);
+void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
+    LLVMValueRef proc = check_builtin_proc(name);
+    if (proc == NULL) {
+        proc = LLVMGetNamedFunction(module, name);
+        LLVMBuildCall(builder, proc, args, argc, name);
+    } else {
+        codegen_builtin_proc_call(name, args[0]);
+    }
+}
 
-    LLVMValueRef caller = LLVMBuildCall(builder, proc, args, argc, name);
-    return caller;
+/*
+    Builtin printf only takes one argument for the value to print
+*/
+void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
+    char *format_str;
+
+    if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0)
+        format_str = "%d";
+    else if (strcmp(name, "putFloat") == 0)
+        format_str = "%f";
+    else if (strcmp(name, "putString") == 0)
+        format_str = "%s";
+    else if (strcmp(name, "putChar") == 0)
+        format_str = "%c";
+    else
+        format_str = "";
+
+    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
+    LLVMValueRef args[] = { format, value };
+
+    LLVMBuildCall(builder, llvm_printf, args, 2, func_name);
 }
 
 void codegen_extern_decl() {

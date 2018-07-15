@@ -76,12 +76,15 @@ typedef struct ParamAST {
 typedef struct TypeAST {
 	TypeClass typeClass;
 	LLVMTypeRef typeRef;
+	LLVMValueRef valueRef;
 } TypeAST;
 
 typedef struct EntryAST {
 	EntryType entryType;
 	char name[MAX_IDENT_LENGTH];
-	LLVMValueRef value; // might not be here but in individual structs
+	TypeClass typeClass; // will replace TypeAST
+	LLVMTypeRef typeRef;
+	LLVMValueRef value;
 	TypeAST *typeAST; // https://overiq.com/c-programming/101/union-basics-in-c/
 	union {
 		ProgramAST *progAST;

@@ -3,6 +3,7 @@
 
 #include "symbol_table.h"
 
+LLVMValueRef check_builtin_proc(char *name);
 void check_new_identifier(char *name);
 EntryAST *check_declared_identifier(char *name);
 EntryAST *check_declared_variable(char *name);

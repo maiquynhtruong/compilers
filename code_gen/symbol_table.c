@@ -133,10 +133,15 @@ void init_symbol_table() {
 	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
+    LLVMValueRef func = LLVMAddFunction(mod, "putBool", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
+	LLVMValueRef func = LLVMAddFunction(mod, "putInteger", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
+	LLVMValueRef func = LLVMAddFunction(mod, "putFloat", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
+	LLVMValueRef func = LLVMAddFunction(mod, "putString", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
+	LLVMValueRef func = LLVMAddFunction(mod, "putChar", LLVMFunctionType(LLVMVoidType(), NULL, 1, false));
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
@@ -231,7 +236,6 @@ void print_entry_type_class(EntryAST *entry) {
 }
 
 void print_entry_type(EntryAST *entry) {
-	TypeClass type = TC_INVALID;
 	switch (entry->entryType) {
 		case ET_VARIABLE:
 			printf("A variable"); break;
@@ -240,9 +244,9 @@ void print_entry_type(EntryAST *entry) {
 		case ET_PARAMTER:
 			printf("A parameter"); break;
 		case ET_PROCEDURE:
-			printf("A procedure");
-			type = TC_INVALID;
-			break;
+			printf("A procedure"); break;
+		default:
+			printf("Unknown entry type"); break;
 	}
 }
 
@@ -258,10 +262,12 @@ void print_type(TypeClass type) {
             printf("Bool"); break;
     	case TC_CHAR:
             printf("Char"); break;
+		case TC_VOID:
+			printf("Void"); break;
 		case TC_INVALID:
 			printf("Invalid"); break;
         default:
-            printf("Unknown"); break;
+            printf("Unknown type class"); break;
     }
 }
 
@@ -283,6 +289,8 @@ TypeAST *create_type(TypeClass typeClass) {
 			type->typeRef = LLVMInt8Type(); break;
 		case TC_VOID:
 			type->typeRef = LLVMVoidType(); break;
+		default:
+			type->typeRef = NULL; break;
 	}
 	return type;
 }
@@ -292,7 +300,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *func = create_procedure(name);
-	func->procAST->paramCnt = 2;
+	func->procAST->paramCnt = 1;
 	declare_entry(func, 1);
 	enter_scope(func->procAST->scope);
 		EntryAST *paramEntry = create_param("val", paramType);

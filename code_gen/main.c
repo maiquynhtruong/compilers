@@ -11,6 +11,7 @@
 
 #include "reader.h"
 #include "parser.h"
+#include "code_gen.h"
 
 extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
