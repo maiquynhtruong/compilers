@@ -89,7 +89,6 @@ void codegen_extern_decl() {
 
 void codegen_module(char *file_name) {
     module = LLVMModuleCreateWithName(file_name);
-    // builder = LLVMCreateBuilder();
 
     codegen_extern_decl();
 

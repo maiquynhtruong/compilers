@@ -578,7 +578,6 @@ TypeAST *parse_relation() {
 
 TypeAST *parse_relation_term(TypeAST *termType1) {
     check_int_float_type(termType1->typeClass);
-    // TypeClass termType2 = TC_INVALID, relationType = TC_INVALID;
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     TokenType binOp = look_ahead->type;
