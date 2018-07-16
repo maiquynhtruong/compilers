@@ -16,24 +16,19 @@ int cur_line, cur_col;
 void skip_block_comment() {
     int state = 1;
     while (state != 0 && cur_char != EOF) {
-        printf("1. cur_char= %c, state= %d\n", cur_char, state);
         switch (cur_char) {
             case '*':
                 read_char();
 
                 if (cur_char != EOF && cur_char == '/') {
                     state--;
-                    printf("2. cur_char= %c, state= %d\n", cur_char, state);
                     read_char();
-                } else printf("2. cur_char= %c, state= %d\n", cur_char, state);
                 break;
             case '/':
                 read_char();
                 if (cur_char != EOF && cur_char == '*') {
                     state++;
-                    printf("2. cur_char= %c, state= %d\n", cur_char, state);
                     read_char();
-                } else printf("2. cur_char= %c, state= %d\n", cur_char, state);
                 break;
             default:
                 read_char();
