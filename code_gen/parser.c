@@ -482,7 +482,7 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
 
 LLVMValueRef parse_argument(EntryAST *param) {
     TypeAST *argType = parse_expression();
-    check_type_equality(param->paramAST->type, argType->typeClass);
+    check_type_equality(param->typeAST->typeClass, argType->typeClass);
     return argType->valueRef;
 }
 
