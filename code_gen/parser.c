@@ -746,8 +746,3 @@ TypeAST *parse_factor() {
     typeAST->valueRef = value;
     return typeAST;
 }
-
-int bool_to_int(bool boolean) {
-    if (boolean == true) return 1;
-    else return 0;
-}
