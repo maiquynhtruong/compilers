@@ -1,0 +1,22 @@
+// This is to test the comments
+// First: block comments
+/* first block */
+/** second block **/
+/*** third block ***/
+/********************** A block **********************/
+
+// Next: Nested block Comments
+/*** level 1 /*** level 2 /*** level 3 ***/ level 2 end ***/ level 1 end ***/
+
+// Next multi line block comments
+/*
+/* line 1
+/* line 2
+/* line 3 */
+*/ end line 2
+*/ end line 1
+*/
+
+PROGRAM Comments is
+BEGIN
+END PROGRAM
