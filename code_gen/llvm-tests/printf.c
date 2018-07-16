@@ -32,10 +32,12 @@ int main(int argc, char const *argv[]) {
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %f!\n", "format");
+    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %d!\n", "format");
     // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, 1, "value");
     // LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
-    LLVMValueRef value = LLVMConstReal(LLVMFloatType(), (float) 12.3456);
+    // LLVMValueRef value = LLVMConstReal(LLVMFloatType(), (float) 12.3456);
+    LLVMValueRef value = LLVMConstInt(LLVMInt8Type(), true, 1);
+
     // char *str = "Hi therelakjgl;daj";
     // int len = strlen(str);
     // LLVMValueRef format = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt8Type(), len), "string");
