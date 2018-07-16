@@ -13,23 +13,30 @@ extern int columnNo;
 extern int cur_char;
 int cur_line, cur_col;
 
-// skips comments in /*...*/ blocks
 void skip_block_comment() {
-    int state = 0;
-    while (cur_char != EOF && state < 2) {
+    int state = 1;
+    while (state != 0 && cur_char != EOF) {
         switch (cur_char) {
             case '*':
-                state = 1;
+                read_char();
+
+                if (cur_char != EOF && cur_char == '/') {
+                    state--;
+                    read_char();
                 break;
             case '/':
-                if (state == 1) state = 2;
-                else state = 0;
+                read_char();
+                if (cur_char != EOF && cur_char == '*') {
+                    state++;
+                    read_char();
                 break;
-            default: state = 0;
+            default:
+                read_char();
+                break;
         }
-        read_char();
     }
-    if (state != 2) throw_error(E_END_OF_COMMENT, lineNo, columnNo);
+    if (state > 0) throw_error(E_END_OF_COMMENT, lineNo, columnNo);
+    // if (state < 0) // in correct comment
 }
 
 void skip_line_comment() {
@@ -146,14 +153,15 @@ Token* next_token() {
             read_char();
 
             switch (cur_char) {
-              case '/':
-                  read_char();
-                  skip_line_comment();
-                  return next_token();
-              case '*':
-                  read_char();
-                  skip_block_comment();
-                  return next_token();
+                case '/':
+                    read_char();
+                    skip_line_comment();
+                    return next_token();
+                case '*':
+                    read_char();
+                    printf("Starting a block comment\n");
+                    skip_block_comment();
+                    return next_token();
               default: return make_token(T_DIVIDE, cur_line, cur_col);
             }
         case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': case 'H':
@@ -173,7 +181,6 @@ Token* next_token() {
             return read_single_char();
         case '"': // double quote strings
             return read_string();
-
         case ':': // check if this is assignment token
             cur_line = lineNo; cur_col = columnNo;
             read_char();
