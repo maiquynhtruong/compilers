@@ -70,6 +70,7 @@ typedef enum {
 
 void throw_error(ErrorCode code, int lineNo, int columnNo);
 void missing_token(TokenType type, int lineNo, int columnNo);
+void assert_scanner(const char *mesg);
 void assert_parser(const char *mesg);
 void assert_symbol_table(const char *mesg);
 void assert_ast(const char *mesg);

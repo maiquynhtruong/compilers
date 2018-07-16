@@ -30,6 +30,6 @@ declare void @putChar(i8)
 define void @main() {
 entry:
   %putInteger = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str, i32 0, i32 0), i32 1)
-  %putFloat = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str.1, i32 0, i32 0), float 1.000000e+00)
+  %putFloat = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str.1, i32 0, i32 0), float 0x4028B0F280000000)
   ret void
 }
