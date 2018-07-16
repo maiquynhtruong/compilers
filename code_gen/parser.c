@@ -699,7 +699,7 @@ TypeAST *parse_factor() {
         case T_NUMBER_FLOAT:
             match_token(T_NUMBER_FLOAT);
             factorType = TC_FLOAT;
-            value = LLVMConstReal(LLVMFloatType(), current_token->val.floatVal);
+            value = LLVMConstReal(LLVMDoubleType(), current_token->val.floatVal);
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
