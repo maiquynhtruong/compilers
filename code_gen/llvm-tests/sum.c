@@ -15,16 +15,16 @@ int main(int argc, char const *argv[]) {
 
     LLVMTypeRef param_types[] = { LLVMInt32Type(), LLVMInt32Type() };
     // LLVMTypeRef ret_type = LLVMFunctionType(LLVMInt32Type(), param_types, 2, 0);
-    LLVMTypeRef ret_type = LLVMFunctionType(LLVMVoidType(), param_types, 2, 0);
+    LLVMTypeRef ret_type = LLVMFunctionType(LLVMInt32Type(), param_types, 2, 0);
     LLVMValueRef sum = LLVMAddFunction(mod, "sum", ret_type);
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(sum, "entry");
 
     LLVMBuilderRef builder = LLVMCreateBuilder();
     LLVMPositionBuilderAtEnd(builder, entry);
-    // LLVMValueRef tmp = LLVMBuildAdd(builder, LLVMGetParam(sum, 0), LLVMGetParam(sum, 1), "tmp");
-    // LLVMBuildRet(builder, tmp);
-    LLVMBuildRetVoid(builder);
+    LLVMValueRef tmp = LLVMBuildAdd(builder, LLVMGetParam(sum, 0), LLVMGetParam(sum, 1), "tmp");
+    LLVMBuildRet(builder, tmp);
+    // LLVMBuildRetVoid(builder);
 
     char *error = NULL;
     LLVMVerifyModule(mod, LLVMAbortProcessAction, &error);

@@ -8,4 +8,6 @@ program test_program is
 begin
     a := 1;
     putInteger(1);
+    putFloat(12.3456789);
+    putBool(true);
 end program .

@@ -1,6 +1,6 @@
-#include <stdio.h>
 // Run with llvm-gcc -S -emit-llvm hello.c for LLVM IR code
+#include <stdio.h>
 int main() {
-	printf("Hello world");
+	printf("Hello world, %s!\n", "Mai");
 	return 0;
 }

@@ -19,16 +19,17 @@ void skip_block_comment() {
         switch (cur_char) {
             case '*':
                 read_char();
-
                 if (cur_char != EOF && cur_char == '/') {
                     state--;
                     read_char();
+                }
                 break;
             case '/':
                 read_char();
                 if (cur_char != EOF && cur_char == '*') {
                     state++;
                     read_char();
+                }
                 break;
             default:
                 read_char();
@@ -40,7 +41,7 @@ void skip_block_comment() {
 }
 
 void skip_line_comment() {
-    while (cur_char != '\n' && cur_char != EOF) read_char(); // skip over one line comment
+    while (cur_char != '\n' && cur_char != EOF) read_char();
 }
 
 void skip_blank() { while (isspace(cur_char) && cur_char != -1) read_char(); }
@@ -62,7 +63,6 @@ Token *read_ident() {
   token->val.stringVal[i] = '\0';
 
   token->type = check_reserved_word(token->val.stringVal);
-  // printf("in read_ident: stringVal = %s\n", token->val.stringVal);
   return token;
 }
 
@@ -70,7 +70,6 @@ Token *read_float(Token **passedToken) {
     Token *token = *passedToken;
     token->type = T_NUMBER_FLOAT;
 
-    read_char(); // skip the dot
     int exponent = 1.0;
     token->val.floatVal = token->val.intVal;
     while (isdigit(cur_char = read_char())) {
@@ -78,7 +77,6 @@ Token *read_float(Token **passedToken) {
         token->val.floatVal = token->val.floatVal * 10 + cur_char - '0';
     }
     token->val.floatVal = token->val.floatVal / exponent;
-
     return token;
 }
 

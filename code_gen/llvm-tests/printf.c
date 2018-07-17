@@ -1,3 +1,10 @@
+/**
+    int main() {
+        printf("Hello World, %s!\n", "Mai");
+        return;
+    }
+*/
+
 #include <llvm-c/Core.h>
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
@@ -8,8 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-typedef int32_t (*funcPtr_t) (int32_t);
+#include <string.h>
 
 int main(int argc, char const *argv[]) {
     LLVMModuleRef mod = LLVMModuleCreateWithName("my_module");
@@ -26,9 +32,19 @@ int main(int argc, char const *argv[]) {
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
-    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %s!\n", "helloworld");
-    LLVMValueRef name = LLVMBuildGlobalStringPtr(builder, "Mai", "mai");
-    LLVMValueRef args[] = { format, name };
+    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %d!\n", "format");
+    // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, 1, "value");
+    // LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
+    // LLVMValueRef value = LLVMConstReal(LLVMFloatType(), (float) 12.3456);
+    LLVMValueRef value = LLVMConstInt(LLVMInt8Type(), true, 1);
+
+    // char *str = "Hi therelakjgl;daj";
+    // int len = strlen(str);
+    // LLVMValueRef format = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt8Type(), len), "string");
+    // LLVMSetLinkage(format, LLVMInternalLinkage);
+    // LLVMSetGlobalConstant(format, true);
+    // LLVMSetInitializer(format, LLVMConstString(str, len, true));
+    LLVMValueRef args[] = { format, value };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 
     LLVMBuildRetVoid(builder);
