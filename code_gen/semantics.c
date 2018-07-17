@@ -125,10 +125,10 @@ void check_type_equality(TypeClass type1, TypeClass type2) {
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
-void bool_to_int(TypeAST **type) {
-	type->typeClass = TC_INT;
+void convert_to_int(TypeAST **type) {
+	(*type)->typeClass = TC_INT;
 }
 
-void int_to_bool(TypeAST **type) {
-	type->typeClass = TC_BOOL;
+void convert_to_bool(TypeAST **type) {
+	(*type)->typeClass = TC_BOOL;
 }

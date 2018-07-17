@@ -19,16 +19,17 @@ void skip_block_comment() {
         switch (cur_char) {
             case '*':
                 read_char();
-
                 if (cur_char != EOF && cur_char == '/') {
                     state--;
                     read_char();
+                }
                 break;
             case '/':
                 read_char();
                 if (cur_char != EOF && cur_char == '*') {
                     state++;
                     read_char();
+                }
                 break;
             default:
                 read_char();

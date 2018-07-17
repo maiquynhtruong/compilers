@@ -278,7 +278,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_STRING:
 			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
 		case TC_BOOL:
-			type->typeRef = LLVMInt8Type(); break;
+			type->typeRef = LLVMInt32Type(); break;
 		case TC_CHAR:
 			type->typeRef = LLVMInt8Type(); break;
 		case TC_VOID:
