@@ -42,6 +42,64 @@ define void @print_variables() #0 {
 declare i32 @printf(i8*, ...) #1
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable
+define void @print_variables_2() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca float, align 4
+  %3 = alloca i8, align 1
+  %4 = alloca i8*, align 8
+  %5 = alloca i8, align 1
+  store i32 1, i32* %1, align 4
+  store float 0x3F8945B6C0000000, float* %2, align 4
+  store i8 99, i8* %3, align 1
+  store i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str.3, i32 0, i32 0), i8** %4, align 8
+  store i8 1, i8* %5, align 1
+  %6 = load i32, i32* %1, align 4
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str, i32 0, i32 0), i32 %6)
+  %8 = load float, float* %2, align 4
+  %9 = fpext float %8 to double
+  %10 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @.str.1, i32 0, i32 0), double %9)
+  %11 = load i8, i8* %3, align 1
+  %12 = sext i8 %11 to i32
+  %13 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.2, i32 0, i32 0), i32 %12)
+  %14 = load i8*, i8** %4, align 8
+  %15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.4, i32 0, i32 0), i8* %14)
+  %16 = load i8, i8* %5, align 1
+  %17 = trunc i8 %16 to i1
+  %18 = zext i1 %17 to i32
+  %19 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.5, i32 0, i32 0), i32 %18)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone ssp uwtable
+define void @print_variables_3() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca float, align 4
+  %3 = alloca i8, align 1
+  %4 = alloca i8*, align 8
+  %5 = alloca i8, align 1
+  store i32 1, i32* %1, align 4
+  store float 0x3F8945B6C0000000, float* %2, align 4
+  store i8 99, i8* %3, align 1
+  store i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str.3, i32 0, i32 0), i8** %4, align 8
+  store i8 1, i8* %5, align 1
+  %6 = load i32, i32* %1, align 4
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @.str, i32 0, i32 0), i32 %6)
+  %8 = load float, float* %2, align 4
+  %9 = fpext float %8 to double
+  %10 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @.str.1, i32 0, i32 0), double %9)
+  %11 = load i8, i8* %3, align 1
+  %12 = sext i8 %11 to i32
+  %13 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.2, i32 0, i32 0), i32 %12)
+  %14 = load i8*, i8** %4, align 8
+  %15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.4, i32 0, i32 0), i8* %14)
+  %16 = load i8, i8* %5, align 1
+  %17 = trunc i8 %16 to i1
+  %18 = zext i1 %17 to i32
+  %19 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.5, i32 0, i32 0), i32 %18)
+  ret void
+}
+
+; Function Attrs: noinline nounwind optnone ssp uwtable
 define i32 @main() #0 {
   %1 = alloca i32, align 4
   store i32 0, i32* %1, align 4

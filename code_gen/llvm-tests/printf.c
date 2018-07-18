@@ -34,9 +34,9 @@ int main(int argc, char const *argv[]) {
 
     LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %d!\n", "format");
     // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, 1, "value");
-    // LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
+    LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
     // LLVMValueRef value = LLVMConstReal(LLVMFloatType(), (float) 12.3456);
-    LLVMValueRef value = LLVMConstInt(LLVMInt8Type(), true, 1);
+    // LLVMValueRef value = LLVMConstInt(LLVMInt8Type(), true, 1);
 
     // char *str = "Hi therelakjgl;daj";
     // int len = strlen(str);
@@ -44,7 +44,12 @@ int main(int argc, char const *argv[]) {
     // LLVMSetLinkage(format, LLVMInternalLinkage);
     // LLVMSetGlobalConstant(format, true);
     // LLVMSetInitializer(format, LLVMConstString(str, len, true));
-    LLVMValueRef args[] = { format, value };
+
+    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
+    LLVMBuildStore(builder, value, pointer);
+
+    LLVMValueRef paramValue = LLVMBuildLoad(builder, pointer, "loadValue");
+    LLVMValueRef args[] = { format, paramValue };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 
     LLVMBuildRetVoid(builder);
