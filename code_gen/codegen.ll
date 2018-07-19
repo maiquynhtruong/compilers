@@ -29,9 +29,9 @@ declare void @putChar(i8)
 define void @main() {
 entry:
   %hihihihihi = alloca i32
-  %assign = alloca i32
-  store i32 1, i32* %assign
-  %a = load i32, i32* %assign
-  %putInteger = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str, i32 0, i32 0), i32 %a)
+  %a = alloca i32
+  store i32 1, i32* %a
+  %a1 = load i32, i32* %a
+  %putInteger = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str, i32 0, i32 0), i32 %a1)
   ret void
 }

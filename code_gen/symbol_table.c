@@ -38,13 +38,7 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 		LLVMValueRef pointer = NULL;
 		switch (entry->entryType) {
 			case ET_VARIABLE:
-				// printf("LLVMType: %s\n", LLVMPrintTypeToString(entry->typeAST->typeRef));
-				// LLVMValueRef value1 = LLVMConstInt(LLVMInt32Type(), 89, 1);
-			    // LLVMValueRef value2 = LLVMConstInt(LLVMInt32Type(), 78, 1);
-				// pointer = LLVMBuildAdd(builder, value1, value2, "add");
-				// pointer = LLVMBuildAlloca(builder, LLVMInt64Type(), "hi");
-				// printf("LLVMType: %s\n", LLVMPrintTypeToString(LLVMTypeOf(pointer)));
-				// printf("LLVMType: %s\n", LLVMPrintTypeToString(LLVMGetAllocatedType(pointer)));
+				pointer = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 				entry->typeAST->valueRef = pointer;
 				entry->varAST->scope = symbolTable->currentScope;
 				break;

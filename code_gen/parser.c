@@ -27,15 +27,11 @@ extern LLVMValueRef llvm_printf;
 extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
-    // printf("In match_token. Expected type: ");
-    // printf("%s\n", print_token_type(type));
 
     if (look_ahead->type != type) {
-        // printf("Not Matched. look_ahead is: ");
         print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
-        // printf("Matched. look_ahead is: ");
         print_token(look_ahead);
 
         Token *temp = current_token;
@@ -43,9 +39,6 @@ void match_token(TokenType type) {
         look_ahead = next_valid_token();
 
         free(temp);
-
-        // printf("Next parsed token : ");
-        // print_token(look_ahead);
     }
 }
 
@@ -82,14 +75,11 @@ void parse_body_block() {
     match_token(K_END);
 
     LLVMBuildRetVoid(builder);
-    // bodyAST = create_body_block(declAST, statementList);
-    // return bodyAST;
 }
 
 void parse_program() {
     assert_parser("Parsing the program\n");
 
-    // EntryAST *programAST = NULL, *bodyAST = NULL; // create, enter and exit a program scope
     EntryAST *program;
 
     // program header
@@ -108,7 +98,6 @@ void parse_program() {
     exit_scope();
 
     assert_parser("Done parsing the program\n");
-    // return programAST;
 }
 
 void parse_declaration_list() {
@@ -119,16 +108,12 @@ void parse_declaration_list() {
         match_token(K_GLOBAL);
         isGlobal = 1;
     }
-    // EntryAST *declAST; // https://stackoverflow.com/questions/22419790/c-error-expected-expression-before-int
 
     switch (look_ahead->type) {
         case K_PROCEDURE:
             parse_proc_declaration(isGlobal);
             match_token(T_SEMI_COLON);
-            // node = create_entry_node(declAST, NULL);
-            // node->next = parse_declaration_list(node);
             parse_declaration_list();
-            // node = node->next;
             break;
         // FOLLOW set
         case K_BEGIN: // from program_body, procedure_body
@@ -157,10 +142,7 @@ void parse_proc_declaration(int isGlobal) {
     parse_body_block(); // procedure body
     match_token(K_PROCEDURE);
 
-    // procAST = create_procedure(current_token->val.stringVal, isGlobal, 0, params, stmts);
-
     assert_parser("Done parsing a procedure declaration\n");
-    // return procAST;
 }
 
 void parse_var_declaration(int isGlobal) {
@@ -238,7 +220,7 @@ void parse_param_list() {
 
 void parse_param() {
     assert_parser("Parsing a parameter\n");
-    // EntryAST *paramAST = NULL;
+
     parse_var_declaration(0);
     ParamType paramType = PT_IN;
     switch (look_ahead->type) {
@@ -260,10 +242,8 @@ void parse_param() {
         default:
             throw_error(E_INVALID_PARAM_TYPE, look_ahead->lineNo, look_ahead->columnNo); break;
     }
-    // declare_entry(paramAST, 0);
 
     assert_parser("Done parsing a parameter\n");
-    // return paramAST;
 }
 
 void parse_statement_list() {
@@ -277,7 +257,7 @@ void parse_statement_list() {
 
 void parse_statement() {
     assert_parser("Parsing a statement\n");
-    // EntryAST *statementAST = NULL;
+
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
         case K_FOR: parse_loop_statement(); break;
@@ -291,8 +271,8 @@ void parse_statement() {
             break;
         default: throw_error(E_INVALID_STATEMENT, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+
     assert_parser("Done parsing a statement\n");
-    // return statementAST;
 }
 
 void parse_indexes() {
@@ -325,7 +305,6 @@ TypeAST *parse_destination() {
 void parse_assignment_statement() {
     assert_parser("Parsing an assignment statement\n");
 
-    // TypeAST *destType, *expType;
     TypeAST *destType = NULL;
     TypeAST *expType = NULL;
 
@@ -336,8 +315,6 @@ void parse_assignment_statement() {
     expType = parse_expression();
     check_type_equality(destType->typeClass, expType->typeClass);
 
-    printf("%s\n", LLVMPrintValueToString(destType->valueRef));
-    destType->valueRef = LLVMBuildAlloca(builder, destType->typeRef, "assign");
     LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -363,7 +340,6 @@ void parse_if_statement() {
     match_token(K_END);
     match_token(K_IF);
 
-    // ifAST = create_if(condition, trueBlock, falseBlock);
     assert_parser("Done parsing an if statement\n");
 }
 
@@ -396,9 +372,8 @@ void parse_return_statement() {
 
 void parse_procedure_call() {
     assert_parser("Parsing a procedure call\n");
-    // EntryAST *procCall = NULL;
+    
     char *name = current_token->val.stringVal;
-    // EntryAST *callee = check_declared_procedure(current_token->val.stringVal);
     EntryAST *entry = check_declared_procedure(name);
 
     match_token(T_LPAREN);
