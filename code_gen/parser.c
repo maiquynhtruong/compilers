@@ -69,15 +69,14 @@ int parse(char *file_name) {
 }
 
 void parse_body_block() {
-    // EntryAST *bodyAST = NULL;
-    // EntryNodeAST *statementList = NULL, *declAST = NULL;
-    if (look_ahead->type != K_BEGIN) parse_declaration_list();
-    match_token(K_BEGIN);
 
     LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
     LLVMValueRef main = LLVMAddFunction(module, "main", main_type);
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
+
+    if (look_ahead->type != K_BEGIN) parse_declaration_list();
+    match_token(K_BEGIN);
 
     if (look_ahead->type != K_END) parse_statement_list();
     match_token(K_END);
@@ -185,6 +184,7 @@ void parse_var_declaration(int isGlobal) {
         match_token(T_RBRACKET);
     }
 
+    LLVMBuildAlloca(builder, LLVMInt32Type(), "hihihihihi");
     declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
 
     assert_parser("Done parsing a variable declaration\n");
@@ -316,7 +316,7 @@ TypeAST *parse_destination() {
     parse_indexes();
 
     TypeAST *destType = dest->typeAST;
-
+    printf("%s\n", LLVMPrintValueToString(destType->valueRef));
     assert_parser("Done parsing a destination\n");
     assert_parser("Destination type is: "); print_type(destType->typeClass); assert_parser("\n");
     return destType;
@@ -330,13 +330,14 @@ void parse_assignment_statement() {
     TypeAST *expType = NULL;
 
     destType = parse_destination();
-    // if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
 
     match_token(T_ASSIGNMENT);
 
     expType = parse_expression();
     check_type_equality(destType->typeClass, expType->typeClass);
 
+    printf("%s\n", LLVMPrintValueToString(destType->valueRef));
+    destType->valueRef = LLVMBuildAlloca(builder, destType->typeRef, "assign");
     LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -745,8 +746,8 @@ TypeAST *parse_factor() {
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
-            factorType = factorAST->typeClass;
             typeAST = parse_expression();
+            factorType = typeAST->typeClass;
             match_token(T_RPAREN);
             break;
         case T_MINUS: // [-] <name> | [-] <number>

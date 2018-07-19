@@ -29,6 +29,8 @@ int main(int argc, char const *argv[]) {
     LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
     LLVMValueRef llvm_printf = LLVMAddFunction(mod, "printf", llvm_printf_type);
 
+    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
+
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
@@ -53,7 +55,6 @@ int main(int argc, char const *argv[]) {
     LLVMSetGlobalConstant(array, true);
     LLVMSetInitializer(array, LLVMConstArray(LLVMInt32Type(), values, 3));
 
-    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
     LLVMBuildStore(builder, value, pointer);
 
     LLVMValueRef paramValue = LLVMBuildLoad(builder, pointer, "loadValue");

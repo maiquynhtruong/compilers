@@ -1,14 +1,15 @@
-program test_program is
+program test_var is
     integer a;
-    float b;
-    string c;
-    bool d;
-    char e;
-    char f;
+    //float b;
+    //string c;
+    //bool d;
+    //char e;
+    //char f;
 begin
     a := 1;
-    putInteger(1);
-    putFloat(12.3456789);
-    putBool(true);
-    putString("hi");
+    putInteger(a);
+    //putInteger(1);
+    //putFloat(12.3456789);
+    //putBool(true);
+    // putString("hi");
 end program .
