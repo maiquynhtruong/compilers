@@ -22,7 +22,7 @@ void parse_if_statement();
 void parse_loop_statement();
 void parse_return_statement();
 void parse_procedure_call();
-TypeClass parse_destination();
+TypeAST *parse_destination();
 LLVMValueRef *parse_argument_list(EntryAST *proc);
 LLVMValueRef parse_argument(EntryAST *param);
 TypeAST *parse_expression();

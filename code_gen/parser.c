@@ -308,17 +308,17 @@ void parse_indexes() {
     }
 }
 
-TypeClass parse_destination() {
+TypeAST *parse_destination() {
     assert_parser("Parsing a destination\n");
     EntryAST *dest;
     dest = check_declared_identifier(current_token->val.stringVal);
 
     parse_indexes();
 
-    TypeClass destType = dest->varAST->varType;
+    TypeAST *destType = dest->typeAST;
 
     assert_parser("Done parsing a destination\n");
-    assert_parser("Destination type is: "); print_type(destType); assert_parser("\n");
+    assert_parser("Destination type is: "); print_type(destType->typeClass); assert_parser("\n");
     return destType;
 }
 
@@ -326,8 +326,8 @@ void parse_assignment_statement() {
     assert_parser("Parsing an assignment statement\n");
 
     // TypeAST *destType, *expType;
-    TypeClass destType;
-    TypeAST *expType;
+    TypeAST *destType = NULL;
+    TypeAST *expType = NULL;
 
     destType = parse_destination();
     // if (look_ahead->type == T_LPAREN) return; // backtrack to parse procedure call
@@ -335,7 +335,9 @@ void parse_assignment_statement() {
     match_token(T_ASSIGNMENT);
 
     expType = parse_expression();
-    check_type_equality(destType, expType->typeClass);
+    check_type_equality(destType->typeClass, expType->typeClass);
+
+    LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
 }
@@ -731,6 +733,16 @@ TypeAST *parse_factor() {
             factorType = TC_FLOAT;
             value = LLVMConstReal(LLVMDoubleType(), current_token->val.floatVal);
             break;
+        case K_TRUE:
+            match_token(K_TRUE);
+            value = LLVMConstInt(LLVMInt32Type(), 1, 1); // a bool is an 8 byte integer, but I see no point keeping the difference
+            factorType = TC_BOOL;
+            break;
+        case K_FALSE:
+            match_token(K_FALSE);
+            value = LLVMConstInt(LLVMInt32Type(), 0, 1);
+            factorType = TC_BOOL;
+            break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             factorType = factorAST->typeClass;
@@ -750,16 +762,7 @@ TypeAST *parse_factor() {
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
-            break;
-        case K_TRUE:
-            match_token(K_TRUE);
-            value = LLVMConstInt(LLVMInt32Type(), 1, 1); // a bool is an 8 byte integer, but I see no point keeping the difference
-            factorType = TC_BOOL;
-            break;
-        case K_FALSE:
-            match_token(K_FALSE);
-            value = LLVMConstInt(LLVMInt32Type(), 0, 1);
-            factorType = TC_BOOL;
+            value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
             break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression
