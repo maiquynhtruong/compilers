@@ -45,6 +45,14 @@ int main(int argc, char const *argv[]) {
     // LLVMSetGlobalConstant(format, true);
     // LLVMSetInitializer(format, LLVMConstString(str, len, true));
 
+    LLVMValueRef value1 = LLVMConstInt(LLVMInt32Type(), 89, 1);
+    LLVMValueRef value2 = LLVMConstInt(LLVMInt32Type(), 78, 1);
+    LLVMValueRef value3 = LLVMConstInt(LLVMInt32Type(), 436, 1);
+    LLVMValueRef values[] = { value1, value2, value3 };
+    LLVMValueRef array = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt32Type(), 3), "array");
+    LLVMSetGlobalConstant(array, true);
+    LLVMSetInitializer(array, LLVMConstArray(LLVMInt32Type(), values, 3));
+
     LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
     LLVMBuildStore(builder, value, pointer);
 

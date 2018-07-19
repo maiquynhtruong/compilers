@@ -3,6 +3,7 @@ source_filename = "my_module"
 target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
 
 @format = private unnamed_addr constant [18 x i8] c"Hello World, %d!\0A\00"
+@array = constant [3 x i32] [i32 89, i32 78, i32 436]
 
 define void @main() {
 entry:
