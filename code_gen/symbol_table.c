@@ -18,7 +18,7 @@ EntryAST *putString;
 EntryAST *putChar;
 
 extern LLVMValueRef llvm_printf;
-
+extern LLVMBuilderRef builder;
 extern LLVMModuleRef module;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
@@ -35,8 +35,11 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 		assert_symbol_table(" in Scope ");
 		assert_symbol_table(symbolTable->currentScope->name);
 
+		LLVMValueRef pointer = NULL;
 		switch (entry->entryType) {
 			case ET_VARIABLE:
+				pointer = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+				entry->typeAST->valueRef = pointer;
 				entry->varAST->scope = symbolTable->currentScope;
 				break;
 			case ET_PARAMTER:
