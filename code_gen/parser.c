@@ -367,12 +367,12 @@ void parse_loop_statement() {
 
 void parse_return_statement() {
     match_token(K_RETURN);
-    // LLVMBuildRetVoid(builder);
+    LLVMBuildRetVoid(builder);
 }
 
 void parse_procedure_call() {
     assert_parser("Parsing a procedure call\n");
-    
+
     char *name = current_token->val.stringVal;
     EntryAST *entry = check_declared_procedure(name);
 
