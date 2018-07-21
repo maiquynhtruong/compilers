@@ -160,7 +160,6 @@ Token* next_token() {
                     return next_token();
                 case '*':
                     read_char();
-                    printf("Starting a block comment\n");
                     skip_block_comment();
                     return next_token();
               default: return make_token(T_DIVIDE, cur_line, cur_col);

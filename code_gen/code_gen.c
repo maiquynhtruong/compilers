@@ -38,8 +38,8 @@ LLVMValueRef llvm_printf;
 LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
     LLVMTypeRef proc_type = LLVMFunctionType(LLVMVoidType(), params, 0, false);
     LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
-    builder = LLVMCreateBuilder();
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, "entry");
+    // builder = LLVMCreateBuilder();
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, strcat(name, "entry"));
     LLVMPositionBuilderAtEnd(builder, entry);
     LLVMBuildRetVoid(builder);
     return proc;
@@ -47,12 +47,12 @@ LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
 
 void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
     LLVMValueRef proc = check_builtin_proc(name);
-    // LLVMBasicBlockRef proc_block = LLVMAppendBasicBlock(MainFunction, "entry_point");
-    // LLVMPositionBuilderAtEnd(builder, proc_block);
+
     if (proc == NULL) {
         proc = LLVMGetNamedFunction(module, name);
         LLVMBuildCall(builder, proc, args, argc, name);
     } else {
+        // printf("%s\n", LLVMPrintValueToString(args[0]));
         codegen_builtin_proc_call(name, args[0]);
     }
 }
@@ -61,7 +61,7 @@ void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
     Builtin printf only takes one argument for the value to print
 */
 void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
-    const char *format_str;
+    const char *format_str = "";
     if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0) {
         format_str = "%d";
     } else if (strcmp(name, "putfloat") == 0) {
@@ -70,11 +70,13 @@ void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
         format_str = "%s";
     } else if (strcmp(name, "putchar") == 0) {
         format_str = "%c";
-    } else {
-        format_str = "";
     }
 
     LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
+
+    printf("%s\n", LLVMPrintValueToString(format));
+    printf("%s\n", LLVMPrintValueToString(value));
+
     LLVMValueRef args[] = { format, value };
 
     LLVMBuildCall(builder, llvm_printf, args, 2, name);

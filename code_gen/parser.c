@@ -63,11 +63,6 @@ int parse(char *file_name) {
 
 void parse_body_block() {
 
-    LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
-    LLVMValueRef main = LLVMAddFunction(module, "main", main_type);
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
-    LLVMPositionBuilderAtEnd(builder, entry);
-
     if (look_ahead->type != K_BEGIN) parse_declaration_list();
     match_token(K_BEGIN);
 
@@ -87,11 +82,17 @@ void parse_program() {
     match_token(T_IDENTIFIER);
 
     program = create_program(current_token->val.stringVal);
-
     enter_scope(program->progAST->scope);
 
     match_token(K_IS);
+
+    LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
+    LLVMValueRef main = LLVMAddFunction(module, program->name, main_type);
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, strcat(program->name, "entry"));
+    LLVMPositionBuilderAtEnd(builder, entry);
+
     parse_body_block(); // program body
+
     match_token(K_PROGRAM);
 
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
@@ -166,7 +167,6 @@ void parse_var_declaration(int isGlobal) {
         match_token(T_RBRACKET);
     }
 
-    LLVMBuildAlloca(builder, LLVMInt32Type(), "hihihihihi");
     declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
 
     assert_parser("Done parsing a variable declaration\n");
@@ -300,7 +300,7 @@ TypeAST *parse_destination() {
     parse_indexes();
 
     TypeAST *destType = dest->typeAST;
-    printf("%s\n", LLVMPrintValueToString(destType->valueRef));
+
     assert_parser("Done parsing a destination\n");
     assert_parser("Destination type is: "); print_type(destType->typeClass); assert_parser("\n");
     return destType;
@@ -334,15 +334,19 @@ void parse_if_statement() {
     match_token(T_LPAREN);
 
     // might have to pass the name of current scope as a parameter
-    LLVMValueRef proc = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
-    thenBlock = LLVMAppendBasicBlock(proc, "then");
-    elseBlock = LLVMAppendBasicBlock(proc, "else");
-    mergeBlock = LLVMAppendBasicBlock(proc, "merge");
-    LLVMBuildCondBr(builder, conditionValue, thenBlock, elseBlock);
+    LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
+
+    print_current_scope();
+    printf("%s\n", LLVMPrintValueToString(scope));
+    thenBlock = LLVMAppendBasicBlock(scope, "then");
+    elseBlock = LLVMAppendBasicBlock(scope, "else");
+    mergeBlock = LLVMAppendBasicBlock(scope, "merge");
 
     condition = parse_expression();
     convert_to_bool(&condition);
     conditionValue = condition->valueRef;
+
+    LLVMBuildCondBr(builder, conditionValue, thenBlock, elseBlock);
 
     match_token(T_RPAREN);
     match_token(K_THEN);

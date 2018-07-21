@@ -2,15 +2,15 @@ PROGRAM test_if IS
 	global integer JAKE;
 	//global integer ryan[3];
 	global integer zach;
-
+/*
 	procedure if_proc()
 	    integer declaration;
 	    begin
-	        if(true) then putBool(true);//jake := jake + 1;
-	        //else zach := zach + 1; //RYAN[2];
-            else putBool(false);
+	        //if(true) then jake := jake + 1;
+	        //else zach := zach + RYAN[2];
 	    end if;
 	end procedure;
+*/
 /*
 	procedure for_proc()
 	            integer i;
@@ -21,6 +21,10 @@ PROGRAM test_if IS
 	    end procedure;
 */
 	begin // where does it "begin" belong to??
-	    if_proc();
+	    //if_proc();
 	    //for_proc();
+
+        if(true) then jake := 1;
+        else zach := 3;
+        end if;
 	end program.

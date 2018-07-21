@@ -131,8 +131,9 @@ void convert_to_int(TypeAST **type) {
 }
 
 void convert_to_bool(TypeAST **type) {
-	if ((*type)->typeClass == TC_INT) {
+	// if ((*type)->typeClass == TC_INT) {
 		(*type)->valueRef = LLVMBuildICmp(builder, LLVMIntNE, (*type)->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "num != 0?");
+		// printf("%s\n", LLVMPrintValueToString((*type)->valueRef));
 		(*type)->typeClass = TC_BOOL;
-	}
+	// }
 }
