@@ -323,22 +323,40 @@ void parse_assignment_statement() {
 void parse_if_statement() {
     assert_parser("Parsing an if statement\n");
     TypeAST *condition = NULL;
+    LLVMBasicBlockRef thenBlock = NULL, elseBlock = NULL, mergeBlock = NULL;
+    LLVMValueRef conditionValue = NULL, thenValue = NULL, elseValue = NULL;
 
     match_token(K_IF);
     match_token(T_LPAREN);
 
+    // might have to pass the name of current scope as a parameter
+    LLVMValueRef proc = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
+    thenBlock = LLVMAppendBasicBlock(proc, "then");
+    elseBlock = LLVMAppendBasicBlock(proc, "else");
+    mergeBlock = LLVMAppendBasicBlock(proc, "merge");
+    LLVMBuildCondBr(builder, conditionValue, thenBlock, elseBlock);
+
     condition = parse_expression();
     convert_to_bool(&condition);
+    conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
     match_token(K_THEN);
+    LLVMPositionBuilderAtEnd(builder, thenBlock);
     parse_statement_list();
+    LLVMBuildBr(builder, mergeBlock);
+
+    LLVMPositionBuilderAtEnd(builder, elseBlock);
     if (look_ahead->type == K_ELSE) {
         match_token(K_ELSE);
         parse_statement_list();
     }
+    LLVMBuildBr(builder, mergeBlock);
+
     match_token(K_END);
     match_token(K_IF);
+    LLVMPositionBuilderAtEnd(builder, mergeBlock);
+    LLVMValueRef res = LLVMBuildPhi(builder, LLVMVoidType(), "result");
 
     assert_parser("Done parsing an if statement\n");
 }
