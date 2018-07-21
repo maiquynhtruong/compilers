@@ -1,5 +1,5 @@
 PROGRAM test_if IS
-	integer JAKE;
+	 integer JAKE;
 	//global integer ryan[3];
 	integer zach;
 /*

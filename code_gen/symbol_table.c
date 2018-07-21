@@ -27,34 +27,39 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table(", with type ");
 	print_entry_type_class(entry);
 	EntryAST *parent = NULL;
+	EntryNodeAST **list;
+
+	switch (entry->entryType) {
+		case ET_VARIABLE:
+			entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+			entry->varAST->scope = symbolTable->currentScope;
+			list = &(symbolTable->currentScope->entryList);
+			break;
+		case ET_PARAMTER:
+			assert_symbol_table(symbolTable->currentScope->name);assert_symbol_table("\n");
+			entry->paramAST->scope = symbolTable->currentScope;
+			parent = symbolTable->currentScope->parent;
+			list = &(parent->procAST->params);
+			parent->procAST->paramCnt++;
+			break;
+		case ET_PROCEDURE:
+			entry->procAST->scope->outerScope = symbolTable->currentScope;
+			list = &(symbolTable->globalEntryList);
+			break;
+		default: break;
+	}
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
-		assert_symbol_table(" in Global scope");
-		// entry->typeAST->valueRef = LLVMAddGlobal(module, entry->typeAST->typeRef, entry->name);
-		add_entry(&(symbolTable->globalEntryList), entry);
+		assert_symbol_table(" in Global scope\n");
+		printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
+		list = &(symbolTable->globalEntryList);
 	} else {
 		assert_symbol_table(" in Scope ");
 		assert_symbol_table(symbolTable->currentScope->name);
-
-		switch (entry->entryType) {
-			case ET_VARIABLE:
-				entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
-				entry->varAST->scope = symbolTable->currentScope;
-				break;
-			case ET_PARAMTER:
-				entry->paramAST->scope = symbolTable->currentScope;
-				parent = symbolTable->currentScope->parent;
-				add_entry(&(parent->procAST->params), entry);
-				parent->procAST->paramCnt++;
-				break;
-			case ET_PROCEDURE:
-				entry->procAST->scope->outerScope = symbolTable->currentScope;
-				break;
-			default: break;
-		}
-		add_entry(&(symbolTable->currentScope->entryList), entry);
+		assert_symbol_table("\n");
 	}
-	assert_symbol_table("\n");
+
+	add_entry(list, entry);
 }
 
 void add_entry(EntryNodeAST **list, EntryAST *entry) {
@@ -62,14 +67,12 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	entryNode->entryAST = entry;
 	entryNode->next = NULL;
 
-	if ((*list) == NULL) {
-		// assert_symbol_table("Current entry node is null");
-		(*list) = entryNode;
+	if (*list == NULL) {
+		*list = entryNode;
 	} else {
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
-		// assert_symbol_table("Current entry node is not null");
 	}
 }
 
@@ -314,7 +317,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 }
 
 EntryAST *create_program(const char *name) {
-	assert_symbol_table("Creating a program entry\n");
+	assert_symbol_table("Creating a program entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *progEntry = (EntryAST *) malloc(sizeof(EntryAST));
 	strcpy(progEntry->name, name);
@@ -327,8 +330,7 @@ EntryAST *create_program(const char *name) {
 }
 
 EntryAST *create_variable(const char *name) {
-	assert_symbol_table("Creating a variable entry: ");
-	assert_symbol_table(name); assert_symbol_table("\n");
+	assert_symbol_table("Creating a variable entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *varEntry = (EntryAST *) malloc(sizeof(EntryAST));
 	varEntry->entryType = ET_VARIABLE;
@@ -341,8 +343,7 @@ EntryAST *create_variable(const char *name) {
 }
 
 EntryAST *create_param(const char *name, ParamType paramType) {
-	assert_symbol_table("Creating a param entry: ");
-	assert_symbol_table(name); assert_symbol_table("\n");
+	assert_symbol_table("Creating a param entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *paramEntry = (EntryAST *) malloc(sizeof(EntryAST));
 	strcpy(paramEntry->name, name);
@@ -354,8 +355,7 @@ EntryAST *create_param(const char *name, ParamType paramType) {
 }
 
 EntryAST *create_procedure(const char *name) {
-	assert_symbol_table("Creating a procedure entry: ");
-	assert_symbol_table(name); assert_symbol_table("\n");
+	assert_symbol_table("Creating a procedure entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
 	EntryAST *procEntry = (EntryAST *) malloc(sizeof(EntryAST));
 	strcpy(procEntry->name, name);
