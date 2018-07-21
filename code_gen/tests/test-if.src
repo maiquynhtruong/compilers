@@ -1,7 +1,7 @@
 PROGRAM test_if IS
-	global integer JAKE;
+	integer JAKE;
 	//global integer ryan[3];
-	global integer zach;
+	integer zach;
 /*
 	procedure if_proc()
 	    integer declaration;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <string.h>
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>
 #include <llvm-c/Transforms/Scalar.h>
@@ -81,14 +82,15 @@ void parse_program() {
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
 
-    program = create_program(current_token->val.stringVal);
+    // program = create_program(current_token->val.stringVal);
+    program = create_program("main"); // top level function has to be "main"
     enter_scope(program->progAST->scope);
 
     match_token(K_IS);
 
-    LLVMTypeRef main_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
-    LLVMValueRef main = LLVMAddFunction(module, program->name, main_type);
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, strcat(program->name, "entry"));
+    LLVMTypeRef programType = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
+    LLVMValueRef programValue = LLVMAddFunction(module, program->name, programType);
+    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(programValue, strcat(program->name, "_entry"));
     LLVMPositionBuilderAtEnd(builder, entry);
 
     parse_body_block(); // program body
@@ -97,6 +99,8 @@ void parse_program() {
 
     if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
     exit_scope();
+
+    printf("After parsing program: %s\n", LLVMPrintValueToString(programValue));
 
     assert_parser("Done parsing the program\n");
 }
@@ -333,11 +337,8 @@ void parse_if_statement() {
     match_token(K_IF);
     match_token(T_LPAREN);
 
-    // might have to pass the name of current scope as a parameter
     LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
 
-    print_current_scope();
-    printf("%s\n", LLVMPrintValueToString(scope));
     thenBlock = LLVMAppendBasicBlock(scope, "then");
     elseBlock = LLVMAppendBasicBlock(scope, "else");
     mergeBlock = LLVMAppendBasicBlock(scope, "merge");
@@ -763,6 +764,8 @@ TypeAST *parse_factor() {
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
+            // if (isGlobalEntry(factorAST)) value = LLVMGetNamedGlobal(module, factorAST->name);
+            // else
             value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
             break;
         // FOLLOW set

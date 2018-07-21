@@ -122,6 +122,7 @@ void declare_entry(EntryAST *entryAST, int isGlobal);
 void add_entry(EntryNodeAST **list, EntryAST *entry);
 EntryAST *lookup(char *name);
 EntryAST *find_entry(EntryNodeAST *list, char *name);
+bool isGlobalEntry(EntryAST *entry);
 
 void init_symbol_table();
 void clear_symbol_table();

@@ -30,16 +30,15 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
 		assert_symbol_table(" in Global scope");
+		// entry->typeAST->valueRef = LLVMAddGlobal(module, entry->typeAST->typeRef, entry->name);
 		add_entry(&(symbolTable->globalEntryList), entry);
 	} else {
 		assert_symbol_table(" in Scope ");
 		assert_symbol_table(symbolTable->currentScope->name);
 
-		LLVMValueRef pointer = NULL;
 		switch (entry->entryType) {
 			case ET_VARIABLE:
-				pointer = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
-				entry->typeAST->valueRef = pointer;
+				entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 				entry->varAST->scope = symbolTable->currentScope;
 				break;
 			case ET_PARAMTER:
@@ -116,6 +115,9 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	return NULL;
 }
 
+bool isGlobalEntry(EntryAST *entry) {
+	return entry == symbolTable->root;
+}
 void init_symbol_table() {
 	assert_symbol_table("Initialize a symbol table"); assert_symbol_table("\n");
 

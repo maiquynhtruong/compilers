@@ -29,13 +29,13 @@ int main(int argc, char const *argv[]) {
     LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
     LLVMValueRef llvm_printf = LLVMAddFunction(mod, "printf", llvm_printf_type);
 
-    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
+    // LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
 
     LLVMBasicBlockRef entry = LLVMAppendBasicBlock(main, "entry");
     LLVMPositionBuilderAtEnd(builder, entry);
 
     LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, "Hello World, %d!\n", "format");
-    // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, 1, "value");
+    // LLVMValueRef value = LLVMBuildGlobalStringPtr(builder, "Mai", "value");
     LLVMValueRef value = LLVMConstInt(LLVMInt32Type(), 89, 1);
     // LLVMValueRef value = LLVMConstReal(LLVMFloatType(), (float) 12.3456);
     // LLVMValueRef value = LLVMConstInt(LLVMInt8Type(), true, 1);
@@ -47,18 +47,18 @@ int main(int argc, char const *argv[]) {
     // LLVMSetGlobalConstant(format, true);
     // LLVMSetInitializer(format, LLVMConstString(str, len, true));
 
-    LLVMValueRef value1 = LLVMConstInt(LLVMInt32Type(), 89, 1);
-    LLVMValueRef value2 = LLVMConstInt(LLVMInt32Type(), 78, 1);
-    LLVMValueRef value3 = LLVMConstInt(LLVMInt32Type(), 436, 1);
-    LLVMValueRef values[] = { value1, value2, value3 };
-    LLVMValueRef array = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt32Type(), 3), "array");
-    LLVMSetGlobalConstant(array, true);
-    LLVMSetInitializer(array, LLVMConstArray(LLVMInt32Type(), values, 3));
+    // LLVMValueRef value1 = LLVMConstInt(LLVMInt32Type(), 89, 1);
+    // LLVMValueRef value2 = LLVMConstInt(LLVMInt32Type(), 78, 1);
+    // LLVMValueRef value3 = LLVMConstInt(LLVMInt32Type(), 436, 1);
+    // LLVMValueRef values[] = { value1, value2, value3 };
+    // LLVMValueRef array = LLVMAddGlobal(mod, LLVMArrayType(LLVMInt32Type(), 3), "array");
+    // LLVMSetGlobalConstant(array, true);
+    // LLVMSetInitializer(array, LLVMConstArray(LLVMInt32Type(), values, 3));
 
-    LLVMBuildStore(builder, value, pointer);
+    // LLVMBuildStore(builder, value, pointer);
 
-    LLVMValueRef paramValue = LLVMBuildLoad(builder, pointer, "loadValue");
-    LLVMValueRef args[] = { format, paramValue };
+    // LLVMValueRef paramValue = LLVMBuildLoad(builder, pointer, "loadValue");
+    LLVMValueRef args[] = { format, value };
     LLVMBuildCall(builder, llvm_printf, args, 2, "printf");
 
     LLVMBuildRetVoid(builder);
