@@ -1,3 +1,17 @@
+/**
+How to run:
+
+Atomics-MacBook-Pro:llvm-tests mai$ make sum.ll
+clang++ sum.o `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native executionengine` -o sum.out
+./sum.out 0 0
+0
+llvm-dis sum.bc
+Atomics-MacBook-Pro:llvm-tests mai$ ./sum.out 2 3
+5
+Atomics-MacBook-Pro:llvm-tests mai$ 
+
+**/
+
 #include <llvm-c/Core.h>
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Target.h>

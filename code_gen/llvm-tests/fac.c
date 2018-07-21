@@ -7,6 +7,17 @@ int factorial(int n) {
     }
 }
 
+How to run:
+
+Atomics-MacBook-Pro:llvm-tests mai$ make fac.ll
+clang -g `llvm-config --cflags` -c fac.c
+clang++ fac.o `llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native executionengine` -o fac.out
+./fac.out 1
+1
+llvm-dis fac.bc
+Atomics-MacBook-Pro:llvm-tests mai$ ./fac.out 5
+120
+Atomics-MacBook-Pro:llvm-tests mai$
 */
 
 // Headers required by LLVM
@@ -42,11 +53,15 @@ int main (int argc, char const *argv[])
     LLVMValueRef n = LLVMGetParam(fac, 0);
 
     LLVMPositionBuilderAtEnd(builder, entry);
+
+    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMInt32Type(), "storeValue");
+
     LLVMValueRef If = LLVMBuildICmp(builder, LLVMIntEQ, n, LLVMConstInt(LLVMInt32Type(), 0, 0), "n == 0");
     LLVMBuildCondBr(builder, If, iftrue, iffalse);
 
     LLVMPositionBuilderAtEnd(builder, iftrue);
     LLVMValueRef res_iftrue = LLVMConstInt(LLVMInt32Type(), 1, 0);
+    LLVMBuildStore(builder, res_iftrue, pointer);
     LLVMBuildBr(builder, end);
 
     LLVMPositionBuilderAtEnd(builder, iffalse);
@@ -54,13 +69,15 @@ int main (int argc, char const *argv[])
     LLVMValueRef call_fac_args[] = {n_minus};
     LLVMValueRef call_fac = LLVMBuildCall(builder, fac, call_fac_args, 1, "fac(n - 1)");
     LLVMValueRef res_iffalse = LLVMBuildMul(builder, n, call_fac, "n * fac(n - 1)");
+    LLVMBuildStore(builder, res_iffalse, pointer);
     LLVMBuildBr(builder, end);
 
     LLVMPositionBuilderAtEnd(builder, end);
-    LLVMValueRef res = LLVMBuildPhi(builder, LLVMInt32Type(), "result");
-    LLVMValueRef phi_vals[] = {res_iftrue, res_iffalse};
-    LLVMBasicBlockRef phi_blocks[] = {iftrue, iffalse};
-    LLVMAddIncoming(res, phi_vals, phi_blocks, 2);
+    // LLVMValueRef res = LLVMBuildPhi(builder, LLVMInt32Type(), "result");
+    // LLVMValueRef phi_vals[] = {res_iftrue, res_iffalse};
+    // LLVMBasicBlockRef phi_blocks[] = {iftrue, iffalse};
+    // LLVMAddIncoming(res, phi_vals, phi_blocks, 2);
+    LLVMValueRef res = LLVMBuildLoad(builder, pointer, "loadValue");
     LLVMBuildRet(builder, res);
 
     char *error = NULL; // Used to retrieve messages from functions
