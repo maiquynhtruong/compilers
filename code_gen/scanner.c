@@ -56,12 +56,12 @@ Token *read_ident() {
           throw_error(E_IDENT_TOO_LONG, lineNo, columnNo);
           return token;
       }
-
       token->val.stringVal[i] = cur_char;
       read_char();
   }
   token->val.stringVal[i] = '\0';
 
+  to_lower_case(token->val.stringVal);
   token->type = check_reserved_word(token->val.stringVal);
   return token;
 }

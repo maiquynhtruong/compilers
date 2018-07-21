@@ -9,6 +9,7 @@
 extern SymbolTable *symbolTable;
 extern Token *current_token;
 extern LLVMValueRef llvm_printf;
+extern LLVMBuilderRef builder;
 
 LLVMValueRef check_builtin_proc(char *name) {
 	if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0 || strcmp(name, "putFloat") == 0 ||
@@ -130,5 +131,8 @@ void convert_to_int(TypeAST **type) {
 }
 
 void convert_to_bool(TypeAST **type) {
-	(*type)->typeClass = TC_BOOL;
+	if ((*type)->typeClass == TC_INT) {
+		(*type)->valueRef = LLVMBuildICmp(builder, LLVMIntNE, (*type)->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "num != 0?");
+		(*type)->typeClass = TC_BOOL;
+	}
 }

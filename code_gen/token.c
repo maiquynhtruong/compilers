@@ -8,8 +8,8 @@ struct {
     char keyword[MAX_STRING_LENGTH];
     TokenType type;
 } keywords[MAX_KEYWORD_LENGTH] = {
-    {"PROGRAM", K_PROGRAM},
-    {"IS", K_IS},
+    {"program", K_PROGRAM},
+    {"is", K_IS},
     {"global", K_GLOBAL},
     {"integer", K_INT},
     {"float", K_FLOAT},
@@ -33,20 +33,16 @@ struct {
     {"for", K_FOR}
 };
 
-// case insensitive string comparision
-int strcicmp(char const *a, char const *b){
-    for (;; a++, b++) {
-        int d = tolower(*a) - tolower(*b);
-        if (d != 0 || !*a)
-            return d;
-    }
+void to_lower_case(char *p) {
+    // https://stackoverflow.com/questions/2661766/c-convert-a-mixed-case-string-to-all-lower-case
+    for ( ; *p; ++p) *p = tolower(*p);
 }
 
 TokenType check_reserved_word(char *str) {
     int i, count = sizeof(keywords)/sizeof(keywords[0]);
 
     for (i = 0; i < count; i++) {
-        if (strcicmp(keywords[i].keyword, str) == 0) {
+        if (strcmp(keywords[i].keyword, str) == 0) {
             // printf("A keyword: %s\n", keywords[i].keyword);
             return keywords[i].type;
         }

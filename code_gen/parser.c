@@ -131,7 +131,7 @@ void parse_declaration_list() {
 
 void parse_proc_declaration(int isGlobal) {
     assert_parser("Parsing a procedure declaration\n");
-    // EntryAST *procAST = NULL;
+
     // procedure header
     match_token(K_PROCEDURE);
     match_token(T_IDENTIFIER);
@@ -209,11 +209,15 @@ TypeClass parse_type_mark() {
 void parse_param_list() {
     if (look_ahead->type == T_LPAREN) {
         match_token(T_LPAREN);
-        parse_param();
-        while (look_ahead->type == T_COMMA) {
-            match_token(T_COMMA);
+
+        if (look_ahead->type != T_RPAREN) {
             parse_param();
+            while (look_ahead->type == T_COMMA) {
+                match_token(T_COMMA);
+                parse_param();
+            }
         }
+
         match_token(T_RPAREN);
     }
 }
@@ -324,7 +328,7 @@ void parse_if_statement() {
     assert_parser("Parsing an if statement\n");
     TypeAST *condition = NULL;
     LLVMBasicBlockRef thenBlock = NULL, elseBlock = NULL, mergeBlock = NULL;
-    LLVMValueRef conditionValue = NULL, thenValue = NULL, elseValue = NULL;
+    LLVMValueRef conditionValue = NULL;
 
     match_token(K_IF);
     match_token(T_LPAREN);
@@ -356,7 +360,6 @@ void parse_if_statement() {
     match_token(K_END);
     match_token(K_IF);
     LLVMPositionBuilderAtEnd(builder, mergeBlock);
-    LLVMValueRef res = LLVMBuildPhi(builder, LLVMVoidType(), "result");
 
     assert_parser("Done parsing an if statement\n");
 }
