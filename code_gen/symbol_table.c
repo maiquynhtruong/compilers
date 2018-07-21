@@ -128,17 +128,17 @@ void init_symbol_table() {
 
 	// built-in functions e.g. getInteger(integer val out)
 
-	getBool = create_builtin_function("getBool", TC_BOOL, PT_OUT); // getBool(bool val out)
-	getInteger = create_builtin_function("getInteger", TC_INT, PT_OUT); // getInteger(integer val out)
-	getFloat = create_builtin_function("getFloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
-	getString = create_builtin_function("getString", TC_STRING, PT_OUT); // getString(string val out)
-	getChar = create_builtin_function("getChar", TC_CHAR, PT_OUT); // getChar(char val out)
+	getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
+	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
+	getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
+	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
+	getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
-	putBool = create_builtin_function("putBool", TC_BOOL, PT_IN); // putBool(bool val in)
-	putInteger = create_builtin_function("putInteger", TC_INT, PT_IN); // putInteger(integer val in)
-	putFloat = create_builtin_function("putFloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	putString = create_builtin_function("putString", TC_STRING, PT_IN); // putString(string val in)
-	putChar = create_builtin_function("putChar", TC_CHAR, PT_IN); // putChar(char val in)
+	putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
+	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
+	putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
+	putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
+	putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }

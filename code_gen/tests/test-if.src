@@ -6,8 +6,9 @@ PROGRAM test_if IS
 	procedure if_proc()
 	    integer declaration;
 	    begin
-	        if(true) then jake := jake + 1;
-	        else zach := zach + 1; //RYAN[2];
+	        if(true) then putBool(true);//jake := jake + 1;
+	        //else zach := zach + 1; //RYAN[2];
+            else putBool(false);
 	    end if;
 	end procedure;
 /*

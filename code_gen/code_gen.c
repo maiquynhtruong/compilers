@@ -62,13 +62,13 @@ void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
 */
 void codegen_builtin_proc_call(char *name, LLVMValueRef value) {
     const char *format_str;
-    if (strcmp(name, "putBool") == 0 || strcmp(name, "putInteger") == 0) {
+    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0) {
         format_str = "%d";
-    } else if (strcmp(name, "putFloat") == 0) {
+    } else if (strcmp(name, "putfloat") == 0) {
         format_str = "%f";
-    } else if (strcmp(name, "putString") == 0) {
+    } else if (strcmp(name, "putstring") == 0) {
         format_str = "%s";
-    } else if (strcmp(name, "putChar") == 0) {
+    } else if (strcmp(name, "putchar") == 0) {
         format_str = "%c";
     } else {
         format_str = "";
