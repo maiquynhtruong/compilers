@@ -117,9 +117,6 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	return NULL;
 }
 
-bool isGlobalEntry(EntryAST *entry) {
-	return entry == symbolTable->root;
-}
 void init_symbol_table() {
 	assert_symbol_table("Initialize a symbol table"); assert_symbol_table("\n");
 
