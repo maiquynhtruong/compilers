@@ -17,7 +17,4 @@ void check_basic_type(TypeClass type);
 void check_builtin_type(TypeClass type);
 void check_type_equality(TypeClass type1, TypeClass type2);
 
-void convert_to_int(TypeAST **type);
-void convert_to_bool(TypeAST **type);
-
 #endif

@@ -1,6 +1,6 @@
 program test_program is
     integer a;
 begin
-    a := 3 * 4;
+    a := (3 * 4) < (3 * 5);
     putInteger(a);
 end program .

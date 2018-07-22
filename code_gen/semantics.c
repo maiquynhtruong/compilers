@@ -126,15 +126,3 @@ void check_type_equality(TypeClass type1, TypeClass type2) {
 	if (type1 != type2)
 		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
-
-void convert_to_int(TypeAST **type) {
-	(*type)->typeClass = TC_INT;
-}
-
-void convert_to_bool(TypeAST **type) {
-	// if ((*type)->typeClass == TC_INT) {
-	printf("Current type is %s, value is %s\n", LLVMPrintTypeToString((*type)->typeRef), LLVMPrintValueToString((*type)->valueRef));
-	(*type)->valueRef = LLVMBuildICmp(builder, LLVMIntNE, (*type)->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
-	(*type)->typeClass = TC_BOOL;
-	// }
-}

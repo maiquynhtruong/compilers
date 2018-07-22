@@ -318,9 +318,25 @@ void parse_assignment_statement() {
 
     match_token(T_ASSIGNMENT);
     expType = parse_expression();
+
+    // casting
+    if (destType->typeClass == TC_INT) {
+        expType->typeClass = TC_INT; // cast bool to int
+        expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMInt32Type(), "to-int");
+    }
+    if (destType->typeClass == TC_BOOL) {
+        expType->typeClass = TC_BOOL; // cast int to bool
+        expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMInt8Type(), "to-bool");
+    }
+    if (destType->typeClass == TC_FLOAT) {
+        expType->typeClass = TC_FLOAT;
+        expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMFloatType(), "to-float");
+    }
+
     check_type_equality(destType->typeClass, expType->typeClass);
 
-    printf("Dest value is: %s, Exp type is: %s\n", LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(expType->valueRef));
+    printf("Dest type is: %s, Exp type is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintTypeToString(expType->typeRef));
+    printf("Dest value is: %s, Exp value is: %s\n", LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(expType->valueRef));
     LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -343,7 +359,9 @@ void parse_if_statement() {
     mergeBlock = LLVMAppendBasicBlock(scope, "merge");
 
     condition = parse_expression();
-    convert_to_bool(&condition);
+    // cast expression to bool for evaluation
+    if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
+    condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
     conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
@@ -390,7 +408,10 @@ void parse_loop_statement() {
     match_token(T_SEMI_COLON);
 
     expType = parse_expression();
-    convert_to_bool(&expType);
+
+    // cast expression to bool for evaluation
+    if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
+    expType->valueRef = LLVMBuildICmp(builder, LLVMIntNE, expType->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
     conditionValue = expType->valueRef;
 
     match_token(T_RPAREN);
@@ -465,6 +486,7 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
 
 LLVMValueRef parse_argument(EntryAST *param) {
     TypeAST *argType = parse_expression();
+    assert_parser("Checking argument type equality\n");
     check_type_equality(param->typeAST->typeClass, argType->typeClass);
     return argType->valueRef;
 }
@@ -480,53 +502,58 @@ TypeAST *parse_expression() {
     TypeAST *expType = parse_arith_op();
     expType = parse_expression_arith_op(expType);
     if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not");
-    
+
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); print_type(expType->typeClass); assert_parser("\n");
+    printf("Code gen exp: %s\n", LLVMPrintValueToString(expType->valueRef));
 
     return expType;
 }
 
 TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
     TypeAST *arithOpType2 = NULL;
-    TypeAST *exprType = NULL;
-    LLVMValueRef valueRef = NULL;
+    TypeAST *expType = NULL;
+    LLVMValueRef valueRef = arithOpType1->valueRef;
 
     switch(look_ahead->type) {
         case T_AND:
             match_token(T_AND);
             check_int_type(arithOpType1->typeClass);
+
             arithOpType2 = parse_arith_op();
             check_int_type(arithOpType2->typeClass);
 
             valueRef = LLVMBuildAnd(builder, arithOpType1->valueRef, arithOpType2->valueRef, "and");
+            printf("Code gen and: %s\n", LLVMPrintValueToString(valueRef));
 
-            exprType = parse_expression_arith_op(arithOpType1);
+            expType = parse_expression_arith_op(arithOpType1);
             break;
         case T_OR:
             match_token(T_OR);
             check_int_type(arithOpType1->typeClass);
+
             arithOpType2 = parse_arith_op();
             check_int_type(arithOpType2->typeClass);
 
             valueRef = LLVMBuildOr(builder, arithOpType1->valueRef, arithOpType2->valueRef, "or");
-            // convert_to_bool(&arithOpType1);
+            printf("Code gen or: %s\n", LLVMPrintValueToString(valueRef));
 
-            exprType = parse_expression_arith_op(arithOpType1);
+            expType = parse_expression_arith_op(arithOpType1);
             break;
         // FOLLOW set
         case T_COMMA: // argument list
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
-            exprType = arithOpType1;
+            expType = arithOpType1;
             break;
         default: throw_error(E_INVALID_EXPRESSION, look_ahead->lineNo, look_ahead->columnNo);
     }
 
     expType->typeRef = arithOpType1->typeRef;
     expType->valueRef = valueRef;
-    return exprType;
+
+    return expType;
 }
 
 TypeAST *parse_arith_op() {
@@ -542,28 +569,30 @@ TypeAST *parse_arith_op() {
 TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
     TypeAST *relationType2 = NULL;
     TypeAST *arithOpType = NULL;
-    LLVMValueRef valueRef = NULL;
+    LLVMValueRef valueRef = relationType1->valueRef;
 
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
             check_int_float_type(relationType1->typeClass);
+
             relationType2 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildAdd(builder, relationType1->valueRef, relationType2->valueRef, "add");
-            // convert_to_bool(&relationType1);
+            printf("Code gen add: %s\n", LLVMPrintValueToString(valueRef));
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
         case T_MINUS:
             match_token(T_MINUS);
             check_int_float_type(relationType1->typeClass);
+
             relationType1 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
-            // convert_to_bool(&relationType1);
+            printf("Code gen sub: %s\n", LLVMPrintValueToString(valueRef));
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -595,14 +624,17 @@ TypeAST *parse_relation() {
 TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
-    LLVMValueRef valueRef = NULL;
+    LLVMValueRef valueRef = termType1->valueRef;
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
         case T_LT:
             match_token(T_LT);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSLT, termType1->valueRef, termType2->valueRef, "lt");
@@ -611,8 +643,9 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         case T_LTEQ:
             match_token(T_LTEQ);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSLE, termType1->valueRef, termType2->valueRef, "lteq");
@@ -621,8 +654,9 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         case T_GT:
             match_token(T_GT);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSGT, termType1->valueRef, termType2->valueRef, "gt");
@@ -631,8 +665,9 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         case T_GTEQ:
             match_token(T_GTEQ);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSGE, termType1->valueRef, termType2->valueRef, "gteq");
@@ -641,8 +676,9 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         case T_EQ:
             match_token(T_EQ);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntEQ, termType1->valueRef, termType2->valueRef, "eq");
@@ -651,8 +687,9 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         case T_NEQ:
             match_token(T_NEQ);
-            check_int_float_type(termType1->typeClass);
+            check_basic_type(termType1->typeClass);
             termType2 = parse_term();
+            check_basic_type(termType2->typeClass);
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntNE, termType1->valueRef, termType2->valueRef, "neq");
@@ -670,10 +707,11 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
 
-    termType1->typeRef = termType1->typeRef;
-    termType1->valueRef = valueRef;
+    relationType->typeRef = termType1->typeRef;
+    relationType->valueRef = valueRef;
+    printf("Code gen relation: %s\n", LLVMPrintValueToString(relationType->valueRef));
 
-    return termType1;
+    return relationType;
 }
 
 TypeAST *parse_term() {
@@ -688,15 +726,14 @@ TypeAST *parse_term() {
 TypeAST *parse_term_factor(TypeAST *factorType1) {
     TypeAST *termType = NULL;
     TypeAST *factorType2 = NULL;
-    LLVMValueRef valueRef = NULL;
+    LLVMValueRef valueRef = factorType1->valueRef;
+
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
-            convert_to_int(&factorType1);
             check_int_float_type(factorType1->typeClass);
 
             factorType2 = parse_factor();
-            convert_to_int(&factorType2);
             check_int_float_type(factorType2->typeClass);
 
             valueRef = LLVMBuildMul(builder, factorType1->valueRef, factorType2->valueRef, "mul");
@@ -706,11 +743,9 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             break;
         case T_DIVIDE:
             match_token(T_DIVIDE);
-            convert_to_int(&factorType1);
             check_int_float_type(factorType1->typeClass);
 
             factorType2 = parse_factor();
-            convert_to_int(&factorType2);
             check_int_float_type(factorType2->typeClass);
 
             valueRef = LLVMBuildSDiv(builder, factorType1->valueRef, factorType2->valueRef, "div");
@@ -765,18 +800,19 @@ TypeAST *parse_factor() {
             break;
         case K_TRUE:
             match_token(K_TRUE);
-            value = LLVMConstInt(LLVMInt32Type(), 1, 1); // a bool is an 8 byte integer, but I see no point keeping the difference
             factorType = TC_BOOL;
+            value = LLVMConstInt(LLVMInt32Type(), 1, 1); // a bool is an 8 byte integer, but I see no point keeping the difference
             break;
         case K_FALSE:
             match_token(K_FALSE);
-            value = LLVMConstInt(LLVMInt32Type(), 0, 1);
             factorType = TC_BOOL;
+            value = LLVMConstInt(LLVMInt32Type(), 0, 1);
             break;
         case T_LPAREN: // ( <expression> )
             match_token(T_LPAREN);
             typeAST = parse_expression();
             factorType = typeAST->typeClass;
+            value = typeAST->valueRef;
             match_token(T_RPAREN);
             break;
         case T_MINUS: // [-] <name> | [-] <number>
