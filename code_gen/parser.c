@@ -29,12 +29,10 @@ extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
 
+    print_token(look_ahead);
     if (look_ahead->type != type) {
-        print_token(look_ahead);
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
-        print_token(look_ahead);
-
         Token *temp = current_token;
         current_token = look_ahead;
         look_ahead = next_valid_token();
@@ -319,10 +317,10 @@ void parse_assignment_statement() {
     destType = parse_destination();
 
     match_token(T_ASSIGNMENT);
-
     expType = parse_expression();
     check_type_equality(destType->typeClass, expType->typeClass);
 
+    printf("Dest value is: %s, Exp type is: %s\n", LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(expType->valueRef));
     LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -337,7 +335,8 @@ void parse_if_statement() {
     match_token(K_IF);
     match_token(T_LPAREN);
 
-    LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
+    // LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
+    LLVMValueRef scope = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
 
     thenBlock = LLVMAppendBasicBlock(scope, "then");
     elseBlock = LLVMAppendBasicBlock(scope, "else");
@@ -347,9 +346,9 @@ void parse_if_statement() {
     convert_to_bool(&condition);
     conditionValue = condition->valueRef;
 
+    match_token(T_RPAREN);
     LLVMBuildCondBr(builder, conditionValue, thenBlock, elseBlock);
 
-    match_token(T_RPAREN);
     match_token(K_THEN);
     LLVMPositionBuilderAtEnd(builder, thenBlock);
     parse_statement_list();
@@ -372,22 +371,42 @@ void parse_if_statement() {
 void parse_loop_statement() {
     assert_parser("Parsing a for loop\n");
     TypeAST *expType = NULL;
+    LLVMBasicBlockRef startBlock = NULL, loopBlock = NULL, endBlock = NULL;
+    LLVMValueRef conditionValue = NULL;
 
     match_token(K_FOR);
     match_token(T_LPAREN);
+    match_token(T_IDENTIFIER);
+
+    LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
+    startBlock = LLVMAppendBasicBlock(scope, "start_loop");
+    loopBlock = LLVMAppendBasicBlock(scope, "loop");
+    endBlock = LLVMAppendBasicBlock(scope, "end_loop");
+
+    LLVMBuildBr(builder, startBlock);
+    LLVMPositionBuilderAtEnd(builder, startBlock);
+
     parse_assignment_statement();
     match_token(T_SEMI_COLON);
 
     expType = parse_expression();
     convert_to_bool(&expType);
+    conditionValue = expType->valueRef;
 
     match_token(T_RPAREN);
+    LLVMBuildCondBr(builder, conditionValue, loopBlock, endBlock);
+
+    LLVMPositionBuilderAtEnd(builder, loopBlock);
     if (look_ahead->type != K_END) {
         parse_statement_list();
+        LLVMBuildBr(builder, startBlock);
     }
 
     match_token(K_END);
     match_token(K_FOR);
+
+    LLVMPositionBuilderAtEnd(builder, endBlock);
+
     assert_parser("Done parsing a for loop\n");
 }
 
@@ -525,7 +544,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
 
             // generate arithOp
             // relationType1 = arithOp result
-            convert_to_bool(&relationType1);
+            // convert_to_bool(&relationType1);
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -537,7 +556,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
 
             // generate arithOp
             // relationType1 = arithOp result
-            convert_to_bool(&relationType1);
+            // convert_to_bool(&relationType1);
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -764,8 +783,6 @@ TypeAST *parse_factor() {
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
-            // if (isGlobalEntry(factorAST)) value = LLVMGetNamedGlobal(module, factorAST->name);
-            // else
             value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
             break;
         // FOLLOW set
@@ -781,5 +798,7 @@ TypeAST *parse_factor() {
 
     typeAST = create_type(factorType);
     typeAST->valueRef = value;
+
+    printf("Factor type: %s, value: %s\n", LLVMPrintTypeToString(typeAST->typeRef), LLVMPrintValueToString(typeAST->valueRef));
     return typeAST;
 }

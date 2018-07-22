@@ -36,7 +36,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PARAMTER:
-			assert_symbol_table(symbolTable->currentScope->name);assert_symbol_table("\n");
 			entry->paramAST->scope = symbolTable->currentScope;
 			parent = symbolTable->currentScope->parent;
 			list = &(parent->procAST->params);

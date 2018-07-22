@@ -1,7 +1,7 @@
 PROGRAM test_if IS
-	 integer JAKE;
+	global integer JAKE;
 	//global integer ryan[3];
-	integer zach;
+	global integer zach;
 /*
 	procedure if_proc()
 	    integer declaration;
@@ -23,8 +23,4 @@ PROGRAM test_if IS
 	begin // where does it "begin" belong to??
 	    //if_proc();
 	    //for_proc();
-
-        if(true) then jake := 1;
-        else zach := 3;
-        end if;
 	end program.
