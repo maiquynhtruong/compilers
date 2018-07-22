@@ -410,8 +410,10 @@ void parse_loop_statement() {
     expType = parse_expression();
 
     // cast expression to bool for evaluation
-    if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
-    expType->valueRef = LLVMBuildICmp(builder, LLVMIntNE, expType->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
+    if (LLVMIsConstant(expType->valueRef)) {
+        if (expType->typeClass == TC_INT) expType->typeClass = TC_BOOL;
+        expType->valueRef = LLVMBuildICmp(builder, LLVMIntNE, expType->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
+    }
     conditionValue = expType->valueRef;
 
     match_token(T_RPAREN);
