@@ -471,18 +471,26 @@ LLVMValueRef parse_argument(EntryAST *param) {
 
 TypeAST *parse_expression() {
     assert_parser("Parsing an expression\n");
-    if (look_ahead->type == K_NOT) match_token(K_NOT);
+    bool invertNot = false;
+    if (look_ahead->type == K_NOT) {
+        match_token(K_NOT);
+        invertNot = true;
+    }
 
     TypeAST *expType = parse_arith_op();
     expType = parse_expression_arith_op(expType);
+    if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not");
+    
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); print_type(expType->typeClass); assert_parser("\n");
+
     return expType;
 }
 
 TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
     TypeAST *arithOpType2 = NULL;
     TypeAST *exprType = NULL;
+    LLVMValueRef valueRef = NULL;
 
     switch(look_ahead->type) {
         case T_AND:
@@ -491,9 +499,7 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
             arithOpType2 = parse_arith_op();
             check_int_type(arithOpType2->typeClass);
 
-            // generate expression
-            // arithOpType1 = arithOp result
-            // convert_to_bool(&arithOpType1);
+            valueRef = LLVMBuildAnd(builder, arithOpType1->valueRef, arithOpType2->valueRef, "and");
 
             exprType = parse_expression_arith_op(arithOpType1);
             break;
@@ -503,8 +509,7 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
             arithOpType2 = parse_arith_op();
             check_int_type(arithOpType2->typeClass);
 
-            // generate expression
-            // arithOpType1 = arithOp result
+            valueRef = LLVMBuildOr(builder, arithOpType1->valueRef, arithOpType2->valueRef, "or");
             // convert_to_bool(&arithOpType1);
 
             exprType = parse_expression_arith_op(arithOpType1);
@@ -518,6 +523,9 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
             break;
         default: throw_error(E_INVALID_EXPRESSION, look_ahead->lineNo, look_ahead->columnNo);
     }
+
+    expType->typeRef = arithOpType1->typeRef;
+    expType->valueRef = valueRef;
     return exprType;
 }
 
@@ -532,9 +540,10 @@ TypeAST *parse_arith_op() {
 }
 
 TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
-    // EntryAST *relationAST = NULL;
     TypeAST *relationType2 = NULL;
     TypeAST *arithOpType = NULL;
+    LLVMValueRef valueRef = NULL;
+
     switch(look_ahead->type) {
         case T_PLUS:
             match_token(T_PLUS);
@@ -542,8 +551,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             relationType2 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
-            // generate arithOp
-            // relationType1 = arithOp result
+            valueRef = LLVMBuildAdd(builder, relationType1->valueRef, relationType2->valueRef, "add");
             // convert_to_bool(&relationType1);
 
             arithOpType = parse_arith_op_relation(relationType1);
@@ -554,8 +562,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             relationType1 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
-            // generate arithOp
-            // relationType1 = arithOp result
+            valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
             // convert_to_bool(&relationType1);
 
             arithOpType = parse_arith_op_relation(relationType1);
@@ -569,6 +576,9 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             break;
         default: throw_error(E_INVALID_ARITH_OPERATOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+
+    arithOpType->typeRef = relationType1->typeRef;
+    arithOpType->valueRef = valueRef;
     return arithOpType;
 }
 
@@ -585,6 +595,7 @@ TypeAST *parse_relation() {
 TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
+    LLVMValueRef valueRef = NULL;
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
@@ -594,9 +605,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntSLT, termType1->valueRef, termType2->valueRef, "lt");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -606,9 +615,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntSLE, termType1->valueRef, termType2->valueRef, "lteq");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -618,9 +625,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntSGT, termType1->valueRef, termType2->valueRef, "gt");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -630,9 +635,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntSGE, termType1->valueRef, termType2->valueRef, "gteq");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -642,9 +645,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntEQ, termType1->valueRef, termType2->valueRef, "eq");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -654,9 +655,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
-            // generate binOp
-            // termType1 = binOp result
-            convert_to_bool(&termType1);
+            valueRef = LLVMBuildICmp(builder, LLVMIntNE, termType1->valueRef, termType2->valueRef, "neq");
 
             relationType = parse_relation_term(termType1);
             break;
@@ -670,6 +669,10 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             break;
         default: throw_error(E_INVALID_RELATION, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+
+    termType1->typeRef = termType1->typeRef;
+    termType1->valueRef = valueRef;
+
     return termType1;
 }
 
@@ -685,6 +688,7 @@ TypeAST *parse_term() {
 TypeAST *parse_term_factor(TypeAST *factorType1) {
     TypeAST *termType = NULL;
     TypeAST *factorType2 = NULL;
+    LLVMValueRef valueRef = NULL;
     switch(look_ahead->type) {
         case T_MULTIPLY:
             match_token(T_MULTIPLY);
@@ -695,7 +699,8 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             convert_to_int(&factorType2);
             check_int_float_type(factorType2->typeClass);
 
-            // generate multiply result
+            valueRef = LLVMBuildMul(builder, factorType1->valueRef, factorType2->valueRef, "mul");
+            printf("Code gen mul: %s\n", LLVMPrintValueToString(valueRef));
 
             termType = parse_term_factor(factorType1);
             break;
@@ -708,7 +713,8 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             convert_to_int(&factorType2);
             check_int_float_type(factorType2->typeClass);
 
-            // generate divide result
+            valueRef = LLVMBuildSDiv(builder, factorType1->valueRef, factorType2->valueRef, "div");
+            printf("Code gen div: %s\n", LLVMPrintValueToString(valueRef));
 
             termType = parse_term_factor(factorType1);
             break;
@@ -724,6 +730,9 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             break;
         default: throw_error(E_INVALID_TERM, look_ahead->lineNo, look_ahead->columnNo); break;
     }
+
+    termType->typeRef = factorType1->typeRef;
+    termType->valueRef = valueRef;
     return termType;
 }
 
@@ -794,7 +803,6 @@ TypeAST *parse_factor() {
         default: throw_error(E_INVALID_FACTOR, look_ahead->lineNo, look_ahead->columnNo); break;
     }
     assert_parser("Done parsing a factor\n");
-    assert_parser("Factor type is: "); print_type(factorType); assert_parser("\n");
 
     typeAST = create_type(factorType);
     typeAST->valueRef = value;
