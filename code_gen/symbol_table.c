@@ -36,10 +36,9 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PARAMTER:
-			entry->paramAST->scope = symbolTable->currentScope;
+			entry->varAST->scope = symbolTable->currentScope;
 			parent = symbolTable->currentScope->parent;
 			list = &(parent->procAST->params);
-			parent->procAST->paramCnt++;
 			break;
 		case ET_PROCEDURE:
 			entry->procAST->scope->outerScope = symbolTable->currentScope;
@@ -197,14 +196,11 @@ void free_scope(Scope *scope) {
 void free_entry(EntryAST *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
-			case ET_VARIABLE:
+			case ET_VARIABLE: case ET_PARAMTER:
 				if (entry->varAST != NULL) free(entry->varAST);
 				break;
 			case ET_PROCEDURE:
 				if (entry->procAST != NULL) free(entry->procAST);
-				break;
-			case ET_PARAMTER:
-				if (entry->paramAST != NULL) free(entry->paramAST);
 				break;
 			case ET_PROGRAM:
 				if (entry->progAST != NULL) free(entry->progAST);
@@ -301,8 +297,9 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	declare_entry(func, 1);
 
 	enter_scope(func->procAST->scope);
-		EntryAST *paramEntry = create_param("val", paramType);
+		EntryAST *paramEntry = create_param("val");
 		paramEntry->typeAST = create_type(varType);
+		paramEntry->typeAST->paramType = paramType;
 		declare_entry(paramEntry, 0);
 	exit_scope();
 
@@ -338,15 +335,11 @@ EntryAST *create_variable(const char *name) {
 	return varEntry;
 }
 
-EntryAST *create_param(const char *name, ParamType paramType) {
+EntryAST *create_param(const char *name) {
 	assert_symbol_table("Creating a param entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
-	EntryAST *paramEntry = (EntryAST *) malloc(sizeof(EntryAST));
-	strcpy(paramEntry->name, name);
+	EntryAST *paramEntry = create_variable(name);
 	paramEntry->entryType = ET_PARAMTER;
-	ParamAST *param = (ParamAST *) malloc(sizeof(ParamAST));
-	param->paramType = paramType;
-	paramEntry->paramAST = param;
 	return paramEntry;
 }
 
@@ -358,7 +351,7 @@ EntryAST *create_procedure(const char *name) {
 	procEntry->entryType = ET_PROCEDURE;
 	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(ProcedureAST));
 	proc->params = NULL;
-	proc->paramCnt = 0;
+	proc->paramc = 0;
 	proc->scope = create_scope(procEntry);
 	procEntry->procAST = proc;
 	procEntry->typeAST = create_type(TC_VOID);

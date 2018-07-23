@@ -6,4 +6,5 @@ program test_program is
         y := b;
     end procedure;
 begin
+    f(1, 2);
 end program .

@@ -51,14 +51,14 @@ It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
 	struct Scope *scope;
-	TypeClass varType;
 	unsigned int size;
 } VariableAST;
 
 typedef struct ProcedureAST {
 	struct Scope *scope;
 	struct EntryNodeAST *params;
-	unsigned int paramCnt;
+	LLVMTypeRef *paramTypes;
+	unsigned int paramc;
 	struct EntryAST *body;
 } ProcedureAST;
 
@@ -66,17 +66,11 @@ typedef struct ProgramAST {
 	struct Scope *scope;
 } ProgramAST;
 
-typedef struct ParamAST {
-	struct Scope *scope;
-    ParamType paramType;
-    struct EntryAST *var;
-	TypeClass type;
-} ParamAST;
-
 typedef struct TypeAST {
 	TypeClass typeClass;
 	LLVMTypeRef typeRef;
 	LLVMValueRef valueRef;
+	ParamType paramType;
 } TypeAST;
 
 typedef struct EntryAST {
@@ -88,7 +82,6 @@ typedef struct EntryAST {
 		FactorAST *factorAST;
 		VariableAST *varAST;
 		ProcedureAST *procAST;
-		ParamAST *paramAST;
 	}; // value
 } EntryAST;
 
@@ -143,6 +136,6 @@ TypeAST *create_type(TypeClass typeClass);
 EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType);
 EntryAST *create_program(const char *name);
 EntryAST *create_variable(const char *name);
-EntryAST *create_param(const char *name, ParamType paramType);
+EntryAST *create_param(const char *name);
 EntryAST *create_procedure(const char *name);
 #endif
