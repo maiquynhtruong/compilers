@@ -1,5 +1,5 @@
 program test_program is
-    integer d;
+    integer random_var;
     //procedure f (integer t in, integer u out, integer v in, integer w out, integer x in, integer y out, integer z in )
     procedure f (integer arg1 in, integer arg2 out)
         integer var1;

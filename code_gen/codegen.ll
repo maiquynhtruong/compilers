@@ -6,12 +6,19 @@ declare i32 @printf(...)
 
 define void @main() {
 main_entry:
-  %d = alloca i32
+  %random_var = alloca i32
   call void @f(i32 1, i32 3)
   ret void
 }
 
+define void @putinteger(i32) {
+putinteger:
+  %val = alloca i32
+  ret void
+}
+
 define void @f(i32, i32) {
+f:
   %arg1 = alloca i32
   %arg2 = alloca i32
   %var1 = alloca i32

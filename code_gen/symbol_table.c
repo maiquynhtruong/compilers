@@ -20,6 +20,7 @@ EntryAST *putChar;
 extern LLVMValueRef llvm_printf;
 extern LLVMBuilderRef builder;
 extern LLVMModuleRef module;
+extern LLVMValueRef mainFunc;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table("Declaring an entry: ");
@@ -28,7 +29,7 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	print_entry_type_class(entry);
 	assert_symbol_table("\n");
 	printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
-	EntryNodeAST **list;
+	EntryNodeAST **list = NULL;
 
 	switch (entry->entryType) {
 		case ET_VARIABLE:
@@ -43,9 +44,9 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PROCEDURE:
-			// entry->procAST->scope->outerScope = symbolTable->currentScope;
-			list = &(symbolTable->currentScope->entryList);
-			// list = &(symbolTable->globalEntryList);
+			entry->procAST->scope->outerScope = symbolTable->currentScope;
+			// list = &(symbolTable->currentScope->entryList);
+			list = &(symbolTable->globalEntryList);
 			break;
 		default: break;
 	}
@@ -128,8 +129,6 @@ void init_symbol_table() {
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
 
-	// enter_scope(symbolTable->currentScope);
-
 	// built-in functions e.g. getInteger(integer val out)
 
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
@@ -139,7 +138,7 @@ void init_symbol_table() {
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
-	// putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
+	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
 	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
 	// putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
 	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
@@ -294,29 +293,30 @@ TypeAST *create_type(TypeClass typeClass) {
 	return type;
 }
 
-EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType) {
+EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramAttr) {
 	assert_symbol_table("Create builtin function: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
-	EntryAST *func = create_procedure(name);
-	declare_entry(func, 1);
+	EntryAST *proc = create_procedure(name);
+	declare_entry(proc, 1);
 
-	enter_scope(func->procAST->scope);
-		// LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), proc->procAST->paramTypes, proc->procAST->paramc, false);
-		// LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
-		// LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, "");
-		// LLVMPositionBuilderAtEnd(builder, entry);
-
+	enter_scope(proc->procAST->scope);
 		EntryAST *paramEntry = create_param("val");
 		paramEntry->typeAST = create_type(varType);
-		paramEntry->typeAST->paramType = paramType;
+		paramEntry->typeAST->paramType = paramAttr;
 		declare_entry(paramEntry, 0);
+
+		LLVMTypeRef params[] = { paramEntry->typeAST->typeRef };
+		LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), params, 1, false);
+		LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
+		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
+		LLVMPositionBuilderAtEnd(builder, procEntry);
+		paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
+		LLVMBuildRetVoid(builder);
+		LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 	exit_scope();
 
-	LLVMTypeRef params[] = { paramEntry->typeAST->typeRef };
-	LLVMTypeRef type = LLVMFunctionType(LLVMVoidType(), params, 1, false);
-    LLVMAddFunction(module, name, type);
-	return func;
+	return proc;
 }
 
 EntryAST *create_program(const char *name) {

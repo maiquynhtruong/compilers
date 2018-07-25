@@ -24,7 +24,8 @@ extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
 extern LLVMExecutionEngineRef engine;
 extern LLVMValueRef llvm_printf;
-LLVMBasicBlockRef programEntry;
+LLVMValueRef mainFunc;
+
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 
@@ -49,9 +50,16 @@ int parse(char *file_name) {
     current_token = NULL;
     look_ahead = next_token();
 
+    LLVMTypeRef mainType = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
+    mainFunc = LLVMAddFunction(module, "main", mainType);
+    LLVMBasicBlockRef mainEntry = LLVMAppendBasicBlock(mainFunc, "main_entry");
+    LLVMPositionBuilderAtEnd(builder, mainEntry);
+
     init_symbol_table();
 
     parse_program();
+
+    printf("After parsing program: %s\n", LLVMPrintValueToString(mainFunc));
 
     clear_symbol_table();
 
@@ -79,13 +87,8 @@ void parse_program() {
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
 
-    program = create_program("main"); // top level function has to be "main"
-    // program = create_program(current_token->val.stringVal);
-
-    LLVMTypeRef programType = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
-    LLVMValueRef programValue = LLVMAddFunction(module, program->name, programType);
-    programEntry = LLVMAppendBasicBlock(programValue, strcat(program->name, "_entry"));
-    LLVMPositionBuilderAtEnd(builder, programEntry);
+    // program = create_program("main"); // top level function has to be "main"
+    program = create_program(current_token->val.stringVal);
 
     enter_scope(program->progAST->scope);
 
@@ -99,8 +102,6 @@ void parse_program() {
 
     exit_scope();
     LLVMBuildRetVoid(builder);
-
-    printf("After parsing program: %s\n", LLVMPrintValueToString(programValue));
 
     assert_parser("Done parsing the program\n");
 }
@@ -127,11 +128,9 @@ void parse_declaration_list() {
             parse_var_declaration(isGlobal);
             match_token(T_SEMI_COLON);
             parse_declaration_list();
-            // node = node->next;
             break;
     }
     assert_parser("Done parsing declaration list\n");
-    // return node;
 }
 
 void parse_proc_declaration(int isGlobal) {
@@ -153,7 +152,7 @@ void parse_proc_declaration(int isGlobal) {
 
         LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), proc->procAST->paramTypes, proc->procAST->paramc, false);
         LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
-        LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, "");
+        LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, proc->name);
         LLVMPositionBuilderAtEnd(builder, entry);
 
         EntryNodeAST *node = proc->procAST->params;
@@ -173,7 +172,7 @@ void parse_proc_declaration(int isGlobal) {
     printf("After parsing procedure: %s\n", LLVMPrintValueToString(procValue));
 
     // LLVMValueRef parent = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder)); // shoudl get the global scope
-    LLVMPositionBuilderAtEnd(builder, programEntry);
+    LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 
     assert_parser("Done parsing a procedure declaration\n");
 }
