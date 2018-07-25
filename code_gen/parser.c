@@ -24,6 +24,7 @@ extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
 extern LLVMExecutionEngineRef engine;
 extern LLVMValueRef llvm_printf;
+LLVMBasicBlockRef programEntry;
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 
@@ -67,8 +68,6 @@ void parse_body_block() {
 
     if (look_ahead->type != K_END) parse_statement_list();
     match_token(K_END);
-
-    LLVMBuildRetVoid(builder);
 }
 
 void parse_program() {
@@ -80,23 +79,26 @@ void parse_program() {
     match_token(K_PROGRAM);
     match_token(T_IDENTIFIER);
 
-    // program = create_program(current_token->val.stringVal);
     program = create_program("main"); // top level function has to be "main"
-    enter_scope(program->progAST->scope);
-
-    match_token(K_IS);
+    // program = create_program(current_token->val.stringVal);
 
     LLVMTypeRef programType = LLVMFunctionType(LLVMVoidType(), NULL, 0, false);
     LLVMValueRef programValue = LLVMAddFunction(module, program->name, programType);
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(programValue, strcat(program->name, "_entry"));
-    LLVMPositionBuilderAtEnd(builder, entry);
+    programEntry = LLVMAppendBasicBlock(programValue, strcat(program->name, "_entry"));
+    LLVMPositionBuilderAtEnd(builder, programEntry);
 
-    parse_body_block(); // program body
+    enter_scope(program->progAST->scope);
 
-    match_token(K_PROGRAM);
+        match_token(K_IS);
 
-    if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
+        parse_body_block(); // program body
+
+        match_token(K_PROGRAM);
+
+        if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
+
     exit_scope();
+    LLVMBuildRetVoid(builder);
 
     printf("After parsing program: %s\n", LLVMPrintValueToString(programValue));
 
@@ -140,20 +142,38 @@ void parse_proc_declaration(int isGlobal) {
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
-    EntryAST *entry = create_procedure(current_token->val.stringVal);
-    declare_entry(entry, isGlobal);
-    enter_scope(entry->procAST->scope);
+    EntryAST *proc = create_procedure(current_token->val.stringVal);
+    declare_entry(proc, isGlobal);
+    enter_scope(proc->procAST->scope);
 
         match_token(T_LPAREN);
-        if (look_ahead->type != T_RPAREN) parse_param_list(&entry);
+
+        if (look_ahead->type != T_RPAREN) parse_param_list(&proc);
         match_token(T_RPAREN);
+
+        LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), proc->procAST->paramTypes, proc->procAST->paramc, false);
+        LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
+        LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, "");
+        LLVMPositionBuilderAtEnd(builder, entry);
+
+        EntryNodeAST *node = proc->procAST->params;
+        while (node != NULL) {
+            EntryAST *param = node->entryAST;
+            param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, param->name);
+            node = node->next;
+        }
 
         parse_body_block(); // procedure body
         match_token(K_PROCEDURE);
-    exit_scope();
+        LLVMBuildRetVoid(builder);
 
-    LLVMTypeRef type = LLVMFunctionType(LLVMVoidType(), entry->procAST->paramTypes, entry->procAST->paramc, false);
-    LLVMAddFunction(module, entry->name, type);
+    exit_scope();
+    proc->typeAST->valueRef = procValue;
+
+    printf("After parsing procedure: %s\n", LLVMPrintValueToString(procValue));
+
+    // LLVMValueRef parent = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder)); // shoudl get the global scope
+    LLVMPositionBuilderAtEnd(builder, programEntry);
 
     assert_parser("Done parsing a procedure declaration\n");
 }
@@ -220,25 +240,32 @@ TypeClass parse_type_mark() {
 }
 
 void parse_param_list(EntryAST **proc) {
+    assert_parser("Parsing a parameter list\n");
     EntryNodeAST *paramList = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
-    // EntryNodeAST *dummy = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
-    // dummy->next = paramList;
 
     EntryNodeAST *param = paramList;
     param->entryAST = parse_param();
-    param = param->next;
+    assert_parser("Current param parsed: "); assert_parser(param->entryAST->name); assert_parser("\n");
     (*proc)->procAST->paramc++;
 
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
-        param->entryAST = parse_param();
+        param->next = (EntryNodeAST *) malloc(sizeof(EntryNodeAST));
         param = param->next;
+        param->entryAST = parse_param();
+        assert_parser("Current param parsed: "); assert_parser(param->entryAST->name); assert_parser("\n");
         (*proc)->procAST->paramc++;
+
+        EntryNodeAST *paramp = paramList;
+        while (paramp != NULL) {
+            assert_parser("Current parameter in list: "); assert_parser(paramp->entryAST->name); assert_parser("\n");
+            paramp = paramp->next;
+        }
     }
 
     int parami = 0;
     LLVMTypeRef *paramTypes = (LLVMTypeRef *) malloc(sizeof(LLVMTypeRef) * (*proc)->procAST->paramc);
-    // param = dummy->next;
+
     param = paramList;
     while (param != NULL) {
         paramTypes[parami++] = param->entryAST->typeAST->typeRef;
@@ -247,6 +274,8 @@ void parse_param_list(EntryAST **proc) {
 
     (*proc)->procAST->params = paramList;
     (*proc)->procAST->paramTypes = paramTypes;
+
+    assert_parser("Done parsing a parameter list\n");
 }
 
 EntryAST *parse_param() {
@@ -489,42 +518,49 @@ void parse_return_statement() {
 void parse_procedure_call() {
     assert_parser("Parsing a procedure call\n");
 
-    char *name = current_token->val.stringVal;
-    EntryAST *entry = check_declared_procedure(name);
+    EntryAST *entry = check_declared_procedure(current_token->val.stringVal);
 
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(entry);
     match_token(T_RPAREN);
 
     assert_parser("Done parsing a procedure call\n");
-    codegen_proc_call(name, args, entry->procAST->paramc);
+    codegen_proc_call(entry->name, args, entry->procAST->paramc);
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
     assert_parser("Parsing an argument list\n");
 
-    EntryNodeAST *node = proc->procAST->params;
-    if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+    EntryNodeAST *arg = proc->procAST->params;
+    if (arg == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+
+    EntryNodeAST *argp = arg;
+    while (argp != NULL) {
+        printf("Current argument: %s\n", argp->entryAST->name);
+        argp = argp->next;
+    }
 
     int argi = 0, argc = proc->procAST->paramc;
     LLVMValueRef *args = (LLVMValueRef *) malloc(sizeof(LLVMValueRef) * argc);
     // LLVMValueRef args[argc]; // https://stackoverflow.com/questions/18041100/using-c-string-address-of-stack-memory-associated-with-local-variable-returned
-    args[argi++] = parse_argument(node->entryAST->typeAST);
-    node = node->next;
+    args[argi++] = parse_argument(arg->entryAST->typeAST);
+    printf("Current argument: %s\n", arg->entryAST->name);
+    arg = arg->next;
 
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
-        if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+        if (arg == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+        printf("Current argument: %s\n", arg->entryAST->name);
 
-        args[argi++] = parse_argument(node->entryAST->typeAST);
-        node = node->next;
+        args[argi++] = parse_argument(arg->entryAST->typeAST);
+        arg = arg->next;
 
-        if (argi >= argc) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+        if (argi > argc) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     }
 
-    // paramList still has another argument but we've done parsing
-    // or number of args doesn't match number of params
-    if (node != NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+    printf("Number of argument parsed is %d, number of param is %d\n", argi, argc);
+
+    if (argi < argc) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
     assert_parser("Done parsing an argument list\n");
 

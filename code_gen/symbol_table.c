@@ -26,7 +26,8 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table(entry->name);
 	assert_symbol_table(", with type ");
 	print_entry_type_class(entry);
-	EntryAST *parent = NULL;
+	assert_symbol_table("\n");
+	printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
 	EntryNodeAST **list;
 
 	switch (entry->entryType) {
@@ -37,12 +38,14 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			break;
 		case ET_PARAMTER:
 			entry->varAST->scope = symbolTable->currentScope;
-			parent = symbolTable->currentScope->parent;
-			list = &(parent->procAST->params);
+			EntryAST *parent = symbolTable->currentScope->parentEntry;
+			add_entry(&(parent->procAST->params), entry);
+			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PROCEDURE:
-			entry->procAST->scope->outerScope = symbolTable->currentScope;
-			list = &(symbolTable->globalEntryList);
+			// entry->procAST->scope->outerScope = symbolTable->currentScope;
+			list = &(symbolTable->currentScope->entryList);
+			// list = &(symbolTable->globalEntryList);
 			break;
 		default: break;
 	}
@@ -68,6 +71,7 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	if (*list == NULL) {
 		*list = entryNode;
 	} else {
+		printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
@@ -84,6 +88,7 @@ EntryAST *lookup(char *name) {
 		if (entry != NULL) break;
 
 		curScope = curScope->outerScope;
+		assert_symbol_table("Ascend to outer scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 	}
 
 	// search in global scope as the last resort
@@ -104,11 +109,10 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table(name);
 	assert_symbol_table("\n");
 
-	print_current_scope();
-
 	EntryNodeAST *curNode = list;
 
 	while (curNode != NULL) {
+		printf("curNode is %s\n", curNode->entryAST->name);
 		if (strcmp(curNode->entryAST->name, name) == 0) {
 			return curNode->entryAST;
 		} else curNode = curNode->next;
@@ -134,8 +138,8 @@ void init_symbol_table() {
 	// getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
-	putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
-	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
+	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
+	// putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
 	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
 	// putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
 	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
@@ -156,22 +160,22 @@ void clear_symbol_table() {
 	// free_type(boolType);
 }
 
-Scope *create_scope(EntryAST *parent) {
+Scope *create_scope(EntryAST *parentEntry) {
 	assert_symbol_table("New scope: ");
-	assert_symbol_table(parent->name);
+	assert_symbol_table(parentEntry->name);
 	assert_symbol_table("\n");
 
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
-	scope->parent = parent;
-	scope->outerScope = NULL;
-	strcpy(scope->name, parent->name);
+	scope->parentEntry = parentEntry;
+	scope->outerScope = symbolTable->currentScope;
+	strcpy(scope->name, parentEntry->name);
 	return scope;
 }
 
 void enter_scope(Scope *scope) {
 	assert_symbol_table("Enter a scope: ");
-	assert_symbol_table(scope->parent->name);
+	assert_symbol_table(scope->outerScope->name);
 	assert_symbol_table("\n");
 
 	symbolTable->currentScope = scope;
@@ -221,7 +225,8 @@ void free_entry_list(EntryNodeAST *node) {
 
 void print_current_scope() {
 	assert_symbol_table("Current scope is ");
-	assert_symbol_table(symbolTable->currentScope->name);
+	if (symbolTable->currentScope != NULL) assert_symbol_table(symbolTable->currentScope->name);
+	else assert_symbol_table("main");
 	assert_symbol_table("\n");
 }
 
@@ -266,7 +271,7 @@ void print_type(TypeClass type) {
 }
 
 TypeAST *create_type(TypeClass typeClass) {
-	// assert_symbol_table("Create type "); print_type(typeClass);
+	assert_symbol_table("Create type "); print_type(typeClass); assert_symbol_table("\n");
 
 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
 	type->typeClass = typeClass;
@@ -284,7 +289,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_VOID:
 			type->typeRef = LLVMVoidType(); break;
 		default:
-			type->typeRef = NULL; break;
+			type->typeRef = LLVMVoidType(); break;
 	}
 	return type;
 }
@@ -297,6 +302,11 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	declare_entry(func, 1);
 
 	enter_scope(func->procAST->scope);
+		// LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), proc->procAST->paramTypes, proc->procAST->paramc, false);
+		// LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
+		// LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, "");
+		// LLVMPositionBuilderAtEnd(builder, entry);
+
 		EntryAST *paramEntry = create_param("val");
 		paramEntry->typeAST = create_type(varType);
 		paramEntry->typeAST->paramType = paramType;
@@ -324,8 +334,8 @@ EntryAST *create_program(const char *name) {
 
 EntryAST *create_variable(const char *name) {
 	assert_symbol_table("Creating a variable entry named "); assert_symbol_table(name); assert_symbol_table("\n");
-
 	EntryAST *varEntry = (EntryAST *) malloc(sizeof(EntryAST));
+	strcpy(varEntry->name, name);
 	varEntry->entryType = ET_VARIABLE;
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);

@@ -47,10 +47,9 @@ LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
 
 void codegen_proc_call(char *name, LLVMValueRef *args, int argc) {
     LLVMValueRef proc = check_builtin_proc(name);
-
     if (proc == NULL) {
         proc = LLVMGetNamedFunction(module, name);
-        LLVMBuildCall(builder, proc, args, argc, name);
+        LLVMBuildCall(builder, proc, args, argc, "");
     } else {
         // printf("%s\n", LLVMPrintValueToString(args[0]));
         codegen_builtin_proc_call(name, args[0]);
@@ -92,15 +91,16 @@ void codegen_extern_decl() {
 void codegen_module(char *file_name) {
     module = LLVMModuleCreateWithName(file_name);
 
-    codegen_extern_decl();
-
     builder = LLVMCreateBuilder();
+
+    codegen_extern_decl();
 
     if (parse(file_name) == IO_ERROR) {
         printf("%s\n", "Can't read input file");
         abort();
     }
 
+    printf("Printing out module: %s\n", LLVMPrintModuleToString(module));
     char *error = NULL;
     LLVMVerifyModule(module, LLVMAbortProcessAction, &error);
     LLVMDisposeMessage(error);

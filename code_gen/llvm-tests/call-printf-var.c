@@ -47,6 +47,6 @@ void print_variables_3() {
 }
 
 int main() {
-    // print_variables();
+    print_variables();
     return 0;
 }

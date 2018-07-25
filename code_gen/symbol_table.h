@@ -100,8 +100,8 @@ parent: the Entry that upon creating it we also need to create a new scope
 */
 typedef struct Scope {
 	char name[MAX_IDENT_LENGTH]; // for printing purposes
-	EntryNodeAST *entryList;
-	struct EntryAST *parent; // the block that started this scope
+	struct EntryNodeAST *entryList;
+	struct EntryAST *parentEntry; // the block that started this scope
 	struct Scope *outerScope;
 } Scope;
 
