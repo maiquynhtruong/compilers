@@ -35,16 +35,6 @@ LLVMValueRef llvm_printf;
 //   return ref;
 // }
 
-LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params) {
-    LLVMTypeRef proc_type = LLVMFunctionType(LLVMVoidType(), params, 0, false);
-    LLVMValueRef proc = LLVMAddFunction(module, name, proc_type);
-    // builder = LLVMCreateBuilder();
-    LLVMBasicBlockRef entry = LLVMAppendBasicBlock(proc, strcat(name, "entry"));
-    LLVMPositionBuilderAtEnd(builder, entry);
-    LLVMBuildRetVoid(builder);
-    return proc;
-}
-
 void codegen_extern_decl() {
     assert_codegen("Create external declarations\n");
     LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
