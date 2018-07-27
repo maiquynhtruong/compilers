@@ -155,23 +155,13 @@ void parse_proc_declaration(int isGlobal) {
         LLVMBasicBlockRef entry = LLVMAppendBasicBlock(procValue, proc->name);
         LLVMPositionBuilderAtEnd(builder, entry);
 
-        // EntryNodeAST *node = proc->procAST->params;
-        // while (node != NULL) {
-            // EntryAST *param = node->entryAST;
-            // param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, param->name);
-            // param->typeAST->valueRef = LLVMGetNextParam(param->typeAST->valueRef);
-            // node = node->next;
-        // }
         EntryNodeAST *node = proc->procAST->params;
         LLVMValueRef param = LLVMGetFirstParam(procValue);
-        // while (param != NULL) {
         while (node != NULL) {
             EntryAST *paramEntry = node->entryAST;
             LLVMSetValueName(param, paramEntry->name);
             paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
-        //     printf("hellldkgjkdjgkdjghhhhiziizijldjgjwljlkjlwkjkjkfjldglskjwhatelfjkljkgjkjgkljsdlkgjlskdjglksdgj %s: %s\n", paramEntry->name, LLVMPrintValueToString(paramEntry->typeAST->valueRef));
             LLVMBuildStore(builder, param, paramEntry->typeAST->valueRef);
-        //     param = LLVMBuildLoad(builder, paramEntry->typeAST->valueRef, paramEntry->name);
             param = LLVMGetNextParam(param);
             node = node->next;
         }
@@ -578,8 +568,6 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
 
     printf("param type is: %s, arg type is: %s\n", LLVMPrintTypeToString(paramType->typeRef), LLVMPrintTypeToString(argType->typeRef));
     printf("param value is: %s, arg value is: %s\n", LLVMPrintValueToString(paramType->valueRef), LLVMPrintValueToString(argType->valueRef));
-    // argType->valueRef = LLVMBuildLoad(builder, paramType->valueRef, "");
-    printf("load: %s\n", LLVMPrintValueToString(argType->valueRef));
     return argType->valueRef;
 }
 
