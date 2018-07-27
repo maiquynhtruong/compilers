@@ -1,39 +1,53 @@
 ; ModuleID = 'codegen.bc'
-source_filename = "tests/test-for.src"
+source_filename = "tests/test-proc.src"
 target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
 
 @format_str = private unnamed_addr constant [3 x i8] c"%d\00"
 
 declare i32 @printf(...)
 
-declare void @putbool(i32)
-
-declare void @putinteger(i32)
-
 define void @main() {
 main_entry:
-  %i = alloca i32
-  %num = alloca i32
-  store i32 0, i32* %i
-  store i32 5, i32* %num
-  br label %start_loop
+  %random_var = alloca i32
+  call void @f(i32 1, i32 2, i32 3)
+  ret void
+}
 
-start_loop:                                       ; preds = %loop, %main_entry
-  %i1 = load i32, i32* %i
-  %add = add i32 %i1, 1
-  store i32 %add, i32* %i
-  %i2 = load i32, i32* %i
-  %lt = icmp slt i32 %i2, 5
-  br i1 %lt, label %loop, label %end_loop
+define void @putinteger(i32 %val) {
+putinteger:
+  %val1 = alloca i32
+  store i32 %val, i32* %val1
+  %val2 = load i32, i32* %val1
+  %putinteger3 = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str, i32 0, i32 0), i32 %val2)
+  ret void
+}
 
-loop:                                             ; preds = %start_loop
-  %num3 = load i32, i32* %num
-  %num4 = load i32, i32* %num
-  %mul = mul i32 %num3, %num4
-  store i32 %mul, i32* %num
-  %putinteger = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str, i32 0, i32 0), i32 1)
-  br label %start_loop
-
-end_loop:                                         ; preds = %start_loop
+define void @f(i32 %arg1, i32 %arg2, i32 %arg3) {
+f:
+  %arg11 = alloca i32
+  store i32 %arg1, i32* %arg11
+  %arg22 = alloca i32
+  store i32 %arg2, i32* %arg22
+  %arg33 = alloca i32
+  store i32 %arg3, i32* %arg33
+  %var1 = alloca i32
+  %var2 = alloca i32
+  %var3 = alloca i32
+  %arg14 = load i32, i32* %arg11
+  store i32 %arg14, i32* %var1
+  %arg15 = load i32, i32* %arg11
+  %arg26 = load i32, i32* %arg22
+  %add = add i32 %arg15, %arg26
+  store i32 %add, i32* %var2
+  %var27 = load i32, i32* %var2
+  %arg38 = load i32, i32* %arg33
+  %add9 = add i32 %var27, %arg38
+  store i32 %add9, i32* %var3
+  %var110 = load i32, i32* %var1
+  call void @putinteger(i32 %var110)
+  %var211 = load i32, i32* %var2
+  call void @putinteger(i32 %var211)
+  %var312 = load i32, i32* %var3
+  call void @putinteger(i32 %var312)
   ret void
 }
