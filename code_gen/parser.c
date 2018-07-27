@@ -639,7 +639,6 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
 TypeAST *parse_arith_op() {
     assert_parser("Parsing an arithmetic operation\n");
     TypeAST *arithOpType = parse_relation();
-    // check_int_float_type(arithOpAST->typeAST);
     arithOpType = parse_arith_op_relation(arithOpType);
     assert_parser("Done parsing an arithmetic operation\n");
     assert_parser("Arithmetic operation type is: "); print_type(arithOpType->typeClass); assert_parser("\n");
@@ -694,7 +693,6 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
 TypeAST *parse_relation() {
     assert_parser("Parsing a relation\n");
     TypeAST *relationType = parse_term();
-    check_basic_type(relationType->typeClass);
     relationType = parse_relation_term(relationType);
     assert_parser("Done parsing a relation\n");
     assert_parser("Relation type is: "); print_type(relationType->typeClass); assert_parser("\n");
@@ -705,14 +703,17 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     LLVMValueRef valueRef = termType1->valueRef;
+    printf("Relation term before: %s\n", LLVMPrintValueToString(valueRef));
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
         case T_LT:
             match_token(T_LT);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
             if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
             if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
@@ -724,8 +725,10 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         case T_LTEQ:
             match_token(T_LTEQ);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSLE, termType1->valueRef, termType2->valueRef, "lteq");
@@ -789,7 +792,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
 
     relationType->typeRef = termType1->typeRef;
     relationType->valueRef = valueRef;
-    printf("Code gen relation: %s\n", LLVMPrintValueToString(relationType->valueRef));
+    printf("Relation term after: %s\n", LLVMPrintValueToString(valueRef));
 
     return relationType;
 }
