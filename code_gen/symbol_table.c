@@ -130,15 +130,14 @@ void init_symbol_table() {
 	symbolTable->globalEntryList = NULL;
 
 	// built-in functions e.g. getInteger(integer val out)
-
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
 	// getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
 	// getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
-	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
+	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
 	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
 	// putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
 	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
@@ -174,7 +173,7 @@ Scope *create_scope(EntryAST *parentEntry) {
 
 void enter_scope(Scope *scope) {
 	assert_symbol_table("Enter a scope: ");
-	assert_symbol_table(scope->outerScope->name);
+	assert_symbol_table(scope->name);
 	assert_symbol_table("\n");
 
 	symbolTable->currentScope = scope;
@@ -301,21 +300,50 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 	declare_entry(proc, 1);
 
 	enter_scope(proc->procAST->scope);
-		EntryAST *paramEntry = create_param("val");
-		paramEntry->typeAST = create_type(varType);
-		paramEntry->typeAST->paramType = paramAttr;
-		declare_entry(paramEntry, 0);
+		EntryAST *param = create_param("val");
+		param->typeAST = create_type(varType);
+		param->typeAST->paramType = paramAttr;
+		declare_entry(param, 0);
+		proc->procAST->paramc = 1;
 
-		LLVMTypeRef params[] = { paramEntry->typeAST->typeRef };
+		LLVMTypeRef params[] = { param->typeAST->typeRef };
 		LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), params, 1, false);
 		LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
 		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
 		LLVMPositionBuilderAtEnd(builder, procEntry);
-		paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
+
+		LLVMValueRef value = LLVMGetParam(procValue, 0);
+		LLVMSetValueName(value, "val");
+		param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
+	    LLVMBuildStore(builder, value, param->typeAST->valueRef);
+		value = LLVMBuildLoad(builder, param->typeAST->valueRef, "val");
+
+		const char *format_str = "";
+	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0) {
+	        format_str = "%d";
+	    } else if (strcmp(name, "putfloat") == 0) {
+	        format_str = "%f";
+	    } else if (strcmp(name, "putstring") == 0) {
+	        format_str = "%s";
+	    } else if (strcmp(name, "putchar") == 0) {
+	        format_str = "%c";
+	    }
+
+	    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
+
+	    printf("%s\n", LLVMPrintValueToString(format));
+	    printf("%s\n", LLVMPrintValueToString(value));
+
+	    LLVMValueRef args[] = { format, value };
+
+	    LLVMBuildCall(builder, llvm_printf, args, 2, name);
+
 		LLVMBuildRetVoid(builder);
+
 		LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 	exit_scope();
 
+	printf("Builtin proc %s has value: %s\n", name, LLVMPrintValueToString(procValue));
 	return proc;
 }
 
