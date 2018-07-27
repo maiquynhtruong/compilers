@@ -1,0 +1,9 @@
+program test_put is
+string s;
+integer i;
+begin
+    putString("Enter a string:");
+    getString(s);
+    putString("Enter an integer:");
+    getInteger(i);
+end program .

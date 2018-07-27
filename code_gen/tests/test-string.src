@@ -1,0 +1,12 @@
+program test_program is
+    procedure print_string(integer level in)
+        string s;
+    begin
+        putString("Hello world!\n");
+        putString("Random string\n");
+        s := "Local string assigned to a variable";
+        putString(s);
+    end procedure;
+begin
+    print_string(0);
+end program.
