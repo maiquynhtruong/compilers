@@ -1,7 +1,6 @@
-program test_program is
+program test_put is
 integer a;
 begin
     a := 3;
-    //f(3, a);
     putInteger(a);
 end program .

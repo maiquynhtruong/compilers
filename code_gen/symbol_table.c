@@ -139,7 +139,7 @@ void init_symbol_table() {
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
 	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
 	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	// putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
+	putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
 	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
