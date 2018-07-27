@@ -1,0 +1,71 @@
+PROGRAM test_procedure_statements IS
+	global integer JAKE;
+	global integer zach;
+
+	procedure if_proc()
+	    integer var;
+	    begin
+			var := 4;
+	        if(var > 2) then jake := jake + 1;
+	        else zach := zach + 1;
+	    end if;
+	end procedure;
+
+	procedure for_proc()
+	    integer i;
+	    begin
+			zach := 5;
+	        for(i := 0; i < zach)
+	            ryan := zach + i;
+	        end for;
+	    end procedure;
+
+	procedure recursion(integer level in)
+		integer level;
+		begin
+			if (level >= 3) return;
+			putString("recursion level: ");
+			putInteger(level)
+			recursion(level);
+		end procedure;
+
+	procedure exp_proc()
+		integer a;
+		begin
+			a :=  ((3 * 4) < (3 * 5)) + 1;
+			putInteger(a);
+		end procedure;
+
+	procedure array_proc()
+		integer numbers[10];
+		integer res[10];
+		integer i;
+		begin
+			i := 0;
+			for (i := i + 1; i < 10)
+				numbers[i] := i;
+			end for;
+			square_array(numbers, res);
+		    i := 0;
+		    for (i := i + 1; i < 10)
+		        putInteger(res[i]);
+		        putString(" ");
+		    end for;
+		end procedure;
+
+    procedure square_array(integer array[10] in, integer result[10] out)
+        integer i;
+	    begin
+	        i := 0;
+	        for (i := i + 1; i < 10)
+	            result[i] := array[i] * array[i];
+	        end for;
+	    end procedure;
+
+	begin // where does it "begin" belong to??
+	    if_proc();
+	    for_proc();
+		recursion();
+		exp_proc();
+		array_proc();
+	end program.

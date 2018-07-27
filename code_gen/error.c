@@ -58,7 +58,7 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_UNDECLAREDPROCEDURE); break;
         case E_DUPLICATE_IDENT:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_DUPLICATEIDENT); break;
-        case E_INCOSISTENT_TYPE:
+        case E_INCONSISTENT_TYPE:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INCONSISENTTYPE); break;
         case E_INCONSISTENT_PARAM_ARGS:
             printf("%d:%d: Syntax Error: %s\n", lineNo, columnNo, E_MES_INCONSISENTPARAMARGS); break;

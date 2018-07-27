@@ -20,14 +20,16 @@ EntryAST *putChar;
 extern LLVMValueRef llvm_printf;
 extern LLVMBuilderRef builder;
 extern LLVMModuleRef module;
+extern LLVMValueRef mainFunc;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table("Declaring an entry: ");
 	assert_symbol_table(entry->name);
 	assert_symbol_table(", with type ");
 	print_entry_type_class(entry);
-	EntryAST *parent = NULL;
-	EntryNodeAST **list;
+	assert_symbol_table("\n");
+	printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
+	EntryNodeAST **list = NULL;
 
 	switch (entry->entryType) {
 		case ET_VARIABLE:
@@ -36,13 +38,14 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PARAMTER:
-			entry->paramAST->scope = symbolTable->currentScope;
-			parent = symbolTable->currentScope->parent;
-			list = &(parent->procAST->params);
-			parent->procAST->paramCnt++;
+			entry->varAST->scope = symbolTable->currentScope;
+			EntryAST *parent = symbolTable->currentScope->parentEntry;
+			add_entry(&(parent->procAST->params), entry);
+			list = &(symbolTable->currentScope->entryList);
 			break;
 		case ET_PROCEDURE:
 			entry->procAST->scope->outerScope = symbolTable->currentScope;
+			// list = &(symbolTable->currentScope->entryList);
 			list = &(symbolTable->globalEntryList);
 			break;
 		default: break;
@@ -69,6 +72,7 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	if (*list == NULL) {
 		*list = entryNode;
 	} else {
+		printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
@@ -85,6 +89,7 @@ EntryAST *lookup(char *name) {
 		if (entry != NULL) break;
 
 		curScope = curScope->outerScope;
+		assert_symbol_table("Ascend to outer scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 	}
 
 	// search in global scope as the last resort
@@ -105,11 +110,10 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	assert_symbol_table(name);
 	assert_symbol_table("\n");
 
-	print_current_scope();
-
 	EntryNodeAST *curNode = list;
 
 	while (curNode != NULL) {
+		printf("curNode is %s\n", curNode->entryAST->name);
 		if (strcmp(curNode->entryAST->name, name) == 0) {
 			return curNode->entryAST;
 		} else curNode = curNode->next;
@@ -117,9 +121,6 @@ EntryAST *find_entry(EntryNodeAST *list, char *name) {
 	return NULL;
 }
 
-bool isGlobalEntry(EntryAST *entry) {
-	return entry == symbolTable->root;
-}
 void init_symbol_table() {
 	assert_symbol_table("Initialize a symbol table"); assert_symbol_table("\n");
 
@@ -128,20 +129,17 @@ void init_symbol_table() {
 	symbolTable->root = NULL;
 	symbolTable->globalEntryList = NULL;
 
-	// enter_scope(symbolTable->currentScope);
-
 	// built-in functions e.g. getInteger(integer val out)
-
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
 	// getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
 	// getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
-	putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
+	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
 	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
-	// putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
+	putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
 	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
@@ -160,22 +158,22 @@ void clear_symbol_table() {
 	// free_type(boolType);
 }
 
-Scope *create_scope(EntryAST *parent) {
+Scope *create_scope(EntryAST *parentEntry) {
 	assert_symbol_table("New scope: ");
-	assert_symbol_table(parent->name);
+	assert_symbol_table(parentEntry->name);
 	assert_symbol_table("\n");
 
 	Scope *scope = (Scope *) malloc(sizeof(Scope));
 	scope->entryList = NULL;
-	scope->parent = parent;
-	scope->outerScope = NULL;
-	strcpy(scope->name, parent->name);
+	scope->parentEntry = parentEntry;
+	scope->outerScope = symbolTable->currentScope;
+	strcpy(scope->name, parentEntry->name);
 	return scope;
 }
 
 void enter_scope(Scope *scope) {
 	assert_symbol_table("Enter a scope: ");
-	assert_symbol_table(scope->parent->name);
+	assert_symbol_table(scope->name);
 	assert_symbol_table("\n");
 
 	symbolTable->currentScope = scope;
@@ -200,14 +198,11 @@ void free_scope(Scope *scope) {
 void free_entry(EntryAST *entry) {
 	if (entry != NULL) {
 		switch(entry->entryType) {
-			case ET_VARIABLE:
+			case ET_VARIABLE: case ET_PARAMTER:
 				if (entry->varAST != NULL) free(entry->varAST);
 				break;
 			case ET_PROCEDURE:
 				if (entry->procAST != NULL) free(entry->procAST);
-				break;
-			case ET_PARAMTER:
-				if (entry->paramAST != NULL) free(entry->paramAST);
 				break;
 			case ET_PROGRAM:
 				if (entry->progAST != NULL) free(entry->progAST);
@@ -228,7 +223,8 @@ void free_entry_list(EntryNodeAST *node) {
 
 void print_current_scope() {
 	assert_symbol_table("Current scope is ");
-	assert_symbol_table(symbolTable->currentScope->name);
+	if (symbolTable->currentScope != NULL) assert_symbol_table(symbolTable->currentScope->name);
+	else assert_symbol_table("main");
 	assert_symbol_table("\n");
 }
 
@@ -273,7 +269,7 @@ void print_type(TypeClass type) {
 }
 
 TypeAST *create_type(TypeClass typeClass) {
-	// assert_symbol_table("Create type "); print_type(typeClass);
+	assert_symbol_table("Create type "); print_type(typeClass); assert_symbol_table("\n");
 
 	TypeAST *type = (TypeAST *) malloc(sizeof(TypeAST));
 	type->typeClass = typeClass;
@@ -291,28 +287,64 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_VOID:
 			type->typeRef = LLVMVoidType(); break;
 		default:
-			type->typeRef = NULL; break;
+			type->typeRef = LLVMVoidType(); break;
 	}
 	return type;
 }
 
-EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType) {
+EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramAttr) {
 	assert_symbol_table("Create builtin function: ");
 	assert_symbol_table(name); assert_symbol_table("\n");
 
-	EntryAST *func = create_procedure(name);
-	declare_entry(func, 1);
+	EntryAST *proc = create_procedure(name);
+	declare_entry(proc, 1);
 
-	enter_scope(func->procAST->scope);
-		EntryAST *paramEntry = create_param("val", paramType);
-		paramEntry->typeAST = create_type(varType);
-		declare_entry(paramEntry, 0);
+	enter_scope(proc->procAST->scope);
+		EntryAST *param = create_param("val");
+		param->typeAST = create_type(varType);
+		param->typeAST->paramType = paramAttr;
+		declare_entry(param, 0);
+		proc->procAST->paramc = 1;
+
+		LLVMTypeRef params[] = { param->typeAST->typeRef };
+		LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), params, 1, false);
+		LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
+		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
+		LLVMPositionBuilderAtEnd(builder, procEntry);
+
+		LLVMValueRef value = LLVMGetParam(procValue, 0);
+		LLVMSetValueName(value, "val");
+		param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
+	    LLVMBuildStore(builder, value, param->typeAST->valueRef);
+		value = LLVMBuildLoad(builder, param->typeAST->valueRef, "val");
+
+		const char *format_str = "";
+	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0) {
+	        format_str = "%d";
+	    } else if (strcmp(name, "putfloat") == 0) {
+	        format_str = "%f";
+	    } else if (strcmp(name, "putstring") == 0) {
+	        format_str = "%s";
+	    } else if (strcmp(name, "putchar") == 0) {
+	        format_str = "%c";
+	    }
+
+	    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
+
+	    printf("%s\n", LLVMPrintValueToString(format));
+	    printf("%s\n", LLVMPrintValueToString(value));
+
+	    LLVMValueRef args[] = { format, value };
+
+	    LLVMBuildCall(builder, llvm_printf, args, 2, name);
+
+		LLVMBuildRetVoid(builder);
+
+		LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 	exit_scope();
 
-	LLVMTypeRef params[] = { paramEntry->typeAST->typeRef };
-	LLVMTypeRef type = LLVMFunctionType(LLVMVoidType(), params, 1, false);
-    LLVMAddFunction(module, name, type);
-	return func;
+	printf("Builtin proc %s has value: %s\n", name, LLVMPrintValueToString(procValue));
+	return proc;
 }
 
 EntryAST *create_program(const char *name) {
@@ -330,8 +362,8 @@ EntryAST *create_program(const char *name) {
 
 EntryAST *create_variable(const char *name) {
 	assert_symbol_table("Creating a variable entry named "); assert_symbol_table(name); assert_symbol_table("\n");
-
 	EntryAST *varEntry = (EntryAST *) malloc(sizeof(EntryAST));
+	strcpy(varEntry->name, name);
 	varEntry->entryType = ET_VARIABLE;
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);
@@ -341,15 +373,11 @@ EntryAST *create_variable(const char *name) {
 	return varEntry;
 }
 
-EntryAST *create_param(const char *name, ParamType paramType) {
+EntryAST *create_param(const char *name) {
 	assert_symbol_table("Creating a param entry named "); assert_symbol_table(name); assert_symbol_table("\n");
 
-	EntryAST *paramEntry = (EntryAST *) malloc(sizeof(EntryAST));
-	strcpy(paramEntry->name, name);
+	EntryAST *paramEntry = create_variable(name);
 	paramEntry->entryType = ET_PARAMTER;
-	ParamAST *param = (ParamAST *) malloc(sizeof(ParamAST));
-	param->paramType = paramType;
-	paramEntry->paramAST = param;
 	return paramEntry;
 }
 
@@ -361,7 +389,7 @@ EntryAST *create_procedure(const char *name) {
 	procEntry->entryType = ET_PROCEDURE;
 	ProcedureAST *proc = (ProcedureAST *) malloc(sizeof(ProcedureAST));
 	proc->params = NULL;
-	proc->paramCnt = 0;
+	proc->paramc = 0;
 	proc->scope = create_scope(procEntry);
 	procEntry->procAST = proc;
 	procEntry->typeAST = create_type(TC_VOID);
