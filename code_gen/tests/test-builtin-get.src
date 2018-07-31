@@ -2,16 +2,28 @@ program test_put is
 string s;
 integer i;
 float f;
+char c;
+bool b;
 begin
     putString("Enter a string: ");
     getString(s);
+    putString("The string was: ");
+    putString(s);
     putString("Enter an integer: ");
     getInteger(i);
     putString("The integer was: ");
     putInteger(i);
-    putString("The string was: ");
-    putString(s);
-    //putString("Enter a float: ");
-    //getFloat(f);
+    putString("Enter a float: ");
+    getFloat(f);
+    putString("The float was: ");
+    putFloat(f);
+    putString("Enter a char: ");
+    getChar(c);
+    putString("The char was: ");
+    putChar(c);
+    putString("Enter a bool: ");
+    getBool(b);
+    putString("The bool was: ");
+    putBool(b);
 
 end program .
