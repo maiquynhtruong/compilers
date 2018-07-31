@@ -233,25 +233,27 @@ void print_entry_type(EntryAST *entry) {
 	}
 }
 
-void print_type(TypeClass type) {
+char *print_type(TypeClass type) {
+	char *s = NULL;
     switch (type) {
         case TC_INT:
-            printf("Integer"); break;
+            s = "Integer"; break;
     	case TC_FLOAT:
-            printf("Float"); break;
+            s = "Float"; break;
     	case TC_STRING:
-            printf("String"); break;
+            s = "String"; break;
     	case TC_BOOL:
-            printf("Bool"); break;
+            s = "Bool"; break;
     	case TC_CHAR:
-            printf("Char"); break;
+            s = "Char"; break;
 		case TC_VOID:
-			printf("Void"); break;
+			s = "Void"; break;
 		case TC_INVALID:
-			printf("Invalid"); break;
+			s = "Invalid"; break;
         default:
-            printf("Unknown type class"); break;
+            s = "Unknown type class"; break;
     }
+	return s;
 }
 
 TypeAST *create_type(TypeClass typeClass) {

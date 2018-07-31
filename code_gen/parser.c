@@ -29,7 +29,6 @@ LLVMValueRef mainFunc;
 extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
-
     print_token(look_ahead);
     if (look_ahead->type != type) {
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
@@ -58,7 +57,7 @@ int parse(char *file_name) {
 
     parse_program();
 
-    printf("After parsing program: %s\n", LLVMPrintValueToString(mainFunc));
+    assert_parser("After parsing program: "); assert_parser(LLVMPrintValueToString(mainFunc)); assert_parser("\n");
 
     clear_symbol_table();
 
@@ -168,7 +167,7 @@ void parse_proc_declaration(int isGlobal) {
     exit_scope();
     proc->typeAST->valueRef = procValue;
 
-    printf("After parsing procedure: %s\n", LLVMPrintValueToString(procValue));
+    assert_parser("After parsing procedure: "); assert_parser(LLVMPrintValueToString(procValue)); assert_parser("\n");
 
     LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 
@@ -232,7 +231,7 @@ TypeClass parse_type_mark() {
     }
 
     assert_parser("Done parsing a type mark\n");
-    assert_parser("TypeMark type is: "); print_type(typeMark); assert_parser("\n");
+    assert_parser("TypeMark type is: "); assert_parser(print_type(typeMark)); assert_parser("\n");
     return typeMark;
 }
 
@@ -293,17 +292,14 @@ EntryAST *parse_param() {
     ParamType paramType = PT_IN;
     switch (look_ahead->type) {
         case K_IN:
-            // paramAST = create_param(PT_IN, varAST);
             match_token(K_IN);
             paramType = PT_IN;
             break;
         case K_OUT:
-            // paramAST = create_param(PT_OUT, varAST);
             match_token(K_OUT);
             paramType = PT_OUT;
             break;
         case K_INOUT:
-            // paramAST = create_param(PT_INOUT, varAST);
             match_token(K_INOUT);
             paramType = PT_INOUT;
             break;
@@ -373,7 +369,7 @@ TypeAST *parse_destination() {
     TypeAST *destType = dest->typeAST;
 
     assert_parser("Done parsing a destination\n");
-    assert_parser("Destination type is: "); print_type(destType->typeClass); assert_parser("\n");
+    assert_parser("Destination type is: "); assert_parser(print_type(destType->typeClass)); assert_parser("\n");
     return destType;
 }
 
@@ -402,10 +398,15 @@ void parse_assignment_statement() {
         expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMFloatType(), "to-float");
     }
 
+    assert_parser("Dest type is: "); assert_parser(LLVMPrintTypeToString(destType->typeRef));
+    assert_parser("Exp type is: "); assert_parser(LLVMPrintTypeToString(expType->typeRef));
+    assert_parser("\n");
+    assert_parser("Dest value is: "); assert_parser(LLVMPrintValueToString(destType->valueRef));
+    assert_parser("Exp value is: "); assert_parser(LLVMPrintValueToString(expType->valueRef));
+    assert_parser("\n");
+
     check_type_equality(destType->typeClass, expType->typeClass);
 
-    printf("Dest type is: %s, Exp type is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintTypeToString(expType->typeRef));
-    printf("Dest value is: %s, Exp value is: %s\n", LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(expType->valueRef));
     LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -420,7 +421,6 @@ void parse_if_statement() {
     match_token(K_IF);
     match_token(T_LPAREN);
 
-    // LLVMValueRef scope = LLVMGetNamedFunction(module, symbolTable->currentScope->name);
     LLVMValueRef scope = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder));
 
     thenBlock = LLVMAppendBasicBlock(scope, "then");
@@ -578,7 +578,7 @@ TypeAST *parse_expression() {
     if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not");
 
     assert_parser("Done parsing an expression\n");
-    assert_parser("Expression type is: "); print_type(expType->typeClass); assert_parser("\n");
+    assert_parser("Expression type is: "); assert_parser(print_type(expType->typeClass)); assert_parser("\n");
     assert_parser("Code gen exp: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
 
     return expType;
@@ -652,7 +652,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildAdd(builder, relationType1->valueRef, relationType2->valueRef, "add");
-            printf("Code gen add: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen add: "); assert_parser(LLVMPrintValueToString(valueRef));
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -664,7 +664,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
-            printf("Code gen sub: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen sub: "); assert_parser(LLVMPrintValueToString(valueRef));
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -688,7 +688,7 @@ TypeAST *parse_relation() {
     TypeAST *relationType = parse_term();
     relationType = parse_relation_term(relationType);
     assert_parser("Done parsing a relation\n");
-    assert_parser("Relation type is: "); print_type(relationType->typeClass); assert_parser("\n");
+    assert_parser("Relation type is: "); assert_parser(print_type(relationType->typeClass)); assert_parser("\n");
     return relationType;
 }
 
@@ -696,7 +696,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     LLVMValueRef valueRef = termType1->valueRef;
-    printf("Relation term before: %s\n", LLVMPrintValueToString(valueRef));
+    assert_parser("Relation term before: "); assert_parser(LLVMPrintValueToString(valueRef));
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
@@ -722,6 +722,8 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
 
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSLE, termType1->valueRef, termType2->valueRef, "lteq");
@@ -731,8 +733,12 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         case T_GT:
             match_token(T_GT);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSGT, termType1->valueRef, termType2->valueRef, "gt");
@@ -742,8 +748,12 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         case T_GTEQ:
             match_token(T_GTEQ);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntSGE, termType1->valueRef, termType2->valueRef, "gteq");
@@ -753,8 +763,12 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         case T_EQ:
             match_token(T_EQ);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntEQ, termType1->valueRef, termType2->valueRef, "eq");
@@ -764,8 +778,12 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
         case T_NEQ:
             match_token(T_NEQ);
             check_basic_type(termType1->typeClass);
+
             termType2 = parse_term();
             check_basic_type(termType2->typeClass);
+
+            if (termType1->typeClass == TC_INT && termType2->typeClass == TC_BOOL) termType2->typeClass = TC_INT;
+            if (termType1->typeClass == TC_BOOL && termType2->typeClass == TC_INT) termType2->typeClass = TC_INT;
             check_type_equality(termType1->typeClass, termType2->typeClass);
 
             valueRef = LLVMBuildICmp(builder, LLVMIntNE, termType1->valueRef, termType2->valueRef, "neq");
@@ -785,7 +803,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
 
     relationType->typeRef = termType1->typeRef;
     relationType->valueRef = valueRef;
-    printf("Relation term after: %s\n", LLVMPrintValueToString(valueRef));
+    assert_parser("Relation term after: "); assert_parser(LLVMPrintValueToString(valueRef));
 
     return relationType;
 }
@@ -795,7 +813,7 @@ TypeAST *parse_term() {
     TypeAST *termType = parse_factor();
     termType = parse_term_factor(termType);
     assert_parser("Done parsing a term\n");
-    assert_parser("Term type is: "); print_type(termType->typeClass); assert_parser("\n");
+    assert_parser("Term type is: "); assert_parser(print_type(termType->typeClass)); assert_parser("\n");
     return termType;
 }
 
@@ -813,7 +831,7 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             check_int_float_type(factorType2->typeClass);
 
             valueRef = LLVMBuildMul(builder, factorType1->valueRef, factorType2->valueRef, "mul");
-            printf("Code gen mul: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen mul: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             termType = parse_term_factor(factorType1);
             break;
@@ -825,7 +843,7 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
             check_int_float_type(factorType2->typeClass);
 
             valueRef = LLVMBuildSDiv(builder, factorType1->valueRef, factorType2->valueRef, "div");
-            printf("Code gen div: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen div: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             termType = parse_term_factor(factorType1);
             break;
@@ -928,6 +946,6 @@ TypeAST *parse_factor() {
     assert_parser("Factor type: ");
     assert_parser(LLVMPrintTypeToString(typeAST->typeRef));
     assert_parser(", value ");
-    assert_parser(LLVMPrintTypeToString(typeAST->valueRef));
+    assert_parser(LLVMPrintValueToString(typeAST->valueRef));
     return typeAST;
 }
