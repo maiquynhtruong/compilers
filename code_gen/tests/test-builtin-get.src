@@ -1,9 +1,17 @@
 program test_put is
 string s;
 integer i;
+float f;
 begin
-    putString("Enter a string:");
+    putString("Enter a string: ");
     getString(s);
-    putString("Enter an integer:");
+    putString("Enter an integer: ");
     getInteger(i);
+    putString("The integer was: ");
+    putInteger(i);
+    putString("The string was: ");
+    putString(s);
+    //putString("Enter a float: ");
+    //getFloat(f);
+
 end program .

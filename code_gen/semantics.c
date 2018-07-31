@@ -9,16 +9,7 @@
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 extern Token *current_token;
-extern LLVMValueRef llvm_printf;
 extern LLVMBuilderRef builder;
-
-LLVMValueRef check_builtin_proc(char *name) {
-	if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 || strcmp(name, "putfloat") == 0 ||
-		strcmp(name, "putstring") == 0 || strcmp(name, "putchar") == 0) {
-			return llvm_printf;
-		}
-	return NULL;
-}
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
