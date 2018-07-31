@@ -64,12 +64,14 @@ void codegen_module(char *file_name) {
         abort();
     }
 
+    LLVMDumpModule(module);
     // Write out bitcode to file
     if (LLVMWriteBitcodeToFile(module, "codegen.bc") != 0) {
         fprintf(stderr, "error writing bitcode to file, skipping\n");
     }
 
     LLVMDisposeBuilder(builder);
+    LLVMDisposeModule(module);
     LLVMDisposeExecutionEngine(engine);
 
     // Setup optimizations.

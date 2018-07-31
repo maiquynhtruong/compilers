@@ -33,7 +33,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	switch (entry->entryType) {
 		case ET_VARIABLE:
 			if (entry->typeAST->typeClass == TC_STRING) {
-				LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
 				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
 				entry->typeAST->address = stringArray;
 			} else {
@@ -233,8 +232,8 @@ void print_entry_type(EntryAST *entry) {
 	}
 }
 
-char *print_type(TypeClass type) {
-	char *s = NULL;
+const char *print_type(TypeClass type) {
+	const char *s;
     switch (type) {
         case TC_INT:
             s = "Integer"; break;
@@ -332,14 +331,14 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 			LLVMBuildCall(builder, llvm_scanf, args, 2, name);
 		}
 
-		printf("Value is %s\n", LLVMPrintValueToString(value));
-
 		LLVMBuildRetVoid(builder);
 
 		LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 	exit_scope();
 
-	printf("Builtin proc %s has value: %s\n", name, LLVMPrintValueToString(procValue));
+	assert_symbol_table("Builtin proc "); assert_symbol_table(name);
+	assert_symbol_table(" has value: "); assert_symbol_table(LLVMPrintValueToString(procValue));
+	assert_symbol_table("\n");
 	return proc;
 }
 

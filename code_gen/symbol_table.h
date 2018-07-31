@@ -130,7 +130,7 @@ void free_entry_list(EntryNodeAST *node);
 void print_current_scope();
 void print_entry_type(EntryAST *entry);
 void print_entry_type_class(EntryAST *entry);
-char *print_type(TypeClass type);
+const char *print_type(TypeClass type);
 
 TypeAST *create_type(TypeClass typeClass);
 EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType paramType);

@@ -29,7 +29,6 @@ LLVMValueRef mainFunc;
 extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
-    print_token(look_ahead);
     if (look_ahead->type != type) {
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
