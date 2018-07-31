@@ -1,6 +1,7 @@
 PROGRAM test_procedure_statements IS
 	global integer JAKE;
 	global integer zach;
+	global integer ryan;
 
 	procedure if_proc()
 	    integer var;
