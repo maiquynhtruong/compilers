@@ -9,16 +9,7 @@
 // from symbol_table.c
 extern SymbolTable *symbolTable;
 extern Token *current_token;
-extern LLVMValueRef llvm_printf;
 extern LLVMBuilderRef builder;
-
-LLVMValueRef check_builtin_proc(char *name) {
-	if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 || strcmp(name, "putfloat") == 0 ||
-		strcmp(name, "putstring") == 0 || strcmp(name, "putchar") == 0) {
-			return llvm_printf;
-		}
-	return NULL;
-}
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
@@ -103,26 +94,26 @@ EntryAST *check_declared_destination(char *name) {
 
 void check_int_float_type(TypeClass type) {
 	if (type == TC_INT || type == TC_FLOAT) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	else throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_basic_type(TypeClass type) {
 	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_CHAR) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	else throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_builtin_type(TypeClass type) {
 	if (type == TC_INT || type == TC_FLOAT || type == TC_BOOL || type == TC_BOOL || type == TC_CHAR || type == TC_STRING) return;
-	else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	else throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_int_type(TypeClass type) {
-	if (type == TC_INT) return; else throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+	if (type == TC_INT) return; else throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }
 
 void check_type_equality(TypeClass type1, TypeClass type2) {
 	assert_semantics("Checking type equality: Type 1 is "); print_type(type1); assert_semantics(", type 2 is "); print_type(type2);
 	assert_semantics("\n");
 	if (type1 != type2)
-		throw_error(E_INCOSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
+		throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }

@@ -71,6 +71,7 @@ typedef struct TypeAST {
 	LLVMTypeRef typeRef;
 	LLVMValueRef valueRef;
 	ParamType paramType;
+	LLVMValueRef address;
 } TypeAST;
 
 typedef struct EntryAST {

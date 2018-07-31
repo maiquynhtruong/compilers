@@ -52,6 +52,18 @@ printf.bc: printf
 printf.ll: printf.bc
 	llvm-dis printf.bc
 
+scanf: scanf.o
+		$(LD) scanf.o $(LDFLAGS) -o scanf.out
+
+scanf.o: scanf.c
+		$(CC) $(CFLAGS) -c scanf.c
+
+scanf.bc: scanf
+	      ./scanf.out
+
+scanf.ll: scanf.bc
+		  llvm-dis scanf.bc
+
 .PHONY: clean
 clean:
 	-rm -f *.bc *.ll *.o *.out *.s
