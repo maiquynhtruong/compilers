@@ -1,6 +1,7 @@
 PROGRAM test_procedure_statements IS
 	global integer JAKE;
 	global integer zach;
+	global integer ryan;
 
 	procedure if_proc()
 	    integer var;
@@ -20,7 +21,7 @@ PROGRAM test_procedure_statements IS
 	        end for;
 	    end procedure;
 
-	procedure recursion(integer level in)
+	procedure recursion_proc(integer level in)
 		integer level;
 		begin
 			if (level >= 3) return;
