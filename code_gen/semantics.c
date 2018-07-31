@@ -13,7 +13,6 @@ extern LLVMBuilderRef builder;
 
 // Check if an entry has been inserted in table before throws an error if that happens
 void check_new_identifier(char *name) {
-	// EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
 	assert_semantics("Verify a new ident for "); assert_semantics(name); assert_semantics("\n");
 
 	EntryAST *entry = lookup(name);
@@ -81,7 +80,7 @@ EntryAST *check_declared_destination(char *name) {
 			while ((scope != NULL) && (scope != entry->procAST->scope)) // looking upwards for the procedure
 				scope = scope->outerScope;
 
-			if (scope == NULL) //TODO: should I check in global scope too?
+			if (scope == NULL) 
 				throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
 			break;
 		default: throw_error(E_UNDECLARED_IDENT, current_token->lineNo, current_token->columnNo);
@@ -112,8 +111,8 @@ void check_int_type(TypeClass type) {
 }
 
 void check_type_equality(TypeClass type1, TypeClass type2) {
-	assert_semantics("Checking type equality: Type 1 is "); print_type(type1); assert_semantics(", type 2 is "); print_type(type2);
-	assert_semantics("\n");
+	assert_semantics("Checking type equality: Type 1 is "); assert_semantics(print_type(type1));
+	assert_semantics(", type 2 is "); print_type(type2); assert_semantics("\n");
 	if (type1 != type2)
 		throw_error(E_INCONSISTENT_TYPE, current_token->lineNo, current_token->columnNo);
 }

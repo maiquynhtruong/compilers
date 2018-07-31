@@ -69,5 +69,16 @@ void codegen_module(char *file_name) {
         fprintf(stderr, "error writing bitcode to file, skipping\n");
     }
 
+    LLVMDisposeBuilder(builder);
     LLVMDisposeExecutionEngine(engine);
+
+    // Setup optimizations.
+    // LLVMPassManagerRef pass_manager =  LLVMCreateFunctionPassManagerForModule(module);
+    // LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass_manager);
+    // LLVMAddPromoteMemoryToRegisterPass(pass_manager);
+    // LLVMAddInstructionCombiningPass(pass_manager);
+    // LLVMAddReassociatePass(pass_manager);
+    // LLVMAddGVNPass(pass_manager);
+    // LLVMAddCFGSimplificationPass(pass_manager);
+    // LLVMInitializeFunctionPassManager(pass_manager);
 }

@@ -265,7 +265,6 @@ Token* next_token() {
 }
 
 void print_token(Token *token) {
-//    printf("token type: %d\n", token->type);
     switch(token->type) {
         case T_END_OF_FILE:
             printf("T_END_OF_FILE\n"); break;

@@ -24,15 +24,5 @@ int main(int argc, char **argv) {
     }
 
     codegen_module(argv[1]);
-
-    // Setup optimizations.
-    // LLVMPassManagerRef pass_manager =  LLVMCreateFunctionPassManagerForModule(module);
-    // LLVMAddTargetData(LLVMGetExecutionEngineTargetData(engine), pass_manager);
-    // LLVMAddPromoteMemoryToRegisterPass(pass_manager);
-    // LLVMAddInstructionCombiningPass(pass_manager);
-    // LLVMAddReassociatePass(pass_manager);
-    // LLVMAddGVNPass(pass_manager);
-    // LLVMAddCFGSimplificationPass(pass_manager);
-    // LLVMInitializeFunctionPassManager(pass_manager);
     return 0;
 }
