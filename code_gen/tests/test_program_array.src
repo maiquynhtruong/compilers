@@ -1,0 +1,24 @@
+program test_program_array is
+    integer numbers[10];
+    integer res[10];
+    integer i;
+    procedure square_array(integer array[10] in, integer result[10] out)
+        integer i;
+    begin
+        i := 0;
+        for (i := i + 1; i < 10)
+            result[i] := array[i] * array[i];
+        end for;
+    end procedure;
+begin
+    i := 0;
+    for (i := i + 1; i < 10)
+        numbers[i] := i;
+    end for;
+    square_array(numbers, res);
+    i := 0;
+    for (i := i + 1; i < 10)
+        putInteger(res[i]);
+        putString(" ");
+    end for;
+end program.
