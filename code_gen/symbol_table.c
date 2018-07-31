@@ -26,8 +26,8 @@ extern LLVMModuleRef module;
 extern LLVMValueRef mainFunc;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
-	// assert_symbol_table("Declaring an entry: ");
-	// assert_symbol_table(entry->name);
+	assert_symbol_table("Declaring an entry: ");
+	assert_symbol_table(entry->name);
 	EntryNodeAST **list = NULL;
 
 	switch (entry->entryType) {
@@ -57,15 +57,8 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	}
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
-		// assert_symbol_table(" in Global scope\n");
-		// printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
 		list = &(symbolTable->globalEntryList);
 	}
-	// } else {
-		// assert_symbol_table(" in Scope ");
-		// assert_symbol_table(symbolTable->currentScope->name);
-		// assert_symbol_table("\n");
-	// }
 
 	add_entry(list, entry);
 }
@@ -78,7 +71,6 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	if (*list == NULL) {
 		*list = entryNode;
 	} else {
-		// printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
@@ -90,36 +82,24 @@ EntryAST *lookup(char *name) {
 	Scope *curScope = symbolTable->currentScope;
 
 	while (curScope != NULL) {
-		// assert_symbol_table("Calling find_entry in scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 		entry = find_entry(curScope->entryList, name);
 		if (entry != NULL) break;
-
 		curScope = curScope->outerScope;
-		// assert_symbol_table("Ascend to outer scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 	}
 
 	// search in global scope as the last resort
 	if (entry == NULL) {
-		// assert_symbol_table("Lookup in global entry list\n");
 		entry = find_entry(symbolTable->globalEntryList, name);
 	}
-
-	// if (entry == NULL) { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" not found\n"); }
-	// else  { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" found\n"); }
 
 	return entry;
 }
 
 // find entry by name in a EntryNodeAST list
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
-	// assert_symbol_table("Finding entry: ");
-	// assert_symbol_table(name);
-	// assert_symbol_table("\n");
-
 	EntryNodeAST *curNode = list;
 
 	while (curNode != NULL) {
-		// printf("curNode is %s\n", curNode->entryAST->name);
 		if (strcmp(curNode->entryAST->name, name) == 0) {
 			return curNode->entryAST;
 		} else curNode = curNode->next;
@@ -286,7 +266,6 @@ TypeAST *create_type(TypeClass typeClass) {
 			type->typeRef = LLVMFloatType(); break;
 		case TC_STRING:
 			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
-			// type->typeRef = LLVMInt8Type(); break;
 		case TC_BOOL:
 			type->typeRef = LLVMInt32Type(); break;
 		case TC_CHAR:
@@ -325,11 +304,9 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
 		LLVMPositionBuilderAtEnd(builder, procEntry);
 
-		// param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
 		LLVMValueRef value = LLVMGetParam(procValue, 0);
 		LLVMSetValueName(value, "val");
 		param->typeAST->valueRef = value;
-		// printf("Param passed into builtin func is %s\n", LLVMPrintValueToString(value));
 
 		const char *format_str = "";
 	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 ||
@@ -379,6 +356,7 @@ EntryAST *create_program(const char *name) {
 
 EntryAST *create_variable(const char *name) {
 	assert_symbol_table("Creating a variable entry named "); assert_symbol_table(name); assert_symbol_table("\n");
+
 	EntryAST *varEntry = (EntryAST *) malloc(sizeof(EntryAST));
 	strcpy(varEntry->name, name);
 	varEntry->entryType = ET_VARIABLE;

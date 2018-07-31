@@ -87,7 +87,7 @@ void parse_program() {
     match_token(T_IDENTIFIER);
 
     program = create_program("main"); // top level function has to be "main"
-    // program = create_program(current_token->val.stringVal);
+    // program = create_program(current_token->val.stringVal); // this won't run
 
     enter_scope(program->progAST->scope);
 
@@ -158,7 +158,6 @@ void parse_proc_declaration(int isGlobal) {
         while (node != NULL) {
             EntryAST *paramEntry = node->entryAST;
             paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
-            // LLVMBuildStore(builder, param, paramEntry->typeAST->valueRef);
             node = node->next;
         }
 
@@ -171,7 +170,6 @@ void parse_proc_declaration(int isGlobal) {
 
     printf("After parsing procedure: %s\n", LLVMPrintValueToString(procValue));
 
-    // LLVMValueRef parent = LLVMGetBasicBlockParent(LLVMGetInsertBlock(builder)); // shoudl get the global scope
     LLVMPositionBuilderAtEnd(builder, LLVMGetLastBasicBlock(mainFunc));
 
     assert_parser("Done parsing a procedure declaration\n");
@@ -534,21 +532,17 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
     int argi = 0, argc = proc->procAST->paramc;
     LLVMValueRef *args = (LLVMValueRef *) malloc(sizeof(LLVMValueRef) * argc);
     args[argi++] = parse_argument(node->entryAST->typeAST);
-    printf("Current argument: %s\n", node->entryAST->name);
     node = node->next;
 
     while (look_ahead->type == T_COMMA) {
         match_token(T_COMMA);
         if (node == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
-        printf("Current argument: %s\n", node->entryAST->name);
 
         args[argi++] = parse_argument(node->entryAST->typeAST);
         node = node->next;
 
         if (argi > argc) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
     }
-
-    printf("Number of argument parsed is %d, number of param is %d\n", argi, argc);
 
     if (argi < argc) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
 
@@ -562,8 +556,6 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
     assert_parser("Checking argument type equality\n");
     check_type_equality(paramType->typeClass, argType->typeClass);
 
-    printf("param type is: %s, arg type is: %s\n", LLVMPrintTypeToString(paramType->typeRef), LLVMPrintTypeToString(argType->typeRef));
-    printf("param value is: %s, arg value is: %s\n", LLVMPrintValueToString(paramType->valueRef), LLVMPrintValueToString(argType->valueRef));
     if (paramType->paramType == PT_OUT) {
         if (argType->typeClass != TC_STRING) {
             argType->valueRef = argType->address; // the pointer because what the pointer points to isn't initialized, yet.
@@ -578,6 +570,7 @@ TypeAST *parse_expression() {
     if (look_ahead->type == K_NOT) {
         match_token(K_NOT);
         invertNot = true;
+
     }
 
     TypeAST *expType = parse_arith_op();
@@ -586,7 +579,7 @@ TypeAST *parse_expression() {
 
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); print_type(expType->typeClass); assert_parser("\n");
-    printf("Code gen exp: %s\n", LLVMPrintValueToString(expType->valueRef));
+    assert_parser("Code gen exp: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
 
     return expType;
 }
@@ -605,7 +598,7 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
             check_int_type(arithOpType2->typeClass);
 
             valueRef = LLVMBuildAnd(builder, arithOpType1->valueRef, arithOpType2->valueRef, "and");
-            printf("Code gen and: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen and: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             expType = parse_expression_arith_op(arithOpType1);
             break;
@@ -617,7 +610,7 @@ TypeAST *parse_expression_arith_op(TypeAST *arithOpType1) {
             check_int_type(arithOpType2->typeClass);
 
             valueRef = LLVMBuildOr(builder, arithOpType1->valueRef, arithOpType2->valueRef, "or");
-            printf("Code gen or: %s\n", LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen or: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             expType = parse_expression_arith_op(arithOpType1);
             break;
@@ -642,7 +635,6 @@ TypeAST *parse_arith_op() {
     TypeAST *arithOpType = parse_relation();
     arithOpType = parse_arith_op_relation(arithOpType);
     assert_parser("Done parsing an arithmetic operation\n");
-    assert_parser("Arithmetic operation type is: "); print_type(arithOpType->typeClass); assert_parser("\n");
     return arithOpType;
 }
 
@@ -844,7 +836,6 @@ TypeAST *parse_term_factor(TypeAST *factorType1) {
         case T_RPAREN: // for loop, if statement
         case T_RBRACKET: // assignment statement
         case T_SEMI_COLON: // statements
-            // termAST = factorAST;
             termType = factorType1;
             break;
         default: throw_error(E_INVALID_TERM, look_ahead->lineNo, look_ahead->columnNo); break;
@@ -934,6 +925,9 @@ TypeAST *parse_factor() {
     typeAST->valueRef = value;
     typeAST->address = address;
 
-    printf("Factor type: %s, value: %s\n", LLVMPrintTypeToString(typeAST->typeRef), LLVMPrintValueToString(typeAST->valueRef));
+    assert_parser("Factor type: ");
+    assert_parser(LLVMPrintTypeToString(typeAST->typeRef));
+    assert_parser(", value ");
+    assert_parser(LLVMPrintTypeToString(typeAST->valueRef));
     return typeAST;
 }

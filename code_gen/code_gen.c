@@ -26,18 +26,6 @@ LLVMValueRef llvm_printf;
 LLVMValueRef llvm_scanf;
 
 // https://stackoverflow.com/questions/1061753/how-can-i-implement-a-string-data-type-in-llvm
-LLVMValueRef codegen_string(char *data) {
-    char stringArray[MAX_STRING_LENGTH];
-    LLVMValueRef value = LLVMAddGlobal(module, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), "string");
-    // set as internal linkage and constant
-    LLVMSetLinkage(value, LLVMInternalLinkage);
-    LLVMSetGlobalConstant(value, true);
-
-    // Initialize with string:
-    LLVMSetInitializer(value, LLVMConstString(data, MAX_STRING_LENGTH, 1));
-    printf("String is: %s\n", LLVMPrintValueToString(value));
-    return value;
-}
 
 void codegen_extern_decl() {
     assert_codegen("Create external declarations\n");
