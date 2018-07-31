@@ -28,21 +28,18 @@ extern LLVMValueRef mainFunc;
 void declare_entry(EntryAST *entry, int isGlobal) {
 	// assert_symbol_table("Declaring an entry: ");
 	// assert_symbol_table(entry->name);
-	// assert_symbol_table(", with type ");
-	// print_entry_type_class(entry);
-	// assert_symbol_table("\n");
-	// printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
 	EntryNodeAST **list = NULL;
 
 	switch (entry->entryType) {
 		case ET_VARIABLE:
 			if (entry->typeAST->typeClass == TC_STRING) {
 				LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
-				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, "val");
-				entry->typeAST->valueRef = stringArray;
+				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
+				entry->typeAST->address = stringArray;
 			} else {
-				entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 			}
+			entry->typeAST->valueRef = entry->typeAST->address;
 			entry->varAST->scope = symbolTable->currentScope;
 			list = &(symbolTable->currentScope->entryList);
 			break;
@@ -141,9 +138,9 @@ void init_symbol_table() {
 
 	// built-in functions e.g. getInteger(integer val out)
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
+	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
-	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
@@ -289,9 +286,8 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_FLOAT:
 			type->typeRef = LLVMFloatType(); break;
 		case TC_STRING:
-			// type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
-			// type->typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH); break;
-			type->typeRef = LLVMInt8Type(); break;
+			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
+			// type->typeRef = LLVMInt8Type(); break;
 		case TC_BOOL:
 			type->typeRef = LLVMInt32Type(); break;
 		case TC_CHAR:
@@ -320,7 +316,9 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 
 		LLVMTypeRef params[] = { param->typeAST->typeRef };
 		if (name[0] == 'g') {
-			params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
+			if (varType != TC_STRING) {
+				params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
+			}
 		}
 
 		LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), params, 1, false);
@@ -328,21 +326,11 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
 		LLVMPositionBuilderAtEnd(builder, procEntry);
 
-		param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
+		// param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
 		LLVMValueRef value = LLVMGetParam(procValue, 0);
 		LLVMSetValueName(value, "val");
 		param->typeAST->valueRef = value;
-		printf("Param passed into builtin func is %s\n", LLVMPrintValueToString(value));
-
-		// if (strcmp(name, "getstring") != 0) {
-		// 	param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
-		// 	LLVMBuildStore(builder, value, param->typeAST->valueRef);
-		// } else {
-		// 	LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
-		// 	LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, "val");
-			// LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
-			// param->typeAST->valueRef = LLVMBuildInBoundsGEP(builder, stringArray, indices, 2, "val");
-		// }
+		// printf("Param passed into builtin func is %s\n", LLVMPrintValueToString(value));
 
 		const char *format_str = "";
 	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 ||

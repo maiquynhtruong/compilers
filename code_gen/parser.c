@@ -564,10 +564,11 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
 
     printf("param type is: %s, arg type is: %s\n", LLVMPrintTypeToString(paramType->typeRef), LLVMPrintTypeToString(argType->typeRef));
     printf("param value is: %s, arg value is: %s\n", LLVMPrintValueToString(paramType->valueRef), LLVMPrintValueToString(argType->valueRef));
-    if (paramType->paramType == PT_OUT) {
-        argType->valueRef = paramType->valueRef; // get the pointer, not the gibberish the pointer points to
-    } else {
-        LLVMBuildStore(builder, argType->valueRef, paramType->valueRef);
+    if (paramType->paramType == PT_OUT) {// && argType->typeClass != TC_STRING) {
+        if (argType->typeClass != TC_STRING) {
+            // argType->valueRef = paramType->valueRef; // stuff that was just alloca, not initialized
+            argType->valueRef = argType->address;
+        }
     }
     return argType->valueRef;
 }
@@ -860,13 +861,12 @@ TypeAST *parse_factor() {
     EntryAST *factorAST = NULL;
     TypeAST *typeAST = NULL;
     TypeClass factorType = TC_INVALID;
-    LLVMValueRef value = NULL;
+    LLVMValueRef value = NULL, address = NULL;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
             factorType = TC_STRING;
             value = LLVMBuildGlobalStringPtr(builder, current_token->val.stringVal, "string");
-            // value = codegen_string(current_token->val.stringVal);
             break;
         case T_CHAR:
             match_token(T_CHAR);
@@ -910,16 +910,14 @@ TypeAST *parse_factor() {
             match_token(T_IDENTIFIER);
             factorAST = check_declared_identifier(current_token->val.stringVal);
             factorType = factorAST->typeAST->typeClass;
+            address = factorAST->typeAST->address;
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
             if (factorType == TC_STRING) {
                 LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
                 value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "val");
-            }
-            // if (LLVMIsUndef(factorAST->typeAST->valueRef)) {
-            //     value = factorAST->typeAST->valueRef;
-             else {
+            } else {
                 value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
             }
             break;
@@ -935,6 +933,7 @@ TypeAST *parse_factor() {
 
     typeAST = create_type(factorType);
     typeAST->valueRef = value;
+    typeAST->address = address;
 
     printf("Factor type: %s, value: %s\n", LLVMPrintTypeToString(typeAST->typeRef), LLVMPrintValueToString(typeAST->valueRef));
     return typeAST;
