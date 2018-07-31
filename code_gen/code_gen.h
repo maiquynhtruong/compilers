@@ -2,8 +2,7 @@
 #define CODE_GEN_H
 
 LLVMValueRef codegen_declare_proc(char *name, LLVMTypeRef *params);
-void codegen_proc_call(char *name, LLVMValueRef *args, int argc);
-void codegen_builtin_proc_call(char *name, LLVMValueRef value);
+LLVMValueRef codegen_string(char *data);
 
 void codegen_extern_decl();
 void codegen_module(char *file_name);
