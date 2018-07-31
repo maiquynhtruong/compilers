@@ -4,6 +4,8 @@
 #include "symbol_table.h"
 #include "error.h"
 
+#define MAX_STRING_LENGTH 50
+
 SymbolTable *symbolTable;
 
 EntryAST *getBool;
@@ -18,22 +20,29 @@ EntryAST *putString;
 EntryAST *putChar;
 
 extern LLVMValueRef llvm_printf;
+extern LLVMValueRef llvm_scanf;
 extern LLVMBuilderRef builder;
 extern LLVMModuleRef module;
 extern LLVMValueRef mainFunc;
 
 void declare_entry(EntryAST *entry, int isGlobal) {
-	assert_symbol_table("Declaring an entry: ");
-	assert_symbol_table(entry->name);
-	assert_symbol_table(", with type ");
-	print_entry_type_class(entry);
-	assert_symbol_table("\n");
-	printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
+	// assert_symbol_table("Declaring an entry: ");
+	// assert_symbol_table(entry->name);
+	// assert_symbol_table(", with type ");
+	// print_entry_type_class(entry);
+	// assert_symbol_table("\n");
+	// printf("Current basic block: %s\n", LLVMGetBasicBlockName(LLVMGetInsertBlock(builder)));
 	EntryNodeAST **list = NULL;
 
 	switch (entry->entryType) {
 		case ET_VARIABLE:
-			entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+			if (entry->typeAST->typeClass == TC_STRING) {
+				LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
+				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, "val");
+				entry->typeAST->valueRef = stringArray;
+			} else {
+				entry->typeAST->valueRef = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+			}
 			entry->varAST->scope = symbolTable->currentScope;
 			list = &(symbolTable->currentScope->entryList);
 			break;
@@ -52,14 +61,15 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	}
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
-		assert_symbol_table(" in Global scope\n");
-		printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
+		// assert_symbol_table(" in Global scope\n");
+		// printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
 		list = &(symbolTable->globalEntryList);
-	} else {
-		assert_symbol_table(" in Scope ");
-		assert_symbol_table(symbolTable->currentScope->name);
-		assert_symbol_table("\n");
 	}
+	// } else {
+		// assert_symbol_table(" in Scope ");
+		// assert_symbol_table(symbolTable->currentScope->name);
+		// assert_symbol_table("\n");
+	// }
 
 	add_entry(list, entry);
 }
@@ -72,7 +82,7 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	if (*list == NULL) {
 		*list = entryNode;
 	} else {
-		printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
+		// printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
@@ -84,36 +94,36 @@ EntryAST *lookup(char *name) {
 	Scope *curScope = symbolTable->currentScope;
 
 	while (curScope != NULL) {
-		assert_symbol_table("Calling find_entry in scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
+		// assert_symbol_table("Calling find_entry in scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 		entry = find_entry(curScope->entryList, name);
 		if (entry != NULL) break;
 
 		curScope = curScope->outerScope;
-		assert_symbol_table("Ascend to outer scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
+		// assert_symbol_table("Ascend to outer scope "); assert_symbol_table(curScope->name); assert_symbol_table("\n");
 	}
 
 	// search in global scope as the last resort
 	if (entry == NULL) {
-		assert_symbol_table("Lookup in global entry list\n");
+		// assert_symbol_table("Lookup in global entry list\n");
 		entry = find_entry(symbolTable->globalEntryList, name);
 	}
 
-	if (entry == NULL) { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" not found\n"); }
-	else  { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" found\n"); }
+	// if (entry == NULL) { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" not found\n"); }
+	// else  { assert_symbol_table("Entry "); assert_symbol_table(name); assert_symbol_table(" found\n"); }
 
 	return entry;
 }
 
 // find entry by name in a EntryNodeAST list
 EntryAST *find_entry(EntryNodeAST *list, char *name) {
-	assert_symbol_table("Finding entry: ");
-	assert_symbol_table(name);
-	assert_symbol_table("\n");
+	// assert_symbol_table("Finding entry: ");
+	// assert_symbol_table(name);
+	// assert_symbol_table("\n");
 
 	EntryNodeAST *curNode = list;
 
 	while (curNode != NULL) {
-		printf("curNode is %s\n", curNode->entryAST->name);
+		// printf("curNode is %s\n", curNode->entryAST->name);
 		if (strcmp(curNode->entryAST->name, name) == 0) {
 			return curNode->entryAST;
 		} else curNode = curNode->next;
@@ -131,9 +141,9 @@ void init_symbol_table() {
 
 	// built-in functions e.g. getInteger(integer val out)
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
-	// getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
+	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
-	// getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
+	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
@@ -279,7 +289,9 @@ TypeAST *create_type(TypeClass typeClass) {
 		case TC_FLOAT:
 			type->typeRef = LLVMFloatType(); break;
 		case TC_STRING:
-			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
+			// type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
+			// type->typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH); break;
+			type->typeRef = LLVMInt8Type(); break;
 		case TC_BOOL:
 			type->typeRef = LLVMInt32Type(); break;
 		case TC_CHAR:
@@ -307,36 +319,54 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		proc->procAST->paramc = 1;
 
 		LLVMTypeRef params[] = { param->typeAST->typeRef };
+		if (name[0] == 'g') {
+			params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
+		}
+
 		LLVMTypeRef procType = LLVMFunctionType(LLVMVoidType(), params, 1, false);
 		LLVMValueRef procValue = LLVMAddFunction(module, proc->name, procType);
 		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
 		LLVMPositionBuilderAtEnd(builder, procEntry);
 
+		param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
 		LLVMValueRef value = LLVMGetParam(procValue, 0);
 		LLVMSetValueName(value, "val");
-		param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
-	    LLVMBuildStore(builder, value, param->typeAST->valueRef);
-		value = LLVMBuildLoad(builder, param->typeAST->valueRef, "val");
+		param->typeAST->valueRef = value;
+		printf("Param passed into builtin func is %s\n", LLVMPrintValueToString(value));
+
+		// if (strcmp(name, "getstring") != 0) {
+		// 	param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
+		// 	LLVMBuildStore(builder, value, param->typeAST->valueRef);
+		// } else {
+		// 	LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
+		// 	LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, "val");
+			// LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
+			// param->typeAST->valueRef = LLVMBuildInBoundsGEP(builder, stringArray, indices, 2, "val");
+		// }
 
 		const char *format_str = "";
-	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0) {
+	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 ||
+			strcmp(name, "getbool") == 0 || strcmp(name, "getinteger") == 0) {
 	        format_str = "%d";
-	    } else if (strcmp(name, "putfloat") == 0) {
+	    } else if (strcmp(name, "putfloat") == 0 || strcmp(name, "getfloat") == 0) {
 	        format_str = "%f";
-	    } else if (strcmp(name, "putstring") == 0) {
+	    } else if (strcmp(name, "putstring") == 0 || strcmp(name, "getstring") == 0) {
 	        format_str = "%s";
-	    } else if (strcmp(name, "putchar") == 0) {
+	    } else if (strcmp(name, "putchar") == 0 || strcmp(name, "getchar") == 0) {
 	        format_str = "%c";
 	    }
 
 	    LLVMValueRef format = LLVMBuildGlobalStringPtr(builder, format_str, "format_str");
 
-	    printf("%s\n", LLVMPrintValueToString(format));
-	    printf("%s\n", LLVMPrintValueToString(value));
+		if (name[0] == 'p') { // put* functions
+			LLVMValueRef args[] = { format, param->typeAST->valueRef };
+			LLVMBuildCall(builder, llvm_printf, args, 2, name);
+		} else { // get* functions
+			LLVMValueRef args[] = { format, param->typeAST->valueRef };
+			LLVMBuildCall(builder, llvm_scanf, args, 2, name);
+		}
 
-	    LLVMValueRef args[] = { format, value };
-
-	    LLVMBuildCall(builder, llvm_printf, args, 2, name);
+		printf("Value is %s\n", LLVMPrintValueToString(value));
 
 		LLVMBuildRetVoid(builder);
 

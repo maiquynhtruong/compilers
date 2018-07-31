@@ -4,9 +4,12 @@
 
 void scan_variables() {
     char s[MAX_STRING_LENGTH];
+    // char *s;
     printf("Enter a string: ");
     scanf("%s", s);
     printf("The string entered is: %s\n", s);
+    char *t = "Another string";
+    printf("Printing out: %s\n", t);
 }
 
 void scan_variables_1(int i) {
@@ -16,7 +19,8 @@ void scan_variables_1(int i) {
     scanf("%d", &i);
     printf("Enter float: ");
     scanf("%f", &f);
-    printf("Expression is %f\n", i + f + c);
+    f = i + f;
+    printf("Expression is %f\n", f);
 }
 
 void scan_variables_2() {

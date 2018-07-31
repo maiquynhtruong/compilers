@@ -23,7 +23,6 @@ Token* current_token;
 extern LLVMModuleRef module;
 extern LLVMBuilderRef builder;
 extern LLVMExecutionEngineRef engine;
-extern LLVMValueRef llvm_printf;
 LLVMValueRef mainFunc;
 
 // from symbol_table.c
@@ -156,13 +155,10 @@ void parse_proc_declaration(int isGlobal) {
         LLVMPositionBuilderAtEnd(builder, entry);
 
         EntryNodeAST *node = proc->procAST->params;
-        LLVMValueRef param = LLVMGetFirstParam(procValue);
         while (node != NULL) {
             EntryAST *paramEntry = node->entryAST;
-            LLVMSetValueName(param, paramEntry->name);
             paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
-            LLVMBuildStore(builder, param, paramEntry->typeAST->valueRef);
-            param = LLVMGetNextParam(param);
+            // LLVMBuildStore(builder, param, paramEntry->typeAST->valueRef);
             node = node->next;
         }
 
@@ -319,6 +315,7 @@ EntryAST *parse_param() {
 
     EntryAST *param = create_param(name);
     param->typeAST = create_type(typeClass);
+    LLVMSetValueName(param->typeAST->valueRef, name);
     param->typeAST->paramType = paramType;
     declare_entry(param, 0);
 
@@ -522,9 +519,8 @@ void parse_procedure_call() {
     match_token(T_RPAREN);
 
     assert_parser("Done parsing a procedure call\n");
-    // LLVMValueRef proc = check_builtin_proc(entry->name);
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
-    printf("Proc is %s\n", LLVMPrintValueToString(proc));
+    printf("Param passed to build call is %s\n", LLVMPrintValueToString(args[0]));
     LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");//strcat(entry->name, "call"));
 }
 
@@ -568,6 +564,11 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
 
     printf("param type is: %s, arg type is: %s\n", LLVMPrintTypeToString(paramType->typeRef), LLVMPrintTypeToString(argType->typeRef));
     printf("param value is: %s, arg value is: %s\n", LLVMPrintValueToString(paramType->valueRef), LLVMPrintValueToString(argType->valueRef));
+    if (paramType->paramType == PT_OUT) {
+        argType->valueRef = paramType->valueRef; // get the pointer, not the gibberish the pointer points to
+    } else {
+        LLVMBuildStore(builder, argType->valueRef, paramType->valueRef);
+    }
     return argType->valueRef;
 }
 
@@ -865,6 +866,7 @@ TypeAST *parse_factor() {
             match_token(T_STRING);
             factorType = TC_STRING;
             value = LLVMBuildGlobalStringPtr(builder, current_token->val.stringVal, "string");
+            // value = codegen_string(current_token->val.stringVal);
             break;
         case T_CHAR:
             match_token(T_CHAR);
@@ -911,7 +913,15 @@ TypeAST *parse_factor() {
             if (factorAST->varAST->size > 0) { // an array
                 parse_indexes(); // TODO: How do I even represent an array in factor?
             }
-            value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
+            if (factorType == TC_STRING) {
+                LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
+                value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "val");
+            }
+            // if (LLVMIsUndef(factorAST->typeAST->valueRef)) {
+            //     value = factorAST->typeAST->valueRef;
+             else {
+                value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
+            }
             break;
         // FOLLOW set
         case T_AND: case T_OR: case T_COMMA: // expression

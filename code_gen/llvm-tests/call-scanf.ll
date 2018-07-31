@@ -6,20 +6,26 @@ target triple = "x86_64-apple-macosx10.13.0"
 @.str = private unnamed_addr constant [17 x i8] c"Enter a string: \00", align 1
 @.str.1 = private unnamed_addr constant [3 x i8] c"%s\00", align 1
 @.str.2 = private unnamed_addr constant [27 x i8] c"The string entered is: %s\0A\00", align 1
-@.str.3 = private unnamed_addr constant [16 x i8] c"Enter integer: \00", align 1
-@.str.4 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
-@.str.5 = private unnamed_addr constant [14 x i8] c"Enter float: \00", align 1
-@.str.6 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
-@.str.7 = private unnamed_addr constant [18 x i8] c"Expression is %f\0A\00", align 1
+@.str.3 = private unnamed_addr constant [15 x i8] c"Another string\00", align 1
+@.str.4 = private unnamed_addr constant [18 x i8] c"Printing out: %s\0A\00", align 1
+@.str.5 = private unnamed_addr constant [16 x i8] c"Enter integer: \00", align 1
+@.str.6 = private unnamed_addr constant [3 x i8] c"%d\00", align 1
+@.str.7 = private unnamed_addr constant [14 x i8] c"Enter float: \00", align 1
+@.str.8 = private unnamed_addr constant [3 x i8] c"%f\00", align 1
+@.str.9 = private unnamed_addr constant [18 x i8] c"Expression is %f\0A\00", align 1
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable
 define void @scan_variables() #0 {
   %1 = alloca [100 x i8], align 16
-  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @.str, i32 0, i32 0))
-  %3 = getelementptr inbounds [100 x i8], [100 x i8]* %1, i32 0, i32 0
-  %4 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.1, i32 0, i32 0), i8* %3)
-  %5 = getelementptr inbounds [100 x i8], [100 x i8]* %1, i32 0, i32 0
-  %6 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.2, i32 0, i32 0), i8* %5)
+  %2 = alloca i8*, align 8
+  %3 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @.str, i32 0, i32 0))
+  %4 = getelementptr inbounds [100 x i8], [100 x i8]* %1, i32 0, i32 0
+  %5 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.1, i32 0, i32 0), i8* %4)
+  %6 = getelementptr inbounds [100 x i8], [100 x i8]* %1, i32 0, i32 0
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.2, i32 0, i32 0), i8* %6)
+  store i8* getelementptr inbounds ([15 x i8], [15 x i8]* @.str.3, i32 0, i32 0), i8** %2, align 8
+  %8 = load i8*, i8** %2, align 8
+  %9 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.4, i32 0, i32 0), i8* %8)
   ret void
 }
 
@@ -34,20 +40,18 @@ define void @scan_variables_1(i32) #0 {
   %4 = alloca i8, align 1
   store i32 %0, i32* %2, align 4
   store i8 97, i8* %4, align 1
-  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.3, i32 0, i32 0))
-  %6 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.4, i32 0, i32 0), i32* %2)
-  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([14 x i8], [14 x i8]* @.str.5, i32 0, i32 0))
-  %8 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.6, i32 0, i32 0), float* %3)
+  %5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @.str.5, i32 0, i32 0))
+  %6 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.6, i32 0, i32 0), i32* %2)
+  %7 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([14 x i8], [14 x i8]* @.str.7, i32 0, i32 0))
+  %8 = call i32 (i8*, ...) @scanf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.8, i32 0, i32 0), float* %3)
   %9 = load i32, i32* %2, align 4
   %10 = sitofp i32 %9 to float
   %11 = load float, float* %3, align 4
   %12 = fadd float %10, %11
-  %13 = load i8, i8* %4, align 1
-  %14 = sext i8 %13 to i32
-  %15 = sitofp i32 %14 to float
-  %16 = fadd float %12, %15
-  %17 = fpext float %16 to double
-  %18 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.7, i32 0, i32 0), double %17)
+  store float %12, float* %3, align 4
+  %13 = load float, float* %3, align 4
+  %14 = fpext float %13 to double
+  %15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @.str.9, i32 0, i32 0), double %14)
   ret void
 }
 

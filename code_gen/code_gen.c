@@ -10,36 +10,44 @@
 #include <llvm-c/Analysis.h>
 #include <llvm-c/BitWriter.h>
 
+// #include "token.h"
 #include "error.h"
 #include "code_gen.h"
 #include "reader.h"
 #include "semantics.h"
 #include "parser.h"
 
+#define MAX_STRING_LENGTH 50
+
 LLVMModuleRef module;
 LLVMBuilderRef builder;
 LLVMExecutionEngineRef engine;
 LLVMValueRef llvm_printf;
+LLVMValueRef llvm_scanf;
 
 // https://stackoverflow.com/questions/1061753/how-can-i-implement-a-string-data-type-in-llvm
-// LLVMValueRef codegen_string(LLVMModuleRef module, const char *data, int length) {
-//     LLVMValueRef ref = LLVMAddGlobal(module, LLVMArrayType(LLVMInt8Type(), length), "string");
-//
-//   // set as internal linkage and constant
-//   LLVMSetLinkage(ref, LLVMInternalLinkage);
-//   LLVMSetGlobalConstant(ref, 1);
-//
-//   // Initialize with string:
-//   LLVMSetInitializer(ref, LLVMConstString(data, length, 1));
-//
-//   return ref;
-// }
+LLVMValueRef codegen_string(char *data) {
+    char stringArray[MAX_STRING_LENGTH];
+    LLVMValueRef value = LLVMAddGlobal(module, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), "string");
+    // set as internal linkage and constant
+    LLVMSetLinkage(value, LLVMInternalLinkage);
+    LLVMSetGlobalConstant(value, true);
+
+    // Initialize with string:
+    LLVMSetInitializer(value, LLVMConstString(data, MAX_STRING_LENGTH, 1));
+    printf("String is: %s\n", LLVMPrintValueToString(value));
+    return value;
+}
 
 void codegen_extern_decl() {
     assert_codegen("Create external declarations\n");
     LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
+
 	LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
 	llvm_printf = LLVMAddFunction(module, "printf", llvm_printf_type);
+
+    LLVMTypeRef llvm_scanf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
+    llvm_scanf = LLVMAddFunction(module, "scanf", llvm_scanf_type);
 }
 
 void codegen_module(char *file_name) {
