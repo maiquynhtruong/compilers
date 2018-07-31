@@ -9,6 +9,7 @@ target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
 @string = private unnamed_addr constant [17 x i8] c"Enter a string: \00"
 @string.4 = private unnamed_addr constant [19 x i8] c"Enter an integer: \00"
 @string.5 = private unnamed_addr constant [18 x i8] c"The integer was: \00"
+@string.6 = private unnamed_addr constant [17 x i8] c"The string was: \00"
 
 declare i32 @printf(...)
 
@@ -28,6 +29,9 @@ main_entry:
   call void @putstring(i8* getelementptr inbounds ([18 x i8], [18 x i8]* @string.5, i32 0, i32 0))
   %i2 = load i32, i32* %i
   call void @putinteger(i32 %i2)
+  call void @putstring(i8* getelementptr inbounds ([17 x i8], [17 x i8]* @string.6, i32 0, i32 0))
+  %val3 = getelementptr inbounds [50 x i8], [50 x i8]* %s, i32 0, i32 0
+  call void @putstring(i8* %val3)
   ret void
 }
 

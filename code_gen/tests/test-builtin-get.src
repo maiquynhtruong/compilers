@@ -9,8 +9,8 @@ begin
     getInteger(i);
     putString("The integer was: ");
     putInteger(i);
-    //putString("The string was: ");
-    //putString(s);
+    putString("The string was: ");
+    putString(s);
     //putString("Enter a float: ");
     //getFloat(f);
 

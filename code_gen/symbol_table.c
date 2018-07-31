@@ -51,7 +51,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			break;
 		case ET_PROCEDURE:
 			entry->procAST->scope->outerScope = symbolTable->currentScope;
-			// list = &(symbolTable->currentScope->entryList);
 			list = &(symbolTable->globalEntryList);
 			break;
 		default: break;
@@ -316,7 +315,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 
 		LLVMTypeRef params[] = { param->typeAST->typeRef };
 		if (name[0] == 'g') {
-			if (varType != TC_STRING) {
+			if (varType != TC_STRING) { // string is such a special type. Exception everytime
 				params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
 			}
 		}

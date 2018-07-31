@@ -521,7 +521,7 @@ void parse_procedure_call() {
     assert_parser("Done parsing a procedure call\n");
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
     printf("Param passed to build call is %s\n", LLVMPrintValueToString(args[0]));
-    LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");//strcat(entry->name, "call"));
+    LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
@@ -564,10 +564,9 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
 
     printf("param type is: %s, arg type is: %s\n", LLVMPrintTypeToString(paramType->typeRef), LLVMPrintTypeToString(argType->typeRef));
     printf("param value is: %s, arg value is: %s\n", LLVMPrintValueToString(paramType->valueRef), LLVMPrintValueToString(argType->valueRef));
-    if (paramType->paramType == PT_OUT) {// && argType->typeClass != TC_STRING) {
+    if (paramType->paramType == PT_OUT) {
         if (argType->typeClass != TC_STRING) {
-            // argType->valueRef = paramType->valueRef; // stuff that was just alloca, not initialized
-            argType->valueRef = argType->address;
+            argType->valueRef = argType->address; // the pointer because what the pointer points to isn't initialized, yet.
         }
     }
     return argType->valueRef;
