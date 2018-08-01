@@ -21,8 +21,9 @@ PROGRAM test_procedure_statements IS
 	        end for;
 	    end procedure;
 
+	integer level;
 	procedure recursion(integer level in)
-		integer level;
+	// was throwing error seg fault here when integer level was declared locally. Not good?
 		begin
 			if (level >= 3) return;
 			putString("recursion level: ");
@@ -66,7 +67,7 @@ PROGRAM test_procedure_statements IS
 	begin // where does it "begin" belong to??
 	    if_proc();
 	    for_proc();
-		recursion();
+		recursion(3);
 		exp_proc();
 		array_proc();
 	end program.
