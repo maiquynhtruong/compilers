@@ -179,24 +179,16 @@ void parse_proc_declaration(int isGlobal) {
 void parse_var_declaration(int isGlobal) {
     assert_parser("Parsing a variable declaration\n");
 
-    int size = 0;
     TypeClass varType = parse_type_mark();
     check_builtin_type(varType);
-
     match_token(T_IDENTIFIER);
     check_new_identifier(current_token->val.stringVal);
 
     EntryAST *entry = create_variable(current_token->val.stringVal);
     entry->typeAST = create_type(varType);
 
-    if (look_ahead->type == T_LBRACKET) { // an array
-        match_token(T_LBRACKET);
-
-        match_token(T_NUMBER_INT); // lower bound
-
-        size = current_token->val.intVal;
-        match_token(T_RBRACKET);
-    }
+    TypeAST *sizeRef = parse_indexes();
+    if (sizeRef != NULL) entry->typeAST->size = sizeRef->size;
 
     declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
 
@@ -273,7 +265,6 @@ void parse_param_list(EntryAST **proc) {
 EntryAST *parse_param() {
     assert_parser("Parsing a parameter\n");
 
-    int size = 0;
     TypeClass typeClass = parse_type_mark();
     check_builtin_type(typeClass);
 
@@ -281,16 +272,7 @@ EntryAST *parse_param() {
     char *name = current_token->val.stringVal;
     check_new_identifier(name);
 
-
-    if (look_ahead->type == T_LBRACKET) { // an array
-        match_token(T_LBRACKET);
-
-        match_token(T_NUMBER_INT); // lower bound
-
-        size = current_token->val.intVal;
-        match_token(T_RBRACKET);
-    }
-
+    TypeAST *sizeRef = parse_indexes();
     ParamType paramType = PT_IN;
     switch (look_ahead->type) {
         case K_IN:
@@ -314,8 +296,8 @@ EntryAST *parse_param() {
 
     EntryAST *param = create_param(name);
     param->typeAST = create_type(typeClass);
-    LLVMSetValueName(param->typeAST->valueRef, name);
     param->typeAST->paramType = paramType;
+    if (sizeRef != NULL) param->typeAST->size = sizeRef->size;
     declare_entry(param, 0);
 
     assert_parser("Done parsing a parameter\n");
@@ -351,7 +333,7 @@ void parse_statement() {
     assert_parser("Done parsing a statement\n");
 }
 
-void parse_indexes() {
+TypeAST *parse_indexes() {
     TypeAST *elemType = NULL;
 
     while (look_ahead->type == T_LBRACKET) {
@@ -362,6 +344,7 @@ void parse_indexes() {
 
         match_token(T_RBRACKET);
     }
+    return elemType;
 }
 
 TypeAST *parse_destination() {
@@ -909,8 +892,8 @@ TypeAST *parse_factor() {
             factorAST = check_declared_identifier(current_token->val.stringVal);
             factorType = factorAST->typeAST->typeClass;
             address = factorAST->typeAST->address;
-            if (factorAST->varAST->size > 0) { // an array
-                parse_indexes(); // TODO: How do I even represent an array in factor?
+            if (factorAST->typeAST->size > 0) { // an array so parse the index
+                TypeAST *indexRef = parse_indexes(); // TODO: How do I even represent an array in factor?
             }
             if (factorType == TC_STRING) {
                 LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };

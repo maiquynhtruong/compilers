@@ -33,9 +33,9 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	switch (entry->entryType) {
 		case ET_VARIABLE:
 			if (entry->typeAST->typeClass == TC_STRING) {
-				LLVMValueRef length = LLVMConstInt(LLVMInt32Type(), MAX_STRING_LENGTH, false);
-				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
-				entry->typeAST->address = stringArray;
+				entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
+			} else if (entry->typeAST->size) {
+				entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, entry->typeAST->size), NULL, entry->name);
 			} else {
 				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 			}
@@ -83,6 +83,15 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
 	}
+}
+
+EntryAST *lookup_currentScope(char *name) {
+	EntryAST *entry = NULL;
+	Scope *curScope = symbolTable->currentScope;
+
+	entry = find_entry(curScope->entryList, name);
+
+	return entry;
 }
 
 EntryAST *lookup(char *name) {
@@ -296,6 +305,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		default:
 			type->typeRef = LLVMVoidType(); break;
 	}
+	type->size = 0;
 	return type;
 }
 
@@ -385,7 +395,6 @@ EntryAST *create_variable(const char *name) {
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);
 	var->scope = NULL;
-	var->size = 0;
 	varEntry->varAST = var;
 	return varEntry;
 }

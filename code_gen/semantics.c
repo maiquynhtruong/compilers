@@ -16,7 +16,9 @@ void check_new_identifier(char *name) {
 	// EntryAST *entry = find_entry(symbolTable->currentScope->entryList, name);
 	assert_semantics("Verify a new ident for "); assert_semantics(name); assert_semantics("\n");
 
-	EntryAST *entry = lookup(name);
+	// EntryAST *entry = lookup(name);
+	EntryAST *entry = lookup_currentScope(name);
+	
 	if (entry == NULL) {
 		assert_semantics(name); assert_semantics(" is a new ident \n");
 	} else {
