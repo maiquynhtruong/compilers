@@ -51,6 +51,7 @@ It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
 	struct Scope *scope;
+	int size;
 } VariableAST;
 
 typedef struct ProcedureAST {
@@ -71,7 +72,7 @@ typedef struct TypeAST {
 	LLVMValueRef valueRef;
 	ParamType paramType;
 	LLVMValueRef address;
-	int size;
+	LLVMValueRef sizeRef;
 } TypeAST;
 
 typedef struct EntryAST {

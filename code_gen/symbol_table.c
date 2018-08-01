@@ -30,37 +30,40 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	// assert_symbol_table(entry->name);
 	EntryNodeAST **list = NULL;
 
-	switch (entry->entryType) {
-		case ET_VARIABLE:
-			if (entry->typeAST->typeClass == TC_STRING) {
-				entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
-			} else if (entry->typeAST->size) {
-				entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, entry->typeAST->size), NULL, entry->name);
-			} else {
-				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
-			}
-			entry->typeAST->valueRef = entry->typeAST->address;
-			entry->varAST->scope = symbolTable->currentScope;
-			list = &(symbolTable->currentScope->entryList);
-			break;
-		case ET_PARAMTER:
-			entry->varAST->scope = symbolTable->currentScope;
-			EntryAST *parent = symbolTable->currentScope->parentEntry;
-			add_entry(&(parent->procAST->params), entry);
-			list = &(symbolTable->currentScope->entryList);
-			break;
-		case ET_PROCEDURE:
-			entry->procAST->scope->outerScope = symbolTable->currentScope;
-			list = &(symbolTable->globalEntryList);
-			break;
-		default: break;
+	if (symbolTable->currentScope == NULL || isGlobal) {
+		list = &(symbolTable->globalEntryList);
+	} else {
+		switch (entry->entryType) {
+			case ET_VARIABLE:
+				if (entry->typeAST->typeClass == TC_STRING) {
+					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
+				} else if (entry->varAST->size > 0) {
+					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, entry->varAST->size), NULL, entry->name);
+				} else {
+					entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+				}
+				entry->typeAST->valueRef = entry->typeAST->address;
+				entry->varAST->scope = symbolTable->currentScope;
+				list = &(symbolTable->currentScope->entryList);
+				break;
+			case ET_PARAMTER:
+				entry->varAST->scope = symbolTable->currentScope;
+				EntryAST *parent = symbolTable->currentScope->parentEntry;
+				add_entry(&(parent->procAST->params), entry);
+				list = &(symbolTable->currentScope->entryList);
+				break;
+			case ET_PROCEDURE:
+				entry->procAST->scope->outerScope = symbolTable->currentScope;
+				list = &(symbolTable->globalEntryList);
+				break;
+			default: break;
+		}
 	}
 
-	if (symbolTable->currentScope == NULL || isGlobal) {
+// if (symbolTable->currentScope == NULL || isGlobal) {
 		// assert_symbol_table(" in Global scope\n");
 		// printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
-		list = &(symbolTable->globalEntryList);
-	}
+		// list = &(symbolTable->globalEntryList);
 	// } else {
 		// assert_symbol_table(" in Scope ");
 		// assert_symbol_table(symbolTable->currentScope->name);
@@ -305,7 +308,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		default:
 			type->typeRef = LLVMVoidType(); break;
 	}
-	type->size = 0;
+	type->sizeRef = NULL;
 	return type;
 }
 
@@ -395,6 +398,7 @@ EntryAST *create_variable(const char *name) {
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);
 	var->scope = NULL;
+	var->size = 0;
 	varEntry->varAST = var;
 	return varEntry;
 }

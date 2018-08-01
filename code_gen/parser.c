@@ -156,8 +156,16 @@ void parse_proc_declaration(int isGlobal) {
         EntryNodeAST *node = proc->procAST->params;
         while (node != NULL) {
             EntryAST *paramEntry = node->entryAST;
-            paramEntry->typeAST->valueRef = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
-            // LLVMBuildStore(builder, param, paramEntry->typeAST->valueRef);
+
+            if (paramEntry->typeAST->typeClass == TC_STRING) {
+				paramEntry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, paramEntry->name);
+			} else if (paramEntry->varAST->size > 0) {
+				paramEntry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(paramEntry->typeAST->typeRef, paramEntry->varAST->size), NULL, paramEntry->name);
+			} else {
+				paramEntry->typeAST->address = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
+			}
+            paramEntry->typeAST->valueRef = paramEntry->typeAST->address;
+
             node = node->next;
         }
 
@@ -188,7 +196,11 @@ void parse_var_declaration(int isGlobal) {
     entry->typeAST = create_type(varType);
 
     TypeAST *sizeRef = parse_indexes();
-    if (sizeRef != NULL) entry->typeAST->size = sizeRef->size;
+    if (sizeRef != NULL) {
+        long long size = LLVMConstIntGetSExtValue(sizeRef->valueRef);
+        entry->typeAST->sizeRef = sizeRef->valueRef;
+        entry->varAST->size = (int) size;
+    }
 
     declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
 
@@ -297,7 +309,13 @@ EntryAST *parse_param() {
     EntryAST *param = create_param(name);
     param->typeAST = create_type(typeClass);
     param->typeAST->paramType = paramType;
-    if (sizeRef != NULL) param->typeAST->size = sizeRef->size;
+
+    if (sizeRef != NULL) {
+        long long size = LLVMConstIntGetSExtValue(sizeRef->valueRef);
+        param->typeAST->sizeRef = sizeRef->valueRef;
+        param->varAST->size = (int) size;
+    }
+
     declare_entry(param, 0);
 
     assert_parser("Done parsing a parameter\n");
@@ -478,10 +496,11 @@ void parse_loop_statement() {
         LLVMBuildBr(builder, startBlock);
     }
 
+    LLVMPositionBuilderAtEnd(builder, endBlock);
+
     match_token(K_END);
     match_token(K_FOR);
 
-    LLVMPositionBuilderAtEnd(builder, endBlock);
 
     assert_parser("Done parsing a for loop\n");
 }
@@ -892,14 +911,24 @@ TypeAST *parse_factor() {
             factorAST = check_declared_identifier(current_token->val.stringVal);
             factorType = factorAST->typeAST->typeClass;
             address = factorAST->typeAST->address;
-            if (factorAST->typeAST->size > 0) { // an array so parse the index
-                TypeAST *indexRef = parse_indexes(); // TODO: How do I even represent an array in factor?
+            value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
+
+            if (factorAST->typeAST->sizeRef != NULL) { // an array so parse the index
+                TypeAST *indexRef = parse_indexes();
+                if (indexRef != NULL) { // loading a single element
+                    // no idea why 2 indices but the example c program was generated with 2 indices
+                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexRef->valueRef };
+                    value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
+                    value = LLVMBuildLoad(builder, value, factorAST->name);
+                } else { // the whole array is passed as an argument or used like a variable -> needs address of first element
+                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
+                    value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
+                }
             }
+
             if (factorType == TC_STRING) {
                 LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
-                value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "val");
-            } else {
-                value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
+                value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
             }
             break;
         // FOLLOW set
