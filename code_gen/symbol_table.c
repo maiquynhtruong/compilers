@@ -37,8 +37,11 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 			case ET_VARIABLE:
 				if (entry->typeAST->typeClass == TC_STRING) {
 					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
-				} else if (entry->varAST->size > 0) {
-					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, entry->varAST->size), NULL, entry->name);
+				} else if (entry->typeAST->sizeRef != NULL) {
+					long long size = LLVMConstIntGetSExtValue(entry->typeAST->sizeRef);
+					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, (int) size), NULL, entry->name);
+					// entry->typeAST->typeRef = LLVMPointerType(entry->typeAST->typeRef, 0);
+					entry->typeAST->typeRef = LLVMArrayType(entry->typeAST->typeRef, (int) size);
 				} else {
 					entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 				}
@@ -60,16 +63,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 		}
 	}
 
-// if (symbolTable->currentScope == NULL || isGlobal) {
-		// assert_symbol_table(" in Global scope\n");
-		// printf("Type of global entry %s is: %s\n", entry->name, LLVMPrintTypeToString(entry->typeAST->typeRef));
-		// list = &(symbolTable->globalEntryList);
-	// } else {
-		// assert_symbol_table(" in Scope ");
-		// assert_symbol_table(symbolTable->currentScope->name);
-		// assert_symbol_table("\n");
-	// }
-
 	add_entry(list, entry);
 }
 
@@ -81,7 +74,6 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 	if (*list == NULL) {
 		*list = entryNode;
 	} else {
-		// printf("Append %s after %s\n", entry->name, (*list)->entryAST->name);
 		EntryNodeAST *cur = *list;
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
@@ -149,16 +141,16 @@ void init_symbol_table() {
 
 	// built-in functions e.g. getInteger(integer val out)
 	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
-	getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
+	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
 	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
-	getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
-	getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
+	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
+	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
 	putInteger = create_builtin_function("putinteger", TC_INT, PT_IN); // putInteger(integer val in)
-	putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
-	putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
+	// putBool = create_builtin_function("putbool", TC_BOOL, PT_IN); // putBool(bool val in)
+	// putFloat = create_builtin_function("putfloat", TC_FLOAT, PT_IN); // putFloat(float val in)
 	putString = create_builtin_function("putstring", TC_STRING, PT_IN); // putString(string val in)
-	putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
+	// putChar = create_builtin_function("putchar", TC_CHAR, PT_IN); // putChar(char val in)
 
 	assert_symbol_table("Finish initializing a symbol table"); assert_symbol_table("\n");
 }
@@ -298,7 +290,6 @@ TypeAST *create_type(TypeClass typeClass) {
 			type->typeRef = LLVMFloatType(); break;
 		case TC_STRING:
 			type->typeRef = LLVMPointerType(LLVMInt8Type(), 0); break;
-			// type->typeRef = LLVMInt8Type(); break;
 		case TC_BOOL:
 			type->typeRef = LLVMInt32Type(); break;
 		case TC_CHAR:
@@ -398,7 +389,6 @@ EntryAST *create_variable(const char *name) {
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);
 	var->scope = NULL;
-	var->size = 0;
 	varEntry->varAST = var;
 	return varEntry;
 }

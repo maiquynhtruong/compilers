@@ -51,7 +51,6 @@ It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
 	struct Scope *scope;
-	int size;
 } VariableAST;
 
 typedef struct ProcedureAST {

@@ -34,6 +34,6 @@ TypeAST *parse_relation_term(TypeAST *relationType);
 TypeAST *parse_term();
 TypeAST *parse_term_factor(TypeAST *termType);
 TypeAST *parse_factor();
-TypeAST *parse_indexes();
+LLVMValueRef parse_indexes();
 
 #endif

@@ -154,18 +154,20 @@ void parse_proc_declaration(int isGlobal) {
         LLVMPositionBuilderAtEnd(builder, entry);
 
         EntryNodeAST *node = proc->procAST->params;
+        LLVMValueRef curParam = LLVMGetFirstParam(procValue);
         while (node != NULL) {
-            EntryAST *paramEntry = node->entryAST;
+            EntryAST *entry = node->entryAST;
 
-            if (paramEntry->typeAST->typeClass == TC_STRING) {
-				paramEntry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, paramEntry->name);
-			} else if (paramEntry->varAST->size > 0) {
-				paramEntry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(paramEntry->typeAST->typeRef, paramEntry->varAST->size), NULL, paramEntry->name);
+            if (entry->typeAST->typeClass == TC_STRING) {
+                entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(LLVMInt8Type(), 0), entry->name);
+			} else if (entry->typeAST->sizeRef != NULL) {
+                entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(entry->typeAST->typeRef, 0), entry->name);
+                entry->typeAST->typeRef = LLVMPointerType(LLVMGetElementType(entry->typeAST->typeRef), 0);
 			} else {
-				paramEntry->typeAST->address = LLVMBuildAlloca(builder, paramEntry->typeAST->typeRef, paramEntry->name);
+				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 			}
-            paramEntry->typeAST->valueRef = paramEntry->typeAST->address;
-
+            LLVMBuildStore(builder, curParam, entry->typeAST->address);
+            curParam = LLVMGetNextParam(curParam);
             node = node->next;
         }
 
@@ -195,14 +197,9 @@ void parse_var_declaration(int isGlobal) {
     EntryAST *entry = create_variable(current_token->val.stringVal);
     entry->typeAST = create_type(varType);
 
-    TypeAST *sizeRef = parse_indexes();
-    if (sizeRef != NULL) {
-        long long size = LLVMConstIntGetSExtValue(sizeRef->valueRef);
-        entry->typeAST->sizeRef = sizeRef->valueRef;
-        entry->varAST->size = (int) size;
-    }
-
-    declare_entry(entry, isGlobal); // in parse_declaration_list() and parse_param()
+    LLVMValueRef arraySize = parse_indexes();
+    if (arraySize != NULL) entry->typeAST->sizeRef = arraySize;
+    declare_entry(entry, isGlobal);
 
     assert_parser("Done parsing a variable declaration\n");
 }
@@ -284,7 +281,7 @@ EntryAST *parse_param() {
     char *name = current_token->val.stringVal;
     check_new_identifier(name);
 
-    TypeAST *sizeRef = parse_indexes();
+    LLVMValueRef sizeRef = parse_indexes();
     ParamType paramType = PT_IN;
     switch (look_ahead->type) {
         case K_IN:
@@ -310,11 +307,7 @@ EntryAST *parse_param() {
     param->typeAST = create_type(typeClass);
     param->typeAST->paramType = paramType;
 
-    if (sizeRef != NULL) {
-        long long size = LLVMConstIntGetSExtValue(sizeRef->valueRef);
-        param->typeAST->sizeRef = sizeRef->valueRef;
-        param->varAST->size = (int) size;
-    }
+    if (sizeRef != NULL) param->typeAST->sizeRef = sizeRef;
 
     declare_entry(param, 0);
 
@@ -351,31 +344,46 @@ void parse_statement() {
     assert_parser("Done parsing a statement\n");
 }
 
-TypeAST *parse_indexes() {
-    TypeAST *elemType = NULL;
-
-    while (look_ahead->type == T_LBRACKET) {
+LLVMValueRef parse_indexes() {
+    LLVMValueRef indexRef = NULL;
+    if (look_ahead->type == T_LBRACKET) {
         match_token(T_LBRACKET);
 
-        elemType = parse_expression();
+        TypeAST *elemType = parse_expression();
         check_int_type(elemType->typeClass); // Array indexes must be of type integer.
+        indexRef = elemType->valueRef;
 
         match_token(T_RBRACKET);
     }
-    return elemType;
+
+    return indexRef;
 }
 
 TypeAST *parse_destination() {
     assert_parser("Parsing a destination\n");
-    EntryAST *dest;
-    dest = check_declared_identifier(current_token->val.stringVal);
+    EntryAST *dest = check_declared_identifier(current_token->val.stringVal);
 
-    parse_indexes();
+    LLVMValueRef indexValue = parse_indexes();
+    TypeAST *destType = create_type(dest->typeAST->typeClass);
+    destType->typeRef = dest->typeAST->typeRef;
+    destType->address = dest->typeAST->address;
 
-    TypeAST *destType = dest->typeAST;
+    if (dest->typeAST->sizeRef != NULL) { // an array
+        if (indexValue == NULL) indexValue = LLVMConstInt(LLVMInt32Type(), 0, false);
+        if (LLVMGetTypeKind(dest->typeAST->typeRef) == LLVMArrayTypeKind) {
+            LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
+            destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 2, "dest_array_GEP");
+        } else {
+            LLVMValueRef indices[] = { indexValue };
+            destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 1, "dest_pointer_GEP");
+        }
+        destType->typeRef = LLVMGetElementType(destType->typeRef);
+    }
+
+    destType->valueRef = LLVMBuildLoad(builder, destType->address, dest->name);
 
     assert_parser("Done parsing a destination\n");
-    assert_parser("Destination type is: "); print_type(destType->typeClass); assert_parser("\n");
+    assert_parser("Destination type is: "); print_type(dest->typeAST->typeClass); assert_parser("\n");
     return destType;
 }
 
@@ -405,10 +413,9 @@ void parse_assignment_statement() {
     }
 
     check_type_equality(destType->typeClass, expType->typeClass);
-
-    printf("Dest type is: %s, Exp type is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintTypeToString(expType->typeRef));
-    printf("Dest value is: %s, Exp value is: %s\n", LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(expType->valueRef));
-    LLVMBuildStore(builder, expType->valueRef, destType->valueRef);
+    printf("exp type is: %s, exp type is: %s, exp address is: %s\n", LLVMPrintTypeToString(expType->typeRef), LLVMPrintValueToString(expType->valueRef), LLVMPrintValueToString(expType->address));
+    printf("Dest value is: %s, dest value is: %s, dest address is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(destType->address));
+    LLVMBuildStore(builder, expType->valueRef, destType->address);
 
     assert_parser("Done parsing an assignment statement\n");
 }
@@ -862,6 +869,7 @@ TypeAST *parse_factor() {
     TypeAST *typeAST = NULL;
     TypeClass factorType = TC_INVALID;
     LLVMValueRef value = NULL, address = NULL;
+    LLVMTypeRef subType = NULL;
     switch (look_ahead->type) {
         case T_STRING:
             match_token(T_STRING);
@@ -911,24 +919,26 @@ TypeAST *parse_factor() {
             factorAST = check_declared_identifier(current_token->val.stringVal);
             factorType = factorAST->typeAST->typeClass;
             address = factorAST->typeAST->address;
-            value = LLVMBuildLoad(builder, factorAST->typeAST->valueRef, factorAST->name);
 
             if (factorAST->typeAST->sizeRef != NULL) { // an array so parse the index
-                TypeAST *indexRef = parse_indexes();
-                if (indexRef != NULL) { // loading a single element
-                    // no idea why 2 indices but the example c program was generated with 2 indices
-                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexRef->valueRef };
-                    value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
-                    value = LLVMBuildLoad(builder, value, factorAST->name);
-                } else { // the whole array is passed as an argument or used like a variable -> needs address of first element
-                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
-                    value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
-                }
-            }
+                LLVMValueRef indexValue = parse_indexes();
+                if (indexValue == NULL) indexValue = LLVMConstInt(LLVMInt32Type(), 0, false);
 
-            if (factorType == TC_STRING) {
+                if (LLVMGetTypeKind(factorAST->typeAST->typeRef) == LLVMArrayTypeKind) {
+                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
+                    address = LLVMBuildInBoundsGEP(builder, address, indices, 2, "factor_array_GEP");
+                } else {
+                    LLVMValueRef indices[] = { indexValue };
+                    address = LLVMBuildInBoundsGEP(builder, address, indices, 1, "factor_pointer_GEP");
+                }
+                value = address; // we want address, not the first element itself
+                subType = LLVMGetElementType(factorAST->typeAST->typeRef);
+            } else if (factorType == TC_STRING) {
                 LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
-                value = LLVMBuildInBoundsGEP(builder, factorAST->typeAST->valueRef, indices, 2, "");
+                address = LLVMBuildInBoundsGEP(builder, address, indices, 2, "factor_string_GEP");
+                value = address;
+            } else {
+                value = LLVMBuildLoad(builder, address, factorAST->name);
             }
             break;
         // FOLLOW set
@@ -942,9 +952,10 @@ TypeAST *parse_factor() {
     assert_parser("Done parsing a factor\n");
 
     typeAST = create_type(factorType);
+    if (subType != NULL) typeAST->typeRef = subType;
     typeAST->valueRef = value;
     typeAST->address = address;
 
-    printf("Factor type: %s, value: %s\n", LLVMPrintTypeToString(typeAST->typeRef), LLVMPrintValueToString(typeAST->valueRef));
+    printf("Factor type: %s, value: %s, address: %s\n", LLVMPrintTypeToString(typeAST->typeRef), LLVMPrintValueToString(typeAST->valueRef), LLVMPrintValueToString(typeAST->address));
     return typeAST;
 }
