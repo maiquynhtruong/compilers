@@ -80,7 +80,7 @@ void assert_scanner(const char *mesg) {
 }
 
 void assert_parser(const char *mesg) {
-    // printf("%s", mesg);
+    printf("%s", mesg);
 }
 
 void assert_symbol_table(const char *mesg) {

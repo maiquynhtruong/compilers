@@ -413,8 +413,11 @@ void parse_assignment_statement() {
         expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMFloatType(), "to-float");
     }
     check_type_equality(destType->typeClass, expType->typeClass);
-    printf("exp type is: %s, exp type is: %s, exp address is: %s\n", LLVMPrintTypeToString(expType->typeRef), LLVMPrintValueToString(expType->valueRef), LLVMPrintValueToString(expType->address));
-    printf("Dest value is: %s, dest value is: %s, dest address is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(destType->address));
+    assert_parser("exp value is: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
+    assert_parser("exp address is: "); assert_parser(LLVMPrintValueToString(expType->address)); assert_parser("\n");
+    assert_parser("dest value is: "); assert_parser(LLVMPrintValueToString(destType->valueRef)); assert_parser("\n");
+    assert_parser("dest address is: "); assert_parser(LLVMPrintValueToString(destType->address)); assert_parser("\n");
+
     LLVMBuildStore(builder, expType->valueRef, destType->address);
 
     assert_parser("Done parsing an assignment statement\n");
@@ -527,7 +530,6 @@ void parse_procedure_call() {
 
     assert_parser("Done parsing a procedure call\n");
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
-    printf("Param passed to build call is %s\n", LLVMPrintValueToString(args[0]));
     LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
 }
 
@@ -535,7 +537,7 @@ LLVMValueRef *parse_argument_list(EntryAST *proc) {
     assert_parser("Parsing an argument list\n");
 
     EntryNodeAST *params = proc->procAST->params;
-    if (params == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+    if (params == NULL) return NULL;
 
     EntryNodeAST *node = params;
     int argi = 0, argc = proc->procAST->paramc;
@@ -661,7 +663,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildAdd(builder, relationType1->valueRef, relationType2->valueRef, "add");
-            assert_parser("Code gen add: "); assert_parser(LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen add: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -673,7 +675,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
-            assert_parser("Code gen sub: "); assert_parser(LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen sub: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -705,7 +707,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     LLVMValueRef valueRef = termType1->valueRef;
-    assert_parser("Relation term before: "); assert_parser(LLVMPrintValueToString(valueRef));
+    assert_parser("Relation term before: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
@@ -812,7 +814,7 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
 
     relationType->typeRef = termType1->typeRef;
     relationType->valueRef = valueRef;
-    assert_parser("Relation term after: "); assert_parser(LLVMPrintValueToString(valueRef));
+    assert_parser("Relation term after: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
     return relationType;
 }
@@ -983,5 +985,6 @@ TypeAST *parse_factor() {
     assert_parser(LLVMPrintTypeToString(typeAST->typeRef));
     assert_parser(", value ");
     assert_parser(LLVMPrintValueToString(typeAST->valueRef));
+    assert_parser("\n");
     return typeAST;
 }
