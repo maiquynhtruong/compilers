@@ -69,10 +69,10 @@ void codegen_module(char *file_name) {
     if (LLVMWriteBitcodeToFile(module, "codegen.bc") != 0) {
         fprintf(stderr, "error writing bitcode to file, skipping\n");
     }
-
+    LLVMRemoveModule(engine, module, &module, &error);
     LLVMDisposeBuilder(builder);
-    LLVMDisposeModule(module);
     LLVMDisposeExecutionEngine(engine);
+
 
     // Setup optimizations.
     // LLVMPassManagerRef pass_manager =  LLVMCreateFunctionPassManagerForModule(module);
