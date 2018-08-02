@@ -4,9 +4,9 @@
 
 
 PROGRAM grant IS
-	 integer JAKE;
-	 integer ryan[3];
-	 integer zach;
+	global integer JAKE;
+	global integer ryan[3];
+	global integer zach;
 	procedure if_proc()
 		integer declaration;
 		begin

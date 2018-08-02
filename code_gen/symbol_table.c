@@ -32,6 +32,16 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 
 	if (symbolTable->currentScope == NULL || isGlobal) {
 		list = &(symbolTable->globalEntryList);
+		if (entry->typeAST->typeClass == TC_STRING) {
+			entry->typeAST->typeRef = LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH);
+		} else if (entry->typeAST->sizeRef != NULL) {
+			long long size = LLVMConstIntGetSExtValue(entry->typeAST->sizeRef);
+			entry->typeAST->typeRef = LLVMArrayType(entry->typeAST->typeRef, (int) size);
+		}
+		entry->typeAST->address = LLVMAddGlobal(module, entry->typeAST->typeRef, entry->name);
+		entry->typeAST->valueRef = entry->typeAST->address;
+		// LLVMSetInitializer(entry->typeAST->valueRef, LLVMConstInt(LLVMInt32Type(), 0, false));
+		// LLVMSetLinkage(globalDeclaration, LLVMCommonLinkage); // Error: Global is external, but doesn't have external or weak linkage!
 	} else {
 		switch (entry->entryType) {
 			case ET_VARIABLE:

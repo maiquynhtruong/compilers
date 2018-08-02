@@ -76,7 +76,7 @@ Comment the function body to print logging info
 Uncomment to silence
 **/
 void assert_scanner(const char *mesg) {
-    // printf("%s", mesg);
+    printf("%s", mesg);
 }
 
 void assert_parser(const char *mesg) {

@@ -36,6 +36,7 @@ void match_token(TokenType type) {
         current_token = look_ahead;
         look_ahead = next_valid_token();
 
+        print_token(current_token);
         free(temp);
     }
 }
@@ -86,7 +87,6 @@ void parse_program() {
 
     program = create_program("main"); // top level function has to be "main"
     // program = create_program(current_token->val.stringVal); // this won't run
-
     enter_scope(program->progAST->scope);
 
         match_token(K_IS);
@@ -109,6 +109,7 @@ void parse_declaration_list() {
 
     if (look_ahead->type == K_GLOBAL) {
         match_token(K_GLOBAL);
+        assert_parser("A global declaration\n");
         isGlobal = 1;
     }
 
@@ -313,6 +314,10 @@ EntryAST *parse_param() {
     declare_entry(param, 0);
 
     assert_parser("Done parsing a parameter\n");
+    assert_parser("Parameter type is: "); assert_parser(print_type(param->typeAST->typeClass)); assert_parser("\n");
+    assert_parser("Codegen parameter type: "); assert_parser(LLVMPrintTypeToString(param->typeAST->typeRef)); assert_parser("\n");
+    assert_parser("Codegen parameter value: "); assert_parser(LLVMPrintValueToString(param->typeAST->valueRef)); assert_parser("\n");
+
     return param;
 }
 
@@ -385,6 +390,7 @@ TypeAST *parse_destination() {
 
     assert_parser("Done parsing a destination\n");
     assert_parser("Destination type is: "); assert_parser(print_type(destType->typeClass)); assert_parser("\n");
+    // assert_parser("Codegen dest address: "); assert_parser(LLVMPrintValueToString(destType->address)); assert_parser("\n");
     return destType;
 }
 
@@ -418,9 +424,10 @@ void parse_assignment_statement() {
     assert_parser("dest value is: "); assert_parser(LLVMPrintValueToString(destType->valueRef)); assert_parser("\n");
     assert_parser("dest address is: "); assert_parser(LLVMPrintValueToString(destType->address)); assert_parser("\n");
 
-    LLVMBuildStore(builder, expType->valueRef, destType->address);
+    LLVMValueRef assignment = LLVMBuildStore(builder, expType->valueRef, destType->address);
 
     assert_parser("Done parsing an assignment statement\n");
+    assert_parser("Codegen assignment statement: "); assert_parser(LLVMPrintValueToString(assignment)); assert_parser("\n");
 }
 
 void parse_if_statement() {
@@ -441,7 +448,7 @@ void parse_if_statement() {
     condition = parse_expression();
     // cast expression to bool for evaluation
     if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
-    condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
+    condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, false), "exp != 0?");
     conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
@@ -528,9 +535,10 @@ void parse_procedure_call() {
     LLVMValueRef *args = parse_argument_list(entry);
     match_token(T_RPAREN);
 
-    assert_parser("Done parsing a procedure call\n");
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
-    LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
+    LLVMValueRef procCall = LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
+    assert_parser("Done parsing a procedure call\n");
+    assert_parser("Proc call: "); assert_parser(LLVMPrintValueToString(procCall)); assert_parser("\n");
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
@@ -572,6 +580,11 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
             argType->valueRef = argType->address; // the pointer because what the pointer points to isn't initialized, yet.
         }
     }
+
+    assert_parser("Codegen arg type: "); assert_parser(LLVMPrintTypeToString(argType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen arg value: "); assert_parser(LLVMPrintValueToString(argType->valueRef)); assert_parser("\n");
+    assert_parser("Codegen arg address: "); assert_parser(LLVMPrintValueToString(argType->address)); assert_parser("\n");
+
     return argType->valueRef;
 }
 
@@ -590,7 +603,8 @@ TypeAST *parse_expression() {
 
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); assert_parser(print_type(expType->typeClass)); assert_parser("\n");
-    assert_parser("Code gen exp: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
+    assert_parser("Codegen expression type: "); assert_parser(LLVMPrintTypeToString(expType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen expression value: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
 
     return expType;
 }
@@ -646,6 +660,8 @@ TypeAST *parse_arith_op() {
     TypeAST *arithOpType = parse_relation();
     arithOpType = parse_arith_op_relation(arithOpType);
     assert_parser("Done parsing an arithmetic operation\n");
+    assert_parser("Codegen arith op type: "); assert_parser(LLVMPrintTypeToString(arithOpType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen arith op value: "); assert_parser(LLVMPrintValueToString(arithOpType->valueRef)); assert_parser("\n");
     return arithOpType;
 }
 
@@ -700,6 +716,8 @@ TypeAST *parse_relation() {
     relationType = parse_relation_term(relationType);
     assert_parser("Done parsing a relation\n");
     assert_parser("Relation type is: "); assert_parser(print_type(relationType->typeClass)); assert_parser("\n");
+    assert_parser("Codegen relation type: "); assert_parser(LLVMPrintTypeToString(relationType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen relation value: "); assert_parser(LLVMPrintValueToString(relationType->valueRef)); assert_parser("\n");
     return relationType;
 }
 
@@ -707,7 +725,6 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     LLVMValueRef valueRef = termType1->valueRef;
-    assert_parser("Relation term before: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
@@ -814,7 +831,6 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
 
     relationType->typeRef = termType1->typeRef;
     relationType->valueRef = valueRef;
-    assert_parser("Relation term after: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
     return relationType;
 }
@@ -825,6 +841,8 @@ TypeAST *parse_term() {
     termType = parse_term_factor(termType);
     assert_parser("Done parsing a term\n");
     assert_parser("Term type is: "); assert_parser(print_type(termType->typeClass)); assert_parser("\n");
+    assert_parser("Codegen term type: "); assert_parser(LLVMPrintTypeToString(termType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen term value: "); assert_parser(LLVMPrintValueToString(termType->valueRef)); assert_parser("\n");
     return termType;
 }
 
