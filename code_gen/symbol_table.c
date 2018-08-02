@@ -40,7 +40,6 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 				} else if (entry->typeAST->sizeRef != NULL) {
 					long long size = LLVMConstIntGetSExtValue(entry->typeAST->sizeRef);
 					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, (int) size), NULL, entry->name);
-					// entry->typeAST->typeRef = LLVMPointerType(entry->typeAST->typeRef, 0);
 					entry->typeAST->typeRef = LLVMArrayType(entry->typeAST->typeRef, (int) size);
 				} else {
 					entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
@@ -318,7 +317,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		proc->procAST->paramc = 1;
 
 		LLVMTypeRef params[] = { param->typeAST->typeRef };
-		if (name[0] == 'g') {
+		if (name[0] == 'g') { // get functions
 			if (varType != TC_STRING) { // string is such a special type. Exception everytime
 				params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
 			}
@@ -329,11 +328,9 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		LLVMBasicBlockRef procEntry = LLVMAppendBasicBlock(procValue, proc->name);
 		LLVMPositionBuilderAtEnd(builder, procEntry);
 
-		// param->typeAST->valueRef = LLVMBuildAlloca(builder, param->typeAST->typeRef, "val");
 		LLVMValueRef value = LLVMGetParam(procValue, 0);
 		LLVMSetValueName(value, "val");
 		param->typeAST->valueRef = value;
-		// printf("Param passed into builtin func is %s\n", LLVMPrintValueToString(value));
 
 		const char *format_str = "";
 	    if (strcmp(name, "putbool") == 0 || strcmp(name, "putinteger") == 0 ||

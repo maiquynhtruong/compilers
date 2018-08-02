@@ -159,10 +159,11 @@ void parse_proc_declaration(int isGlobal) {
             EntryAST *entry = node->entryAST;
 
             if (entry->typeAST->typeClass == TC_STRING) {
-                entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(LLVMInt8Type(), 0), entry->name);
+                // entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(LLVMInt8Type(), 0), entry->name);
+                entry->typeAST->address = LLVMBuildAlloca(builder, LLVMInt8Type(), entry->name);
 			} else if (entry->typeAST->sizeRef != NULL) {
-                entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(entry->typeAST->typeRef, 0), entry->name);
-                entry->typeAST->typeRef = LLVMPointerType(LLVMGetElementType(entry->typeAST->typeRef), 0);
+                entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+                entry->typeAST->typeRef = LLVMPointerType(entry->typeAST->typeRef, 0);
 			} else {
 				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
 			}
@@ -307,7 +308,12 @@ EntryAST *parse_param() {
     param->typeAST = create_type(typeClass);
     param->typeAST->paramType = paramType;
 
-    if (sizeRef != NULL) param->typeAST->sizeRef = sizeRef;
+    if (param->typeAST->typeClass == TC_STRING) {
+        param->typeAST->typeRef = LLVMPointerType(LLVMInt8Type(), 0);
+    } else if (sizeRef != NULL) {
+        param->typeAST->sizeRef = sizeRef;
+        param->typeAST->typeRef = LLVMPointerType(param->typeAST->typeRef, 0);
+    }
 
     declare_entry(param, 0);
 
@@ -374,13 +380,13 @@ TypeAST *parse_destination() {
             LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
             destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 2, "dest_array_GEP");
         } else {
+            destType->address = LLVMBuildLoad(builder, destType->address, "dest_pointer_load");
             LLVMValueRef indices[] = { indexValue };
-            destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 1, "dest_pointer_GEP");
+            destType->address = LLVMBuildInBoundsGEP(builder, destType->address, indices, 1, "dest_pointer_GEP");
         }
         destType->typeRef = LLVMGetElementType(destType->typeRef);
     }
-
-    destType->valueRef = LLVMBuildLoad(builder, destType->address, dest->name);
+    destType->valueRef = destType->address; // we don't really care about value for destination
 
     assert_parser("Done parsing a destination\n");
     assert_parser("Destination type is: "); print_type(dest->typeAST->typeClass); assert_parser("\n");
@@ -921,18 +927,31 @@ TypeAST *parse_factor() {
             address = factorAST->typeAST->address;
 
             if (factorAST->typeAST->sizeRef != NULL) { // an array so parse the index
-                LLVMValueRef indexValue = parse_indexes();
-                if (indexValue == NULL) indexValue = LLVMConstInt(LLVMInt32Type(), 0, false);
+                LLVMValueRef indexValue = parse_indexes(), arrayIndex = NULL;
+                if (indexValue == NULL) {
+                    arrayIndex = LLVMConstInt(LLVMInt32Type(), 0, false);
+                } else {
+                    arrayIndex = indexValue;
+                }
 
                 if (LLVMGetTypeKind(factorAST->typeAST->typeRef) == LLVMArrayTypeKind) {
-                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
+                    LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), arrayIndex };
                     address = LLVMBuildInBoundsGEP(builder, address, indices, 2, "factor_array_GEP");
                 } else {
-                    LLVMValueRef indices[] = { indexValue };
+                    address = LLVMBuildLoad(builder, address, "factor_pointer_load");
+                    LLVMValueRef indices[] = { arrayIndex };
                     address = LLVMBuildInBoundsGEP(builder, address, indices, 1, "factor_pointer_GEP");
                 }
-                value = address; // we want address, not the first element itself
-                subType = LLVMGetElementType(factorAST->typeAST->typeRef);
+
+                if (indexValue == NULL) {
+                    value = address; // we want address, not the first element itself
+                    subType = LLVMGetElementType(factorAST->typeAST->typeRef);
+                    subType = LLVMPointerType(subType, 0); // just a pointer to the sub type of the sequential type
+                } else {
+                    value = LLVMBuildLoad(builder, address, "factor_array_load"); //there was an index so we should load it
+                    subType = LLVMGetElementType(factorAST->typeAST->typeRef);
+                }
+
             } else if (factorType == TC_STRING) {
                 LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), LLVMConstInt(LLVMInt32Type(), 0, false) };
                 address = LLVMBuildInBoundsGEP(builder, address, indices, 2, "factor_string_GEP");
