@@ -21,7 +21,7 @@ PROGRAM test_procedure_statements IS
 	        end for;
 	    end procedure;
 
-	procedure recursion(integer level in)
+	procedure recursion_proc(integer level in)
 		integer level;
 		begin
 			if (level >= 3) return;

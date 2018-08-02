@@ -51,7 +51,6 @@ It also makes more sense to let the variable holds the size info
 */
 typedef struct VariableAST {
 	struct Scope *scope;
-	unsigned int size;
 } VariableAST;
 
 typedef struct ProcedureAST {
@@ -72,6 +71,7 @@ typedef struct TypeAST {
 	LLVMValueRef valueRef;
 	ParamType paramType;
 	LLVMValueRef address;
+	LLVMValueRef sizeRef;
 } TypeAST;
 
 typedef struct EntryAST {
@@ -114,6 +114,7 @@ typedef struct SymbolTable {
 
 void declare_entry(EntryAST *entryAST, int isGlobal);
 void add_entry(EntryNodeAST **list, EntryAST *entry);
+EntryAST *lookup_currentScope(char *name);
 EntryAST *lookup(char *name);
 EntryAST *find_entry(EntryNodeAST *list, char *name);
 
