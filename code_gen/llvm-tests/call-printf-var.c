@@ -7,9 +7,11 @@ void print_variables_4(int i, float f, char c) {
     printf("The float is %f\n", f);
     printf("The char is %c\n", c);
 }
-
+int i = 5;
 void print_variables() {
     int i = 1;
+    int print_variables_4 = 0;
+    int print_variables = 0;
     printf("The integer is %d\n", i);
     float f = 0.01234;
     // printf("The float is %f\n", f);

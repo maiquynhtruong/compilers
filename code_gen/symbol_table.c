@@ -30,33 +30,36 @@ void declare_entry(EntryAST *entry, int isGlobal) {
 	assert_symbol_table(entry->name);
 	EntryNodeAST **list = NULL;
 
-	switch (entry->entryType) {
-		case ET_VARIABLE:
-			if (entry->typeAST->typeClass == TC_STRING) {
-				LLVMValueRef stringArray = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
-				entry->typeAST->address = stringArray;
-			} else {
-				entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
-			}
-			entry->typeAST->valueRef = entry->typeAST->address;
-			entry->varAST->scope = symbolTable->currentScope;
-			list = &(symbolTable->currentScope->entryList);
-			break;
-		case ET_PARAMTER:
-			entry->varAST->scope = symbolTable->currentScope;
-			EntryAST *parent = symbolTable->currentScope->parentEntry;
-			add_entry(&(parent->procAST->params), entry);
-			list = &(symbolTable->currentScope->entryList);
-			break;
-		case ET_PROCEDURE:
-			entry->procAST->scope->outerScope = symbolTable->currentScope;
-			list = &(symbolTable->globalEntryList);
-			break;
-		default: break;
-	}
-
 	if (symbolTable->currentScope == NULL || isGlobal) {
 		list = &(symbolTable->globalEntryList);
+	} else {
+		switch (entry->entryType) {
+			case ET_VARIABLE:
+				if (entry->typeAST->typeClass == TC_STRING) {
+					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(LLVMInt8Type(), MAX_STRING_LENGTH), NULL, entry->name);
+				} else if (entry->typeAST->sizeRef != NULL) {
+					long long size = LLVMConstIntGetSExtValue(entry->typeAST->sizeRef);
+					entry->typeAST->address = LLVMBuildArrayAlloca(builder, LLVMArrayType(entry->typeAST->typeRef, (int) size), NULL, entry->name);
+					entry->typeAST->typeRef = LLVMArrayType(entry->typeAST->typeRef, (int) size);
+				} else {
+					entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
+				}
+				entry->typeAST->valueRef = entry->typeAST->address;
+				entry->varAST->scope = symbolTable->currentScope;
+				list = &(symbolTable->currentScope->entryList);
+				break;
+			case ET_PARAMTER:
+				entry->varAST->scope = symbolTable->currentScope;
+				EntryAST *parent = symbolTable->currentScope->parentEntry;
+				add_entry(&(parent->procAST->params), entry);
+				list = &(symbolTable->currentScope->entryList);
+				break;
+			case ET_PROCEDURE:
+				entry->procAST->scope->outerScope = symbolTable->currentScope;
+				list = &(symbolTable->globalEntryList);
+				break;
+			default: break;
+		}
 	}
 
 	add_entry(list, entry);
@@ -74,6 +77,15 @@ void add_entry(EntryNodeAST **list, EntryAST *entry) {
 		while (cur->next != NULL) cur = cur->next;
 		cur->next = entryNode;
 	}
+}
+
+EntryAST *lookup_currentScope(char *name) {
+	EntryAST *entry = NULL;
+	Scope *curScope = symbolTable->currentScope;
+
+	entry = find_entry(curScope->entryList, name);
+
+	return entry;
 }
 
 EntryAST *lookup(char *name) {
@@ -115,9 +127,9 @@ void init_symbol_table() {
 	symbolTable->globalEntryList = NULL;
 
 	// built-in functions e.g. getInteger(integer val out)
+	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getBool = create_builtin_function("getbool", TC_BOOL, PT_OUT); // getBool(bool val out)
 	getString = create_builtin_function("getstring", TC_STRING, PT_OUT); // getString(string val out)
-	getInteger = create_builtin_function("getinteger", TC_INT, PT_OUT); // getInteger(integer val out)
 	// getFloat = create_builtin_function("getfloat", TC_FLOAT, PT_OUT); // getFloat(float val out)
 	// getChar = create_builtin_function("getchar", TC_CHAR, PT_OUT); // getChar(char val out)
 
@@ -276,6 +288,7 @@ TypeAST *create_type(TypeClass typeClass) {
 		default:
 			type->typeRef = LLVMVoidType(); break;
 	}
+	type->sizeRef = NULL;
 	return type;
 }
 
@@ -294,7 +307,7 @@ EntryAST *create_builtin_function(const char *name, TypeClass varType, ParamType
 		proc->procAST->paramc = 1;
 
 		LLVMTypeRef params[] = { param->typeAST->typeRef };
-		if (name[0] == 'g') {
+		if (name[0] == 'g') { // get functions
 			if (varType != TC_STRING) { // string is such a special type. Exception everytime
 				params[0] = LLVMPointerType(param->typeAST->typeRef, 0);
 			}
@@ -364,7 +377,6 @@ EntryAST *create_variable(const char *name) {
 	VariableAST *var = (VariableAST *) malloc(sizeof(VariableAST));
 	strcpy(varEntry->name, name);
 	var->scope = NULL;
-	var->size = 0;
 	varEntry->varAST = var;
 	return varEntry;
 }

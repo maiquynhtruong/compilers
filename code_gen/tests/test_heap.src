@@ -1,0 +1,14 @@
+program test_program is
+    procedure print_string(integer level in)
+        string s;
+    begin
+        putString("Enter a string:");
+        getString(s);
+        if (level < 3) then
+            print_string(level + 1);
+        end if;
+        putString(s);
+    end procedure;
+begin
+    print_string(0);
+end program.
