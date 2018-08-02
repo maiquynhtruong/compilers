@@ -72,7 +72,7 @@ void codegen_module(char *file_name) {
 
     LLVMDisposeBuilder(builder);
     LLVMDisposeModule(module);
-    LLVMDisposeExecutionEngine(engine);
+    // LLVMDisposeExecutionEngine(engine);
 
     // Setup optimizations.
     // LLVMPassManagerRef pass_manager =  LLVMCreateFunctionPassManagerForModule(module);
