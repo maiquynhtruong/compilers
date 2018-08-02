@@ -34,9 +34,6 @@ TypeAST *parse_relation_term(TypeAST *relationType);
 TypeAST *parse_term();
 TypeAST *parse_term_factor(TypeAST *termType);
 TypeAST *parse_factor();
-void parse_indexes();
-// TODO: To be implemented later
-// Type *int_to_bool(Type *intType);
-// Type *bool_to_int(Type *boolType);
+LLVMValueRef parse_indexes();
 
 #endif
