@@ -29,7 +29,6 @@ LLVMValueRef mainFunc;
 extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
-    print_token(look_ahead);
     if (look_ahead->type != type) {
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
@@ -327,10 +326,10 @@ EntryAST *parse_param() {
 
 // LLVMValueRef condBranch: if there is a return statement inside a conditional branch, generate a separate block for that
 void parse_statement_list(LLVMValueRef scope, bool *returnEnd) {
-    // while (look_ahead->type == T_SEMI_COLON) {
-    while (look_ahead->type != K_END) {
-        parse_statement(scope, returnEnd);
+    parse_statement(scope, returnEnd);
+    while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
+        parse_statement(scope, returnEnd);
     }
 }
 
@@ -469,18 +468,13 @@ void parse_if_statement() {
     parse_statement_list(scope, &returnEnd);
     if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
 
-    // LLVMPositionBuilderAtEnd(builder, LLVMValueAsBasicBlock(scope));
     LLVMPositionBuilderAtEnd(builder, elseBlock);
     returnEnd = false;
     if (look_ahead->type == K_ELSE) {
-        // elseBlock = LLVMAppendBasicBlock(scope, "else");
         match_token(K_ELSE);
         parse_statement_list(scope, &returnEnd);
     }
     if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
-    // } else {
-        // LLVMBuildCondBr(builder, conditionValue, thenBlock, mergeBlock);
-    // }
 
     match_token(K_END);
     match_token(K_IF);
