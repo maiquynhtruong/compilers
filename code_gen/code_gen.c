@@ -27,17 +27,6 @@ LLVMValueRef llvm_scanf;
 
 // https://stackoverflow.com/questions/1061753/how-can-i-implement-a-string-data-type-in-llvm
 
-void codegen_extern_decl() {
-    assert_codegen("Create external declarations\n");
-    LLVMTypeRef param_types[] = { LLVMPointerType(LLVMInt8Type(), 0) };
-
-	LLVMTypeRef llvm_printf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
-	llvm_printf = LLVMAddFunction(module, "printf", llvm_printf_type);
-
-    LLVMTypeRef llvm_scanf_type = LLVMFunctionType(LLVMInt32Type(), param_types, 0, true);
-    llvm_scanf = LLVMAddFunction(module, "scanf", llvm_scanf_type);
-}
-
 void codegen_module(char *file_name) {
     module = LLVMModuleCreateWithName(file_name);
 
