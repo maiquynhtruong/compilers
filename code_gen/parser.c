@@ -159,7 +159,6 @@ void parse_proc_declaration(int isGlobal) {
             EntryAST *entry = node->entryAST;
 
             if (entry->typeAST->typeClass == TC_STRING) {
-                // entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(LLVMInt8Type(), 0), entry->name);
                 entry->typeAST->address = LLVMBuildAlloca(builder, LLVMInt8Type(), entry->name);
 			} else if (entry->typeAST->sizeRef != NULL) {
                 entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
@@ -306,8 +305,10 @@ EntryAST *parse_param() {
 
     if (param->typeAST->typeClass == TC_STRING) {
         param->typeAST->typeRef = LLVMPointerType(LLVMInt8Type(), 0);
-    } else if (sizeRef != NULL) {
+    } else if (LLVMGetTypeKind(param->typeAST->typeRef) == LLVMArrayTypeKind) {
         param->typeAST->sizeRef = sizeRef;
+        param->typeAST->typeRef = LLVMPointerType(param->typeAST->typeRef, 0);
+    } else if (param->typeAST->paramType == PT_OUT) {
         param->typeAST->typeRef = LLVMPointerType(param->typeAST->typeRef, 0);
     }
 
@@ -316,7 +317,7 @@ EntryAST *parse_param() {
     assert_parser("Done parsing a parameter\n");
     assert_parser("Parameter type is: "); assert_parser(print_type(param->typeAST->typeClass)); assert_parser("\n");
     assert_parser("Codegen parameter type: "); assert_parser(LLVMPrintTypeToString(param->typeAST->typeRef)); assert_parser("\n");
-    assert_parser("Codegen parameter value: "); assert_parser(LLVMPrintValueToString(param->typeAST->valueRef)); assert_parser("\n");
+    // assert_parser("Codegen parameter value: "); assert_parser(LLVMPrintValueToString(param->typeAST->valueRef)); assert_parser("\n");
 
     return param;
 }
@@ -380,11 +381,13 @@ TypeAST *parse_destination() {
             LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
             destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 2, "dest_array_GEP");
         } else {
-            destType->address = LLVMBuildLoad(builder, destType->address, "dest_pointer_load");
+            destType->address = LLVMBuildLoad(builder, destType->address, "dest_array_pointer_load");
             LLVMValueRef indices[] = { indexValue };
             destType->address = LLVMBuildInBoundsGEP(builder, destType->address, indices, 1, "dest_pointer_GEP");
         }
         destType->typeRef = LLVMGetElementType(destType->typeRef);
+    } else if (LLVMGetTypeKind(dest->typeAST->typeRef) == LLVMPointerTypeKind) {
+        destType->address = LLVMBuildLoad(builder, destType->address, "dest_pointer_load");
     }
     destType->valueRef = destType->address; // we don't really care about value for destination
 
@@ -447,8 +450,11 @@ void parse_if_statement() {
 
     condition = parse_expression();
     // cast expression to bool for evaluation
-    if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
-    condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, false), "exp != 0?");
+    if (LLVMIsConstant(condition->valueRef)) {
+        if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
+        condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "cond != 0?");
+    }
+    // condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, false), "exp != 0?");
     conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
@@ -534,8 +540,9 @@ void parse_procedure_call() {
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(entry);
     match_token(T_RPAREN);
-
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
+    assert_parser("Proc: "); assert_parser(LLVMPrintValueToString(proc)); assert_parser("\n");
+
     LLVMValueRef procCall = LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
     assert_parser("Done parsing a procedure call\n");
     assert_parser("Proc call: "); assert_parser(LLVMPrintValueToString(procCall)); assert_parser("\n");
@@ -594,12 +601,11 @@ TypeAST *parse_expression() {
     if (look_ahead->type == K_NOT) {
         match_token(K_NOT);
         invertNot = true;
-
     }
 
     TypeAST *expType = parse_arith_op();
     expType = parse_expression_arith_op(expType);
-    if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not");
+    if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not_expression");
 
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); assert_parser(print_type(expType->typeClass)); assert_parser("\n");
@@ -687,7 +693,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             match_token(T_MINUS);
             check_int_float_type(relationType1->typeClass);
 
-            relationType1 = parse_relation();
+            relationType2 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
@@ -940,9 +946,14 @@ TypeAST *parse_factor() {
             break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
-            // factorAST = parse_factor();
-            // if (factorType == TC_INT) current_token->val.intVal = -look_ahead->val.intVal;
-            // else if (factorType == TC_FLOAT) current_token->val.floatVal = -look_ahead->val.floatVal;
+            typeAST = parse_factor();
+            factorType = typeAST->typeClass;
+            if (factorType == TC_INT) {
+                value = LLVMBuildNeg(builder, typeAST->valueRef, "factor_neg_int");
+            } else if (factorType == TC_FLOAT) {
+                value = LLVMBuildFNeg(builder, typeAST->valueRef, "factor_neg_float");
+            }
+            address = typeAST->address;
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
