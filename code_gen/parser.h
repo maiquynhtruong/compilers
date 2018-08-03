@@ -7,20 +7,20 @@
 void match_token(TokenType type);
 int parse(char *file_name);
 
-void parse_body_block();
+void parse_body_block(bool *returnEnd);
 void parse_program();
 void parse_declaration_list();
 void parse_proc_declaration(int isGlobal);
 void parse_var_declaration(int isGlobal);
 TypeClass parse_type_mark();
-void parse_statement_list();
-void parse_statement();
+void parse_statement_list(LLVMValueRef scope, bool *returnEnd);
+void parse_statement(LLVMValueRef scope, bool *returnEnd);
 EntryAST *parse_param();
 void parse_param_list(EntryAST **entry);
 void parse_assignment_statement();
 void parse_if_statement();
 void parse_loop_statement();
-void parse_return_statement();
+void parse_return_statement(LLVMValueRef scope, bool *returnEnd);
 void parse_procedure_call();
 TypeAST *parse_destination();
 LLVMValueRef *parse_argument_list(EntryAST *proc);

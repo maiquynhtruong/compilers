@@ -29,6 +29,7 @@ LLVMValueRef mainFunc;
 extern SymbolTable *symbolTable;
 
 void match_token(TokenType type) {
+    print_token(look_ahead);
     if (look_ahead->type != type) {
         missing_token(type, look_ahead->lineNo, look_ahead->columnNo);
     } else {
@@ -67,12 +68,12 @@ int parse(char *file_name) {
     return IO_SUCCESS;
 }
 
-void parse_body_block() {
+void parse_body_block(bool *returnEnd) {
 
     if (look_ahead->type != K_BEGIN) parse_declaration_list();
     match_token(K_BEGIN);
 
-    if (look_ahead->type != K_END) parse_statement_list();
+    if (look_ahead->type != K_END) parse_statement_list(NULL, returnEnd);
     match_token(K_END);
 }
 
@@ -80,6 +81,7 @@ void parse_program() {
     assert_parser("Parsing the program\n");
 
     EntryAST *program;
+    bool returnEnd = false;
 
     // program header
     match_token(K_PROGRAM);
@@ -91,14 +93,14 @@ void parse_program() {
 
         match_token(K_IS);
 
-        parse_body_block(); // program body
+        parse_body_block(&returnEnd); // program body
 
         match_token(K_PROGRAM);
 
         if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
 
     exit_scope();
-    LLVMBuildRetVoid(builder);
+    if (!returnEnd) LLVMBuildRetVoid(builder);
 
     assert_parser("Done parsing the program\n");
 }
@@ -133,6 +135,7 @@ void parse_declaration_list() {
 
 void parse_proc_declaration(int isGlobal) {
     assert_parser("Parsing a procedure declaration\n");
+    bool returnEnd = false;
 
     // procedure header
     match_token(K_PROCEDURE);
@@ -171,9 +174,9 @@ void parse_proc_declaration(int isGlobal) {
             node = node->next;
         }
 
-        parse_body_block(); // procedure body
+        parse_body_block(&returnEnd); // procedure body
         match_token(K_PROCEDURE);
-        LLVMBuildRetVoid(builder);
+        if (!returnEnd) LLVMBuildRetVoid(builder);
 
     exit_scope();
     proc->typeAST->valueRef = procValue;
@@ -322,22 +325,22 @@ EntryAST *parse_param() {
     return param;
 }
 
-void parse_statement_list() {
-    parse_statement();
-
-    while (look_ahead->type == T_SEMI_COLON) {
+// LLVMValueRef condBranch: if there is a return statement inside a conditional branch, generate a separate block for that
+void parse_statement_list(LLVMValueRef scope, bool *returnEnd) {
+    // while (look_ahead->type == T_SEMI_COLON) {
+    while (look_ahead->type != K_END) {
+        parse_statement(scope, returnEnd);
         match_token(T_SEMI_COLON);
-        parse_statement_list();
     }
 }
 
-void parse_statement() {
+void parse_statement(LLVMValueRef scope, bool *returnEnd) {
     assert_parser("Parsing a statement\n");
 
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
         case K_FOR: parse_loop_statement(); break;
-        case K_RETURN: parse_return_statement(); break;
+        case K_RETURN: parse_return_statement(scope, returnEnd); break;
         case T_IDENTIFIER:
             match_token(T_IDENTIFIER);
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
@@ -438,6 +441,7 @@ void parse_if_statement() {
     TypeAST *condition = NULL;
     LLVMBasicBlockRef thenBlock = NULL, elseBlock = NULL, mergeBlock = NULL;
     LLVMValueRef conditionValue = NULL;
+    bool returnEnd = false;
 
     match_token(K_IF);
     match_token(T_LPAREN);
@@ -454,7 +458,7 @@ void parse_if_statement() {
         if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
         condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "cond != 0?");
     }
-    // condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, false), "exp != 0?");
+
     conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
@@ -462,15 +466,21 @@ void parse_if_statement() {
 
     match_token(K_THEN);
     LLVMPositionBuilderAtEnd(builder, thenBlock);
-    parse_statement_list();
-    LLVMBuildBr(builder, mergeBlock);
+    parse_statement_list(scope, &returnEnd);
+    if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
 
+    // LLVMPositionBuilderAtEnd(builder, LLVMValueAsBasicBlock(scope));
     LLVMPositionBuilderAtEnd(builder, elseBlock);
+    returnEnd = false;
     if (look_ahead->type == K_ELSE) {
+        // elseBlock = LLVMAppendBasicBlock(scope, "else");
         match_token(K_ELSE);
-        parse_statement_list();
+        parse_statement_list(scope, &returnEnd);
     }
-    LLVMBuildBr(builder, mergeBlock);
+    if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
+    // } else {
+        // LLVMBuildCondBr(builder, conditionValue, thenBlock, mergeBlock);
+    // }
 
     match_token(K_END);
     match_token(K_IF);
@@ -484,6 +494,7 @@ void parse_loop_statement() {
     TypeAST *expType = NULL;
     LLVMBasicBlockRef startBlock = NULL, loopBlock = NULL, endBlock = NULL;
     LLVMValueRef conditionValue = NULL;
+    bool returnEnd = false;
 
     match_token(K_FOR);
     match_token(T_LPAREN);
@@ -514,8 +525,8 @@ void parse_loop_statement() {
 
     LLVMPositionBuilderAtEnd(builder, loopBlock);
     if (look_ahead->type != K_END) {
-        parse_statement_list();
-        LLVMBuildBr(builder, startBlock);
+        parse_statement_list(scope, &returnEnd);
+        if (!returnEnd) LLVMBuildBr(builder, startBlock);
     }
 
     LLVMPositionBuilderAtEnd(builder, endBlock);
@@ -527,8 +538,14 @@ void parse_loop_statement() {
     assert_parser("Done parsing a for loop\n");
 }
 
-void parse_return_statement() {
+void parse_return_statement(LLVMValueRef scope, bool *returnEnd) {
     match_token(K_RETURN);
+    *returnEnd = true;
+    if (scope != NULL) {
+        LLVMBasicBlockRef returnBlock = LLVMAppendBasicBlock(scope, "return_block");
+        LLVMBuildBr(builder, returnBlock);
+        LLVMPositionBuilderAtEnd(builder, returnBlock);
+    }
     LLVMBuildRetVoid(builder);
 }
 

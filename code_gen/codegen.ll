@@ -84,7 +84,6 @@ define void @putstring(i8* %val) {
 putstring:
   %putstring1 = call i32 (...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @format_str.3, i32 0, i32 0), i8* %val)
   ret void
-}
 
 define void @square_array(i32*, i32*) {
 square_array:
