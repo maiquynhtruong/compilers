@@ -56,7 +56,9 @@ Debugging information is displayed by calling:
 These functions are declared in the `code_gen/error.h` file. Therefore, in order to turn on or off debugging info, uncomment/comment their implementations in the file `code_gen/error.c`.
 
 ## Architecture and documentation
-I'm working on writing wiki on implementation details and code documentation. More coming soon in wiki section.
+Please check out the [wiki](https://github.com/maiquynhtruong/compilers/wiki) for more documentation and **lessons learned**!
+
+The main purpose of this project is to learn more about compiler. Therefore, I try my best to create a good knowledge base in the wiki that not only documents the code but also the lessons I've learned in the process. I hope this project could be helpful for others in the future, especially those who want to use LLVM C API but struggle with the lack of documentation from the main website.
 
 ## Contributing and Questions
 Feel free to create issues and make pull requests :)
