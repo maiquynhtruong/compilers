@@ -67,7 +67,7 @@ void throw_error(ErrorCode code, int lineNo, int columnNo) {
 }
 
 void missing_token(TokenType type, int lineNo, int columnNo) {
-    printf("%d:%d: Parse Erorr! Expecting %s\n", lineNo, columnNo, print_token_type(type));
+    printf("%d:%d: Parse Error! Expecting %s\n", lineNo, columnNo, print_token_type(type));
     exit(0);
 }
 
@@ -76,15 +76,15 @@ Comment the function body to print logging info
 Uncomment to silence
 **/
 void assert_scanner(const char *mesg) {
-    // printf("%s", mesg);
+    printf("%s", mesg);
 }
 
 void assert_parser(const char *mesg) {
-    // printf("%s", mesg);
+    printf("%s", mesg);
 }
 
 void assert_symbol_table(const char *mesg) {
-    // printf("%s", mesg);
+    printf("%s", mesg);
 }
 
 void assert_semantics(const char *mesg) {

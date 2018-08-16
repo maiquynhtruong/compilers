@@ -3,62 +3,75 @@ source_filename = "test-array.c"
 target datalayout = "e-m:o-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-apple-macosx10.13.0"
 
+@global_i = common global i32 0, align 4
+@global_f = common global float 0.000000e+00, align 4
 @i = common global i32 0, align 4
 @.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
 @.str.1 = private unnamed_addr constant [2 x i8] c" \00", align 1
 @global_numbers = common global [10 x i32] zeroinitializer, align 16
 @global_res = common global [10 x i32] zeroinitializer, align 16
-@global_i = common global i32 0, align 4
-@global_f = common global float 0.000000e+00, align 4
 
 ; Function Attrs: noinline nounwind optnone ssp uwtable
-define void @square_array(i32*, i32*, i32, i8*) #0 {
-  %5 = alloca i32*, align 8
+define void @square_array(i32*, i32*, i32, i8*, float*) #0 {
   %6 = alloca i32*, align 8
-  %7 = alloca i32, align 4
-  %8 = alloca i8*, align 8
-  %9 = alloca i32, align 4
-  store i32* %0, i32** %5, align 8
-  store i32* %1, i32** %6, align 8
-  store i32 %2, i32* %7, align 4
-  store i8* %3, i8** %8, align 8
-  store i32 0, i32* %9, align 4
-  br label %10
+  %7 = alloca i32*, align 8
+  %8 = alloca i32, align 4
+  %9 = alloca i8*, align 8
+  %10 = alloca float*, align 8
+  %11 = alloca i32, align 4
+  %12 = alloca float, align 4
+  store i32* %0, i32** %6, align 8
+  store i32* %1, i32** %7, align 8
+  store i32 %2, i32* %8, align 4
+  store i8* %3, i8** %9, align 8
+  store float* %4, float** %10, align 8
+  store i32 0, i32* %11, align 4
+  store i32 0, i32* @global_i, align 4
+  store float 2.500000e+00, float* @global_f, align 4
+  %13 = load i32, i32* @global_i, align 4
+  store i32 %13, i32* %11, align 4
+  %14 = load float, float* @global_f, align 4
+  %15 = load float*, float** %10, align 8
+  store float %14, float* %15, align 4
+  %16 = load float*, float** %10, align 8
+  %17 = load float, float* %16, align 4
+  store float %17, float* %12, align 4
+  br label %18
 
-; <label>:10:                                     ; preds = %29, %4
-  %11 = load i32, i32* %9, align 4
-  %12 = icmp slt i32 %11, 10
-  br i1 %12, label %13, label %32
+; <label>:18:                                     ; preds = %37, %5
+  %19 = load i32, i32* %11, align 4
+  %20 = icmp slt i32 %19, 10
+  br i1 %20, label %21, label %40
 
-; <label>:13:                                     ; preds = %10
-  %14 = load i32*, i32** %5, align 8
-  %15 = load i32, i32* %9, align 4
-  %16 = sext i32 %15 to i64
-  %17 = getelementptr inbounds i32, i32* %14, i64 %16
-  %18 = load i32, i32* %17, align 4
-  %19 = load i32*, i32** %5, align 8
-  %20 = load i32, i32* %9, align 4
-  %21 = sext i32 %20 to i64
-  %22 = getelementptr inbounds i32, i32* %19, i64 %21
-  %23 = load i32, i32* %22, align 4
-  %24 = mul nsw i32 %18, %23
-  %25 = load i32*, i32** %6, align 8
-  %26 = load i32, i32* %9, align 4
-  %27 = sext i32 %26 to i64
-  %28 = getelementptr inbounds i32, i32* %25, i64 %27
-  store i32 %24, i32* %28, align 4
-  br label %29
+; <label>:21:                                     ; preds = %18
+  %22 = load i32*, i32** %6, align 8
+  %23 = load i32, i32* %11, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds i32, i32* %22, i64 %24
+  %26 = load i32, i32* %25, align 4
+  %27 = load i32*, i32** %6, align 8
+  %28 = load i32, i32* %11, align 4
+  %29 = sext i32 %28 to i64
+  %30 = getelementptr inbounds i32, i32* %27, i64 %29
+  %31 = load i32, i32* %30, align 4
+  %32 = mul nsw i32 %26, %31
+  %33 = load i32*, i32** %7, align 8
+  %34 = load i32, i32* %11, align 4
+  %35 = sext i32 %34 to i64
+  %36 = getelementptr inbounds i32, i32* %33, i64 %35
+  store i32 %32, i32* %36, align 4
+  br label %37
 
-; <label>:29:                                     ; preds = %13
-  %30 = load i32, i32* %9, align 4
-  %31 = add nsw i32 %30, 1
-  store i32 %31, i32* %9, align 4
-  br label %10
+; <label>:37:                                     ; preds = %21
+  %38 = load i32, i32* %11, align 4
+  %39 = add nsw i32 %38, 1
+  store i32 %39, i32* %11, align 4
+  br label %18
 
-; <label>:32:                                     ; preds = %10
-  %33 = load i32, i32* %7, align 4
-  %34 = add nsw i32 %33, 1
-  store i32 %34, i32* %9, align 4
+; <label>:40:                                     ; preds = %18
+  %41 = load i32, i32* %8, align 4
+  %42 = add nsw i32 %41, 1
+  store i32 %42, i32* %11, align 4
   ret void
 }
 
@@ -67,8 +80,8 @@ define i32 @main() #0 {
   %1 = alloca i32, align 4
   %2 = alloca [10 x i32], align 16
   %3 = alloca [10 x i32], align 16
-  %4 = alloca float, align 4
-  %5 = alloca i8*, align 8
+  %4 = alloca i8*, align 8
+  %5 = alloca float, align 4
   store i32 0, i32* %1, align 4
   store i32 0, i32* @i, align 4
   br label %6
@@ -95,8 +108,8 @@ define i32 @main() #0 {
 ; <label>:17:                                     ; preds = %6
   %18 = getelementptr inbounds [10 x i32], [10 x i32]* %2, i32 0, i32 0
   %19 = getelementptr inbounds [10 x i32], [10 x i32]* %3, i32 0, i32 0
-  %20 = load i8*, i8** %5, align 8
-  call void @square_array(i32* %18, i32* %19, i32 0, i8* %20)
+  %20 = load i8*, i8** %4, align 8
+  call void @square_array(i32* %18, i32* %19, i32 0, i8* %20, float* %5)
   store i32 0, i32* @i, align 4
   br label %21
 

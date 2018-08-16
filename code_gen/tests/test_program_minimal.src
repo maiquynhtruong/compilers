@@ -1,0 +1,14 @@
+program test_program is
+    integer a;
+    procedure f (integer x in, integer y out)
+        integer b;
+    begin
+        b := 3;
+        y := b;
+    end procedure;
+begin
+    a := 3;
+    f(3, a);
+    putInteger(a);
+    
+end program .

@@ -8,11 +8,10 @@ LDFLAGS=`llvm-config --cxxflags --ldflags --system-libs --libs core mcjit native
 all: codegen
 
 codegen: main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o
-			# ${CC} main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o
 			$(LD) main.o error.o parser.o reader.o scanner.o semantics.o symbol_table.o token.o code_gen.o $(LDFLAGS) -o codegen.out
 
 codegen.bc: codegen
-	./codegen.out tests/test-array.src
+	./codegen.out tests/test-loop.src
 
 codegen.ll: codegen.bc
 	llvm-dis codegen.bc

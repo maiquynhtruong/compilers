@@ -36,6 +36,7 @@ void match_token(TokenType type) {
         current_token = look_ahead;
         look_ahead = next_valid_token();
 
+        print_token(current_token);
         free(temp);
     }
 }
@@ -66,12 +67,12 @@ int parse(char *file_name) {
     return IO_SUCCESS;
 }
 
-void parse_body_block() {
+void parse_body_block(bool *returnEnd) {
 
     if (look_ahead->type != K_BEGIN) parse_declaration_list();
     match_token(K_BEGIN);
 
-    if (look_ahead->type != K_END) parse_statement_list();
+    if (look_ahead->type != K_END) parse_statement_list(NULL, returnEnd);
     match_token(K_END);
 }
 
@@ -79,6 +80,7 @@ void parse_program() {
     assert_parser("Parsing the program\n");
 
     EntryAST *program;
+    bool returnEnd = false;
 
     // program header
     match_token(K_PROGRAM);
@@ -86,19 +88,18 @@ void parse_program() {
 
     program = create_program("main"); // top level function has to be "main"
     // program = create_program(current_token->val.stringVal); // this won't run
-
     enter_scope(program->progAST->scope);
 
         match_token(K_IS);
 
-        parse_body_block(); // program body
+        parse_body_block(&returnEnd); // program body
 
         match_token(K_PROGRAM);
 
         if (look_ahead->type == T_END_OF_FILE) match_token(T_END_OF_FILE);
 
     exit_scope();
-    LLVMBuildRetVoid(builder);
+    if (!returnEnd) LLVMBuildRetVoid(builder);
 
     assert_parser("Done parsing the program\n");
 }
@@ -109,6 +110,7 @@ void parse_declaration_list() {
 
     if (look_ahead->type == K_GLOBAL) {
         match_token(K_GLOBAL);
+        assert_parser("A global declaration\n");
         isGlobal = 1;
     }
 
@@ -132,6 +134,7 @@ void parse_declaration_list() {
 
 void parse_proc_declaration(int isGlobal) {
     assert_parser("Parsing a procedure declaration\n");
+    bool returnEnd = false;
 
     // procedure header
     match_token(K_PROCEDURE);
@@ -158,7 +161,6 @@ void parse_proc_declaration(int isGlobal) {
             EntryAST *entry = node->entryAST;
 
             if (entry->typeAST->typeClass == TC_STRING) {
-                // entry->typeAST->address = LLVMBuildAlloca(builder, LLVMPointerType(LLVMInt8Type(), 0), entry->name);
                 entry->typeAST->address = LLVMBuildAlloca(builder, LLVMInt8Type(), entry->name);
 			} else if (entry->typeAST->sizeRef != NULL) {
                 entry->typeAST->address = LLVMBuildAlloca(builder, entry->typeAST->typeRef, entry->name);
@@ -171,9 +173,9 @@ void parse_proc_declaration(int isGlobal) {
             node = node->next;
         }
 
-        parse_body_block(); // procedure body
+        parse_body_block(&returnEnd); // procedure body
         match_token(K_PROCEDURE);
-        LLVMBuildRetVoid(builder);
+        if (!returnEnd) LLVMBuildRetVoid(builder);
 
     exit_scope();
     proc->typeAST->valueRef = procValue;
@@ -305,33 +307,39 @@ EntryAST *parse_param() {
 
     if (param->typeAST->typeClass == TC_STRING) {
         param->typeAST->typeRef = LLVMPointerType(LLVMInt8Type(), 0);
-    } else if (sizeRef != NULL) {
+    } else if (LLVMGetTypeKind(param->typeAST->typeRef) == LLVMArrayTypeKind) {
         param->typeAST->sizeRef = sizeRef;
+        param->typeAST->typeRef = LLVMPointerType(param->typeAST->typeRef, 0);
+    } else if (param->typeAST->paramType == PT_OUT) {
         param->typeAST->typeRef = LLVMPointerType(param->typeAST->typeRef, 0);
     }
 
     declare_entry(param, 0);
 
     assert_parser("Done parsing a parameter\n");
+    assert_parser("Parameter type is: "); assert_parser(print_type(param->typeAST->typeClass)); assert_parser("\n");
+    assert_parser("Codegen parameter type: "); assert_parser(LLVMPrintTypeToString(param->typeAST->typeRef)); assert_parser("\n");
+    // assert_parser("Codegen parameter value: "); assert_parser(LLVMPrintValueToString(param->typeAST->valueRef)); assert_parser("\n");
+
     return param;
 }
 
-void parse_statement_list() {
-    parse_statement();
-
+// LLVMValueRef condBranch: if there is a return statement inside a conditional branch, generate a separate block for that
+void parse_statement_list(LLVMValueRef scope, bool *returnEnd) {
+    parse_statement(scope, returnEnd);
     while (look_ahead->type == T_SEMI_COLON) {
         match_token(T_SEMI_COLON);
-        parse_statement_list();
+        parse_statement(scope, returnEnd);
     }
 }
 
-void parse_statement() {
+void parse_statement(LLVMValueRef scope, bool *returnEnd) {
     assert_parser("Parsing a statement\n");
 
     switch (look_ahead->type) {
         case K_IF: parse_if_statement(); break;
         case K_FOR: parse_loop_statement(); break;
-        case K_RETURN: parse_return_statement(); break;
+        case K_RETURN: parse_return_statement(scope, returnEnd); break;
         case T_IDENTIFIER:
             match_token(T_IDENTIFIER);
             if (look_ahead->type == T_LPAREN) parse_procedure_call();
@@ -375,11 +383,13 @@ TypeAST *parse_destination() {
             LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), indexValue };
             destType->address = LLVMBuildInBoundsGEP(builder, dest->typeAST->address, indices, 2, "dest_array_GEP");
         } else {
-            destType->address = LLVMBuildLoad(builder, destType->address, "dest_pointer_load");
+            destType->address = LLVMBuildLoad(builder, destType->address, "dest_array_pointer_load");
             LLVMValueRef indices[] = { indexValue };
             destType->address = LLVMBuildInBoundsGEP(builder, destType->address, indices, 1, "dest_pointer_GEP");
         }
         destType->typeRef = LLVMGetElementType(destType->typeRef);
+    } else if (LLVMGetTypeKind(dest->typeAST->typeRef) == LLVMPointerTypeKind) {
+        destType->address = LLVMBuildLoad(builder, destType->address, "dest_pointer_load");
     }
     destType->valueRef = destType->address; // we don't really care about value for destination
 
@@ -413,11 +423,15 @@ void parse_assignment_statement() {
         expType->valueRef = LLVMBuildZExtOrBitCast(builder, expType->valueRef, LLVMFloatType(), "to-float");
     }
     check_type_equality(destType->typeClass, expType->typeClass);
-    printf("exp type is: %s, exp type is: %s, exp address is: %s\n", LLVMPrintTypeToString(expType->typeRef), LLVMPrintValueToString(expType->valueRef), LLVMPrintValueToString(expType->address));
-    printf("Dest value is: %s, dest value is: %s, dest address is: %s\n", LLVMPrintTypeToString(destType->typeRef), LLVMPrintValueToString(destType->valueRef), LLVMPrintValueToString(destType->address));
-    LLVMBuildStore(builder, expType->valueRef, destType->address);
+    assert_parser("exp value is: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
+    assert_parser("exp address is: "); assert_parser(LLVMPrintValueToString(expType->address)); assert_parser("\n");
+    assert_parser("dest value is: "); assert_parser(LLVMPrintValueToString(destType->valueRef)); assert_parser("\n");
+    assert_parser("dest address is: "); assert_parser(LLVMPrintValueToString(destType->address)); assert_parser("\n");
+
+    LLVMValueRef assignment = LLVMBuildStore(builder, expType->valueRef, destType->address);
 
     assert_parser("Done parsing an assignment statement\n");
+    assert_parser("Codegen assignment statement: "); assert_parser(LLVMPrintValueToString(assignment)); assert_parser("\n");
 }
 
 void parse_if_statement() {
@@ -425,6 +439,7 @@ void parse_if_statement() {
     TypeAST *condition = NULL;
     LLVMBasicBlockRef thenBlock = NULL, elseBlock = NULL, mergeBlock = NULL;
     LLVMValueRef conditionValue = NULL;
+    bool returnEnd = false;
 
     match_token(K_IF);
     match_token(T_LPAREN);
@@ -437,8 +452,11 @@ void parse_if_statement() {
 
     condition = parse_expression();
     // cast expression to bool for evaluation
-    if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
-    condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "exp != 0?");
+    if (LLVMIsConstant(condition->valueRef)) {
+        if (condition->typeClass == TC_INT) condition->typeClass = TC_BOOL;
+        condition->valueRef = LLVMBuildICmp(builder, LLVMIntNE, condition->valueRef, LLVMConstInt(LLVMInt32Type(), 0, 0), "cond != 0?");
+    }
+
     conditionValue = condition->valueRef;
 
     match_token(T_RPAREN);
@@ -446,15 +464,16 @@ void parse_if_statement() {
 
     match_token(K_THEN);
     LLVMPositionBuilderAtEnd(builder, thenBlock);
-    parse_statement_list();
-    LLVMBuildBr(builder, mergeBlock);
+    parse_statement_list(scope, &returnEnd);
+    if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
 
     LLVMPositionBuilderAtEnd(builder, elseBlock);
+    returnEnd = false;
     if (look_ahead->type == K_ELSE) {
         match_token(K_ELSE);
-        parse_statement_list();
+        parse_statement_list(scope, &returnEnd);
     }
-    LLVMBuildBr(builder, mergeBlock);
+    if (!returnEnd) LLVMBuildBr(builder, mergeBlock);
 
     match_token(K_END);
     match_token(K_IF);
@@ -468,6 +487,7 @@ void parse_loop_statement() {
     TypeAST *expType = NULL;
     LLVMBasicBlockRef startBlock = NULL, loopBlock = NULL, endBlock = NULL;
     LLVMValueRef conditionValue = NULL;
+    bool returnEnd = false;
 
     match_token(K_FOR);
     match_token(T_LPAREN);
@@ -498,8 +518,8 @@ void parse_loop_statement() {
 
     LLVMPositionBuilderAtEnd(builder, loopBlock);
     if (look_ahead->type != K_END) {
-        parse_statement_list();
-        LLVMBuildBr(builder, startBlock);
+        parse_statement_list(scope, &returnEnd);
+        if (!returnEnd) LLVMBuildBr(builder, startBlock);
     }
 
     LLVMPositionBuilderAtEnd(builder, endBlock);
@@ -511,8 +531,14 @@ void parse_loop_statement() {
     assert_parser("Done parsing a for loop\n");
 }
 
-void parse_return_statement() {
+void parse_return_statement(LLVMValueRef scope, bool *returnEnd) {
     match_token(K_RETURN);
+    *returnEnd = true;
+    if (scope != NULL) {
+        LLVMBasicBlockRef returnBlock = LLVMAppendBasicBlock(scope, "return_block");
+        LLVMBuildBr(builder, returnBlock);
+        LLVMPositionBuilderAtEnd(builder, returnBlock);
+    }
     LLVMBuildRetVoid(builder);
 }
 
@@ -524,18 +550,19 @@ void parse_procedure_call() {
     match_token(T_LPAREN);
     LLVMValueRef *args = parse_argument_list(entry);
     match_token(T_RPAREN);
-
-    assert_parser("Done parsing a procedure call\n");
     LLVMValueRef proc = LLVMGetNamedFunction(module, entry->name);
-    printf("Param passed to build call is %s\n", LLVMPrintValueToString(args[0]));
-    LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
+    assert_parser("Proc: "); assert_parser(LLVMPrintValueToString(proc)); assert_parser("\n");
+
+    LLVMValueRef procCall = LLVMBuildCall(builder, proc, args, entry->procAST->paramc, "");
+    assert_parser("Done parsing a procedure call\n");
+    assert_parser("Proc call: "); assert_parser(LLVMPrintValueToString(procCall)); assert_parser("\n");
 }
 
 LLVMValueRef *parse_argument_list(EntryAST *proc) {
     assert_parser("Parsing an argument list\n");
 
     EntryNodeAST *params = proc->procAST->params;
-    if (params == NULL) throw_error(E_INCONSISTENT_PARAM_ARGS, look_ahead->lineNo, look_ahead->columnNo);
+    if (params == NULL) return NULL;
 
     EntryNodeAST *node = params;
     int argi = 0, argc = proc->procAST->paramc;
@@ -570,6 +597,11 @@ LLVMValueRef parse_argument(TypeAST *paramType) {
             argType->valueRef = argType->address; // the pointer because what the pointer points to isn't initialized, yet.
         }
     }
+
+    assert_parser("Codegen arg type: "); assert_parser(LLVMPrintTypeToString(argType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen arg value: "); assert_parser(LLVMPrintValueToString(argType->valueRef)); assert_parser("\n");
+    assert_parser("Codegen arg address: "); assert_parser(LLVMPrintValueToString(argType->address)); assert_parser("\n");
+
     return argType->valueRef;
 }
 
@@ -579,16 +611,16 @@ TypeAST *parse_expression() {
     if (look_ahead->type == K_NOT) {
         match_token(K_NOT);
         invertNot = true;
-
     }
 
     TypeAST *expType = parse_arith_op();
     expType = parse_expression_arith_op(expType);
-    if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not");
+    if (invertNot) expType->valueRef = LLVMBuildNot(builder, expType->valueRef, "not_expression");
 
     assert_parser("Done parsing an expression\n");
     assert_parser("Expression type is: "); assert_parser(print_type(expType->typeClass)); assert_parser("\n");
-    assert_parser("Code gen exp: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
+    assert_parser("Codegen expression type: "); assert_parser(LLVMPrintTypeToString(expType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen expression value: "); assert_parser(LLVMPrintValueToString(expType->valueRef)); assert_parser("\n");
 
     return expType;
 }
@@ -644,6 +676,8 @@ TypeAST *parse_arith_op() {
     TypeAST *arithOpType = parse_relation();
     arithOpType = parse_arith_op_relation(arithOpType);
     assert_parser("Done parsing an arithmetic operation\n");
+    assert_parser("Codegen arith op type: "); assert_parser(LLVMPrintTypeToString(arithOpType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen arith op value: "); assert_parser(LLVMPrintValueToString(arithOpType->valueRef)); assert_parser("\n");
     return arithOpType;
 }
 
@@ -661,7 +695,7 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildAdd(builder, relationType1->valueRef, relationType2->valueRef, "add");
-            assert_parser("Code gen add: "); assert_parser(LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen add: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -669,11 +703,11 @@ TypeAST *parse_arith_op_relation(TypeAST *relationType1) {
             match_token(T_MINUS);
             check_int_float_type(relationType1->typeClass);
 
-            relationType1 = parse_relation();
+            relationType2 = parse_relation();
             check_int_float_type(relationType2->typeClass);
 
             valueRef = LLVMBuildSub(builder, relationType1->valueRef, relationType2->valueRef, "sub");
-            assert_parser("Code gen sub: "); assert_parser(LLVMPrintValueToString(valueRef));
+            assert_parser("Code gen sub: "); assert_parser(LLVMPrintValueToString(valueRef)); assert_parser("\n");
 
             arithOpType = parse_arith_op_relation(relationType1);
             break;
@@ -698,6 +732,8 @@ TypeAST *parse_relation() {
     relationType = parse_relation_term(relationType);
     assert_parser("Done parsing a relation\n");
     assert_parser("Relation type is: "); assert_parser(print_type(relationType->typeClass)); assert_parser("\n");
+    assert_parser("Codegen relation type: "); assert_parser(LLVMPrintTypeToString(relationType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen relation value: "); assert_parser(LLVMPrintValueToString(relationType->valueRef)); assert_parser("\n");
     return relationType;
 }
 
@@ -705,7 +741,6 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
     TypeAST *termType2 = NULL;
     TypeAST *relationType = NULL;
     LLVMValueRef valueRef = termType1->valueRef;
-    assert_parser("Relation term before: "); assert_parser(LLVMPrintValueToString(valueRef));
 
     TokenType binOp = look_ahead->type;
     switch(binOp) {
@@ -812,7 +847,6 @@ TypeAST *parse_relation_term(TypeAST *termType1) {
 
     relationType->typeRef = termType1->typeRef;
     relationType->valueRef = valueRef;
-    assert_parser("Relation term after: "); assert_parser(LLVMPrintValueToString(valueRef));
 
     return relationType;
 }
@@ -823,6 +857,8 @@ TypeAST *parse_term() {
     termType = parse_term_factor(termType);
     assert_parser("Done parsing a term\n");
     assert_parser("Term type is: "); assert_parser(print_type(termType->typeClass)); assert_parser("\n");
+    assert_parser("Codegen term type: "); assert_parser(LLVMPrintTypeToString(termType->typeRef)); assert_parser("\n");
+    assert_parser("Codegen term value: "); assert_parser(LLVMPrintValueToString(termType->valueRef)); assert_parser("\n");
     return termType;
 }
 
@@ -920,9 +956,14 @@ TypeAST *parse_factor() {
             break;
         case T_MINUS: // [-] <name> | [-] <number>
             match_token(T_MINUS);
-            // factorAST = parse_factor();
-            // if (factorType == TC_INT) current_token->val.intVal = -look_ahead->val.intVal;
-            // else if (factorType == TC_FLOAT) current_token->val.floatVal = -look_ahead->val.floatVal;
+            typeAST = parse_factor();
+            factorType = typeAST->typeClass;
+            if (factorType == TC_INT) {
+                value = LLVMBuildNeg(builder, typeAST->valueRef, "factor_neg_int");
+            } else if (factorType == TC_FLOAT) {
+                value = LLVMBuildFNeg(builder, typeAST->valueRef, "factor_neg_float");
+            }
+            address = typeAST->address;
             break;
         case T_IDENTIFIER: // <name> ::= <identifier> [ [ <expression> ] ]
             match_token(T_IDENTIFIER);
@@ -932,11 +973,9 @@ TypeAST *parse_factor() {
 
             if (factorAST->typeAST->sizeRef != NULL) { // an array so parse the index
                 LLVMValueRef indexValue = parse_indexes(), arrayIndex = NULL;
-                if (indexValue == NULL) {
-                    arrayIndex = LLVMConstInt(LLVMInt32Type(), 0, false);
-                } else {
-                    arrayIndex = indexValue;
-                }
+
+                if (indexValue == NULL) { arrayIndex = LLVMConstInt(LLVMInt32Type(), 0, false);
+                } else { arrayIndex = indexValue;}
 
                 if (LLVMGetTypeKind(factorAST->typeAST->typeRef) == LLVMArrayTypeKind) {
                     LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), arrayIndex };
@@ -983,5 +1022,6 @@ TypeAST *parse_factor() {
     assert_parser(LLVMPrintTypeToString(typeAST->typeRef));
     assert_parser(", value ");
     assert_parser(LLVMPrintValueToString(typeAST->valueRef));
+    assert_parser("\n");
     return typeAST;
 }

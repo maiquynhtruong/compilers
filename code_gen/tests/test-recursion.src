@@ -1,0 +1,14 @@
+PROGRAM test_recursion IS
+procedure recursion(integer level in)
+// was throwing error seg fault here when integer level was declared locally. Not good?
+    begin
+        if (level >= 3) then return; end if;
+        putString("recursion level: ");
+        putInteger(level);
+        level := level + 1;
+        recursion(level);
+    end procedure;
+
+    begin // where does it "begin" belong to??
+        recursion(0);
+    end program.
