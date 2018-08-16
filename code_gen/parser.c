@@ -395,7 +395,6 @@ TypeAST *parse_destination() {
 
     assert_parser("Done parsing a destination\n");
     assert_parser("Destination type is: "); assert_parser(print_type(destType->typeClass)); assert_parser("\n");
-    // assert_parser("Codegen dest address: "); assert_parser(LLVMPrintValueToString(destType->address)); assert_parser("\n");
     return destType;
 }
 
@@ -974,11 +973,9 @@ TypeAST *parse_factor() {
 
             if (factorAST->typeAST->sizeRef != NULL) { // an array so parse the index
                 LLVMValueRef indexValue = parse_indexes(), arrayIndex = NULL;
-                if (indexValue == NULL) {
-                    arrayIndex = LLVMConstInt(LLVMInt32Type(), 0, false);
-                } else {
-                    arrayIndex = indexValue;
-                }
+
+                if (indexValue == NULL) { arrayIndex = LLVMConstInt(LLVMInt32Type(), 0, false);
+                } else { arrayIndex = indexValue;}
 
                 if (LLVMGetTypeKind(factorAST->typeAST->typeRef) == LLVMArrayTypeKind) {
                     LLVMValueRef indices[] = { LLVMConstInt(LLVMInt32Type(), 0, false), arrayIndex };
