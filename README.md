@@ -1,7 +1,7 @@
 # Compilers
 
 ## Architecture and documentation
-Please check out the [wiki](https://github.com/maiquynhtruong/compilers/wiki) for more documentation and **lessons learned**!
+[**Please check out the wiki**](https://github.com/maiquynhtruong/compilers/wiki) for more documentation and **lessons learned**!
 
 The main purpose of this project is to learn more about compiler. Therefore, I try my best to create a good knowledge base in the wiki that not only documents the code but also the lessons I've learned in the process. I hope this project could be helpful for others in the future, especially those who want to use LLVM C API but struggle with the lack of documentation from the main website.
 
