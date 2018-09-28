@@ -1,5 +1,11 @@
 # Compilers
 
+## Architecture and documentation
+Please check out the [wiki](https://github.com/maiquynhtruong/compilers/wiki) for more documentation and **lessons learned**!
+
+The main purpose of this project is to learn more about compiler. Therefore, I try my best to create a good knowledge base in the wiki that not only documents the code but also the lessons I've learned in the process. I hope this project could be helpful for others in the future, especially those who want to use LLVM C API but struggle with the lack of documentation from the main website.
+
+## Overview
 Final Project for Compiler Design class in Spring 2018. The project is to build a simple recursive decent with one lookahead (LL(1)) compiler from scratch (without using external compiler frontend tools such as flex or bison). The file `projectDescription.pdf` gives more details about the project.
 
 This compiler compiles a made-up language. The file `projectLanguageDescription.pdf` in the root folder specifies the grammar and semantics of the language. Some example code in this language can be found in `code_gen/tests` folder.
@@ -54,11 +60,6 @@ Debugging information is displayed by calling:
 
 
 These functions are declared in the `code_gen/error.h` file. Therefore, in order to turn on or off debugging info, uncomment/comment their implementations in the file `code_gen/error.c`.
-
-## Architecture and documentation
-Please check out the [wiki](https://github.com/maiquynhtruong/compilers/wiki) for more documentation and **lessons learned**!
-
-The main purpose of this project is to learn more about compiler. Therefore, I try my best to create a good knowledge base in the wiki that not only documents the code but also the lessons I've learned in the process. I hope this project could be helpful for others in the future, especially those who want to use LLVM C API but struggle with the lack of documentation from the main website.
 
 ## Contributing and Questions
 Feel free to create issues and make pull requests :)
